@@ -1,5 +1,5 @@
-# tmis-version-1-0
-Version 1.0 of the Teacher's Management Information Service (TMIS) project.
+# tmis-version-1-1
+Version 1.1 of the Teacher's Management Information Service (TMIS) project.
 
 1. To setup this website on your machine, make sure you have the following:
 a. MySQL service
