@@ -1,0 +1,48 @@
+/* Functionality to format and show pagination*/
+.paginationdiv {
+	border-left: solid 1px #DDD;
+	border-right: solid 1px #DDD;
+	display:inline-block;
+	color: #2C9FD1;
+	font-weight: bold;
+}
+
+
+
+.paginationdiv div {
+	border-top: solid 1px #DDD;
+	border-bottom: solid 1px #DDD;
+	padding: 5px 10px 5px 10px;
+	cursor: pointer;
+	display:inline-block;
+}
+
+
+.paginationdiv div:not(:first-child):not(:nth-child(2)) {
+	border-left: solid 1px #DDD;
+}
+
+
+.paginationdiv a {
+	color: #2C9FD1;
+	text-decoration:none;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:14px;
+	font-weight: bold;
+}
+
+.paginationdiv .selected {
+	background-color: #2C9FD1;
+	color: #FFF;
+	font-weight: 900;
+}
+
+.paginationdiv .previousbtn {
+	border-left: 0px;
+}
+
+.paginationlist {
+	padding: 2px;
+	margin-bottom: 10px;
+	min-height: 60px;
+}
