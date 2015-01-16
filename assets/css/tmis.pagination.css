@@ -1,17 +1,27 @@
 /* Functionality to format and show pagination*/
 .paginationdiv {
-	border-left: solid 1px #DDD;
-	border-right: solid 1px #DDD;
+	border-left: solid 2px #00688C;
+	border-right: solid 2px #00688C;
 	display:inline-block;
-	color: #2C9FD1;
+	color: #00688C;
 	font-weight: bold;
+	
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+	-webkit-border-bottom-right-radius: 5px;
+	
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	-webkit-border-top-left-radius: 5px;
+	-webkit-border-bottom-left-radius: 5px;
 }
 
 
 
 .paginationdiv div {
-	border-top: solid 1px #DDD;
-	border-bottom: solid 1px #DDD;
+	border-top: solid 2px #00688C;
+	border-bottom: solid 2px #00688C;
 	padding: 5px 10px 5px 10px;
 	cursor: pointer;
 	display:inline-block;
@@ -19,7 +29,7 @@
 
 
 .paginationdiv div:not(:first-child):not(:nth-child(2)) {
-	border-left: solid 1px #DDD;
+	border-left: solid 2px #00688C;
 }
 
 
@@ -32,7 +42,7 @@
 }
 
 .paginationdiv .selected {
-	background-color: #2C9FD1;
+	background-color: #00688C;
 	color: #FFF;
 	font-weight: 900;
 }
@@ -45,4 +55,18 @@
 	padding: 2px;
 	margin-bottom: 10px;
 	min-height: 60px;
+}
+
+.nextbtn {
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+	-webkit-border-bottom-right-radius: 5px;
+}
+
+.previousbtn {
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	-webkit-border-top-left-radius: 5px;
+	-webkit-border-bottom-left-radius: 5px;
 }

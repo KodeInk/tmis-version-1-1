@@ -35,7 +35,7 @@
 	
 	define('BASE_URL', 'http://localhost:8888/tmis/');#Set to HTTPS:// if SECURE_MODE = TRUE
 	
-	define('RETRIEVE_URL_DATA_IGNORE', 4);#The starting point to obtain the passed url data
+	define('RETRIEVE_URL_DATA_IGNORE', 3);#The starting point to obtain the passed url data
 	
 	define('SITE_TITLE', "TMIS");
 		
@@ -209,13 +209,13 @@
  * EMAIL SETTINGS
  *---------------------------------------------------------------
  */
-	define('SMTP_HOST', "smtp.1and1.com");
+	define('SMTP_HOST', "localhost");
 	
 	define('SMTP_PORT', "25");
 	
-	define('SMTP_USER', "_SMTP_USER_HERE_"); 
+	define('SMTP_USER', "root"); 
 	
-	define('SMTP_PASS', "_SMTP_PASS_HERE_");
+	define('SMTP_PASS', "");
 	
 	define('FLAG_TO_REDIRECT', "0");// 1 => Redirect emails to a specific mail id, 
 									// 0 => No need to redirect emails.

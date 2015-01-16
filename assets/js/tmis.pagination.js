@@ -31,10 +31,10 @@ var LOADING_IMG = "loading.gif";
 
 $(function() {
 	//Specify the pagination sizes
-	setPaginationSizes();
+	//setPaginationSizes();
 	
 	//What happens if you click on a pagination div child
-	$(".paginationdiv div").live("click", function(){ 
+	$(".paginationdiv").on("click", "div", function(){ 
 		var parentDiv = $(this).parent('div');
 		//Specify the pages to load at a time
 		var maxPages = !$('#paginationdiv__'+parentDiv.attr('id')+'_maxpages').length? 5 : parseInt($('#paginationdiv__'+parentDiv.attr('id')+'_maxpages').val());

@@ -29,7 +29,7 @@ class Query_reader extends CI_Model
 		$cachedQuery = ENABLE_QUERY_CACHE? get_sys_query($queryCode):'';
 		$queryString = (!empty($cachedQuery) && ENABLE_QUERY_CACHE)? $cachedQuery: $this->get_raw_query_string($queryCode);
 		
-		return !empty($queryString)? $this->populate_template($template, $queryData): $queryString;
+		return !empty($queryString)? $this->populate_template($queryString, $queryData): $queryString;
 	}
 	
 
@@ -104,44 +104,60 @@ class Query_reader extends CI_Model
 		file_put_contents(QUERY_FILE, PHP_EOL.PHP_EOL." function get_sys_query(\$code) { ".PHP_EOL."global \$sysQuery; ".PHP_EOL."return !empty(\$sysQuery[\$code])? \$sysQuery[\$code]: '';".PHP_EOL." }".PHP_EOL, FILE_APPEND); 
 	}
 	
+			
 	
-	# STUB: Get the result count for the given query details 
+	# Simply run a query where no result is expected
+	function run($queryCode, $queryData = array())
+	{
+		return $this->db->query($this->get_query_by_code($queryCode, $queryData));
+	}
+	
+	# Get the result count for the given query details 
 	function get_count($queryCode, $queryData = array())
 	{
-		$count = 0;
-		
-		
-		return $count;
+		return $this->db->query($this->get_query_by_code($queryCode, $queryData))->num_rows();
 	}
 		
 	
-	# STUB: Given the query details, return the result as a single associated array
+	# Given the query details, return the result as a single associated array
 	function get_row_as_array($queryCode, $queryData = array())
 	{
-		$row=array();
-		
-		
-		return $row;
+		return $this->db->query($this->get_query_by_code($queryCode, $queryData))->row_array();
 	}
 			
 	
-	# STUB: Given the query details, return the result as an array of associated arrays
+	# Given the query details, return the result as an array of associated arrays
 	function get_list($queryCode, $queryData = array())
 	{
-		$list = array();
-		
-		
-		return $list;
+		return $this->db->query($this->get_query_by_code($queryCode, $queryData))->result_array();
 	}
 			
 	
-	# STUB: Given the query details that return a single column, return the result as an array
+	# Given the query details that return a single column, return the result as an array
 	function get_single_column_as_array($queryCode, $columnName, $queryData = array())
 	{
 		$list = array();
 		
+		$results = $this->db->query($this->get_query_by_code($queryCode, $queryData))->result_array();
+		# check if the column exists in the returned data
+		if(!empty($results) && !empty($results[0][$columnName]))
+		{
+			foreach($results AS $row)
+			{
+				array_push($list, $row[$columnName]);
+			}
+		}
 		
 		return $list;
+	}
+	
+			
+	
+	# Run an insert query and return the id of the record
+	function add_data($queryCode, $queryData = array())
+	{
+		$this->db->query($this->get_query_by_code($queryCode, $queryData));
+		return $this->db->insert_id();
 	}
 	
 }

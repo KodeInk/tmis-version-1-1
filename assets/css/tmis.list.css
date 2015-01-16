@@ -1,0 +1,47 @@
+/* CSS Document */
+
+.listtable {
+	width: 100%;
+	padding: 0px;
+}
+
+.listtable tr:nth-child(even) {
+	background-color: #F0F0F0;
+}
+
+.listtable tr:nth-child(odd) {
+	background-color: #FFFFFF;
+}
+
+.listtable .rowcontent {
+	padding-bottom: 5px;
+}
+
+.listtable .rowcontent .header {
+	font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif;
+	font-size: 18px;
+	font-weight:600;
+}
+
+.listtable td {
+	padding: 5px 15px 10px 15px;
+}
+
+.listtable .leftnote {
+	display:inline-block;
+	float: left;
+	font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif;
+	font-size: 14px;
+	color:#999999;
+	font-weight:400;
+}
+
+.listtable .rightnote {
+	display:inline-block;
+	float: right;
+	background: url(../../assets/images/bullet.png) no-repeat left center;
+	padding-left: 25px;
+}
+
+
+

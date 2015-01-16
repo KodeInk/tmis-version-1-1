@@ -372,3 +372,40 @@ $(function() {
         });
 });
 
+
+
+
+
+//Refresh the scrollable div to add more information
+$(function() {
+    $('.scroll_refresh_div').bind('scroll', function() {
+        var parentId = $(this).attr('id');
+		//Refresh the list when you reach the end of the list
+		if(($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) && !$('#'+parentId+'_stop_load').length) {
+			//Get the number of items per page
+			var perSection = $('#'+parentId+'_per_section').length ? $('#'+parentId+'_per_section').val() : 10;
+			//The container to hold the extra list HTML
+			$("<div id='"+parentId+"_current' style='display:none;'></div>").insertAfter($('#'+parentId).children("table").last());
+			//How many pages are shown so far
+			var pages = $('#'+parentId+'_pages_shown').val();
+			
+			//Now load the new data list in the previous div
+			updateFieldLayer($('#'+parentId+'_refresh_url').val()+'/p/'+parseInt(pages+1)+'/c/'+perSection+'/l/'+parentId,'','','|'+parentId+'_current','');	
+			
+			
+			//Now refresh all table cell widths to match the last loaded table
+			var tablesInDiv = $('#'+parentId).children('table');
+			var firstTableRow = $('#'+parentId).children('table').first().children('tbody').first().children("tr").first();
+			
+			tablesInDiv.each(function(i){
+				//You do not need to change the first tables
+				if(i > 0){
+					var firstRowCells = $(this).children('tbody').first().children('tr').first().children('td');
+					firstRowCells.each(function(k){
+						$(this).children('div').first().width(firstTableRow.children('td').eq(k).children('div').first().width()); 
+					});
+				}
+			});
+		}
+    })
+});

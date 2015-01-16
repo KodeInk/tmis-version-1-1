@@ -12,12 +12,7 @@ function updateFieldLayer(serverPage,fieldNameArrStr,layerShown,displayLayer,err
 	if(layerShown != "" && layerShown.charAt(0) != "*"){ 
 		var shownLayerObj = document.getElementById(layerShown);
 	}
-	//The * character means that you will first need to hide the layer
-	//The | character means that you will remove the layer after loading of its contents
-	if(displayLayer != "" && displayLayer.charAt(0) != "*" && displayLayer != "_" && displayLayer != "-" && displayLayer.charAt(0) != "|"){ 
-		var displayLayerObj = document.getElementById(displayLayer);
-	}
-	
+
 	var allIn = ""; //To track that all fields are entered
 		
 	//Form the string to be passed to the page div
@@ -70,9 +65,12 @@ function updateFieldLayer(serverPage,fieldNameArrStr,layerShown,displayLayer,err
 			}
 		}
 		
+		//The * character means that you will first need to hide the layer
+		//The | character means that you will remove the layer after loading of its contents
 		if(displayLayer != "" && displayLayer != "_" && displayLayer != "-"){
 			if(displayLayer.charAt(0) != "*" && displayLayer.charAt(0) != "|"){ 
 				//First hide and then show new layer
+				var displayLayerObj = document.getElementById(displayLayer);
 				displayLayerObj.style.visibility="hidden";
 				displayLayerObj.style.height = 0;
 			}
@@ -311,14 +309,12 @@ function getBaseURL()
    var pageURL = document.location.href;
    var urlArray = pageURL.split("/");  
    var BaseURL = urlArray[0]+"//"+urlArray[2]+"/";
-   if(urlArray[2] == 'localhost:8888')
+   //Dev environments have the installation sitting in a separate folder
+   if(urlArray[2] == 'localhost:8888' || urlArray[2] == '54.193.68.70')
    {
-		BaseURL = BaseURL+'clout/';   
+		BaseURL = BaseURL+'tmis/';   
    }
-   else if(urlArray[2] == 'dev.tmis.go.ug')
-   {
-		BaseURL = BaseURL+'/';   
-   }
+   
 
    return BaseURL;
 }
@@ -1522,7 +1518,7 @@ function validateEmail(fieldValue){
 // function used to check email and display message
 function isValidEmail(fieldname, msg) {
 	if (!validateEmail(document.getElementById(fieldname).value)) {
-		if(!empty(msg))
+		if(msg != '')
 		{
 			alert(msg);
 		}
@@ -1834,7 +1830,14 @@ function refreshUserSession(userId, displayDiv)
 	
 }
  
- 
+
+
+// Get the classes on an element
+function getElementClasses(elementId)
+{
+	return $('#'+elementId).attr('class').split(/\s+/);
+}
+
  
  
  
@@ -2202,7 +2205,7 @@ $(function() {
 
 
 
-//Handles search dropdowns
+//Handles file upload fields
 $(function() {
 	$(document).on('click', '.uploadfield input:button', function(){ 
 		var btnId = $(this).attr('id');
@@ -2234,7 +2237,7 @@ $(function() {
 		}
 		if($('#'+fieldId+'__form').attr('action') == '')
 		{
-			$('#'+fieldId+'__form').attr('action', getBaseURL()+"web/documents/upload_file/f/"+folder+"/s/"+fieldId);
+			$('#'+fieldId+'__form').attr('action', getBaseURL()+"documents/upload_file/f/"+folder+"/s/"+fieldId);
 		}
 		updateFieldValue('layerid', fieldId);
 		//Then submit the layer form
@@ -2273,46 +2276,16 @@ $(function() {
 
 
 
-//Refresh the scrollable div to add more information
+//For accepting numbers only in a field
 $(function() {
-    $('.scroll_refresh_div').bind('scroll', function() {
-        var parentId = $(this).attr('id');
-		//Refresh the list when you reach the end of the list
-		if(($(this).scrollTop() + $(this).innerHeight() >= this.scrollHeight) && !$('#'+parentId+'_stop_load').length) {
-			//Get the number of items per page
-			var perSection = $('#'+parentId+'_per_section').length ? $('#'+parentId+'_per_section').val() : 10;
-			//The container to hold the extra list HTML
-			$("<div id='"+parentId+"_current' style='display:none;'></div>").insertAfter($('#'+parentId).children("table").last());
-			//How many pages are shown so far
-			var pages = $('#'+parentId+'_pages_shown').val();
-			
-			//Now load the new data list in the previous div
-			updateFieldLayer($('#'+parentId+'_refresh_url').val()+'/p/'+parseInt(pages+1)+'/c/'+perSection+'/l/'+parentId,'','','|'+parentId+'_current','');	
-			
-			
-			//Now refresh all table cell widths to match the last loaded table
-			var tablesInDiv = $('#'+parentId).children('table');
-			var firstTableRow = $('#'+parentId).children('table').first().children('tbody').first().children("tr").first();
-			
-			tablesInDiv.each(function(i){
-				//You do not need to change the first tables
-				if(i > 0){
-					var firstRowCells = $(this).children('tbody').first().children('tr').first().children('td');
-					firstRowCells.each(function(k){
-						$(this).children('div').first().width(firstTableRow.children('td').eq(k).children('div').first().width()); 
-					});
-				}
-			});
-		}
-    })
+	$('.numbersonly').keyup(function(e){
+    	if (/\D/g.test(this.value))
+    	{
+        	// Filter non-digits from input value.
+       	 	this.value = this.value.replace(/\D/g, '');
+    	}
+	});
 });
-
-
-
-
-	
-
-
 
 
 //For showing a fading message
@@ -2322,7 +2295,7 @@ $(function() {
    	{
 		//hookup the event
 		$('.pagemessage').bind('isVisible', showFadingMessage);
-
+ 
 		//show div and trigger custom event in callback when div is visible
 		$('.pagemessage').show('fast', function(){
     		$(this).trigger('isVisible');
@@ -2332,8 +2305,39 @@ $(function() {
 
 
 //Put the message div on each page
-$(document).ready(function() {
+$( document ).ready(function() {
 	$('body').append('<div id="systemmessage" class="pagemessage"></div>');
 });
 
 
+//Make sure the body space is at least minimum height to fill window
+$(function(){
+	var windowHeight = $(window).height();
+	var bodyTable = $('body table tr');
+	var headerHeight = $('body table tr').eq(0).height() + $('body table tr').eq(1).height() + $('body table tr').eq(2).height();
+	var footerHeight = $('body table tr:last').height();
+	// The 30 at the end removes the top and bottom padding height
+	$('.bodyspace').css('height', (windowHeight - headerHeight - footerHeight)+"px");
+});
+
+
+
+// Initialize the calendars on the page
+$(function() {
+	if($('.datefield').length > 0){
+	$( ".datefield.birthday" ).datepicker({
+		changeMonth: true,
+		changeYear: true,
+		yearRange: "-100:+0"
+	});
+	
+	$( ".datefield" ).datepicker({
+		changeMonth: true,
+		changeYear: true
+	});
+	}
+});
+
+
+
+var http = getHTTPObject();

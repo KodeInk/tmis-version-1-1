@@ -12,49 +12,6 @@
 
 
 
-#A wrapping span to show a required field
-function get_required_field_wrap($requiredFields, $fieldId, $fieldSide='start', $txtMsg='', $showDiv='N')
-{
-	if($showDiv == 'Y')
-	{
-		if($fieldSide == 'start'){
-			return "<div class='required_fields' id='".$fieldId."__fwrap' style='padding:5px;'>";
-		}
-		else if($fieldSide == 'end')
-		{
-			return "</div>";
-		}
-	}
-	else
-	{
-		$start = "<table border='0' cellspacing='0' cellpadding='5'>";
-		if($txtMsg != ''){
-			$start .= "<tr><td  style='font-weight: bold; color: #FF0000; background-color:#FFFF99;'>".$txtMsg."</td></tr>";
-		}
-	
-		$start .= "<tr><td style='font-weight: bold; color:#000000; background-color:#FFFF99;' nowrap>";
-		$end = "</td></tr></table>";
-	
-		if(in_array($fieldId, $requiredFields)){
-			if($fieldSide == 'start'){
-				return $start;
-			}
-			else if($fieldSide == 'end')
-			{
-				return $end;
-			}
-			else
-			{
-				return '';
-			}
-		}
-		else
-		{
-			return '';
-		}
-	}
-}
-
 
 #Function to filter forwarded data to get only the passed variables
 #In addition, it picks out all non-zero data from a URl array to be passed to a form
@@ -345,10 +302,10 @@ function is_valid_password($password, $validationSettings=array())
 
 
 # Returns the passed message with the appropriate formating based on whether it is an error or not
-function format_notice($msg)
+function format_notice($obj, $msg)
 {
-	$style = "border-radius: 5px 5px 5px 5px;
-	-moz-border-radius: 5px 5px 5px 5px;";
+	$style = "border-radius: 5px;
+	-moz-border-radius: 5px;";
 	
 	if(is_array($msg))
 	{
@@ -370,6 +327,8 @@ function format_notice($msg)
 		$msgString = "<table width='100%' border='0' cellspacing='0' cellpadding='5' style=\"".$style."border:0px;\">".
 						"<tr><td class='error' style='border:0px;' width='1%' nowrap>".str_replace("ERROR:", "<img src='".base_url()."assets/images/error.png'  border='0'/></td><td  width='99%' class='error'  style='font-size:13px;border:0px;' valign='middle'>", $msg)."</td></tr>".
 					  "</table>";
+		
+		$obj->logger->add_event(array('log_code'=>'system_error', 'result'=>'fail', 'details'=>"msg=".$msg));
 	}
 	
 	#Normal Message
@@ -714,20 +673,17 @@ function format_phone_number($number, $country='USA')
 
 
 
-	/**
-	 * This function converts a binary string to hexadecimal characters.
-	 *
-	 * @param $bytes  Input string.
-	 * @return String with lowercase hexadecimal characters.
-	 */
-	function string_to_hex($bytes) 
-	{
-		$ret = '';
-		for($i = 0; $i < strlen($bytes); $i++) {
-			$ret .= sprintf('%02x', ord($bytes[$i]));
-		}
-		return $ret;
+# This function converts a binary string to hexadecimal characters.
+# @param $bytes  Input string.
+# @return String with lowercase hexadecimal characters.
+function string_to_hex($bytes) 
+{
+	$ret = '';
+	for($i = 0; $i < strlen($bytes); $i++) {
+		$ret .= sprintf('%02x', ord($bytes[$i]));
 	}
+	return $ret;
+}
 
 
 #Function to generate random bytes
@@ -949,6 +905,20 @@ function remove_string_special_characters($string, $allowSpaces=FALSE)
 	}
 }
 
+
+# Format the date according to instructions given
+function format_date($dateString, $instruction)
+{
+	$date = $dateString;
+	switch($instruction)
+	{
+		case "YYYY-MM-DD":
+			$date = date("YY-MM-DD", strtotime($dateString));
+		break;
+		
+	}
+	return $date;
+}
 
 
 #Function to provide the difference of two dates in a desired format
@@ -1296,7 +1266,7 @@ function get_string_between($string, $start, $end)
 #Function to get a slow loading page link
 function get_slow_link_url($url, $title, $loadingMessage='')
 {
-	return base_url().'web/page/load_slow_page/p/'.encrypt_value($url).'/t/'.encrypt_value($title).(!empty($loadingMessage)? '/m/'.encrypt_value($loadingMessage): '');
+	return base_url().'page/load_slow_page/p/'.encrypt_value($url).'/t/'.encrypt_value($title).(!empty($loadingMessage)? '/m/'.encrypt_value($loadingMessage): '');
 }
 
 
@@ -1350,6 +1320,36 @@ function array_key_contains($keyPart, $array)
 	return array('bool'=>$exists, 'key'=>$theKey);
 }
 
+
+
+# Generates an 8-character temporary password for the user - this is a one time case and system does not keep un-encrypted copy
+function generate_temp_password()
+{
+	$numbers = '0123456789';
+	$letters = 'abcdefghijklmnopqrstuvwxyz';
+	$characters = '_!-*.';
+	$time = strtotime('now');
+	
+	$password = array();
+	$password[0] = $letters[rand(0, strlen($letters)-1)];
+	$password[1] = $letters[rand(0, strlen($letters)-1)];
+	$password[2] = $numbers[rand(0, strlen($numbers)-1)];
+	$password[3] = $characters[rand(0, strlen($characters)-1)];
+	$password[4] = $time[rand(0, strlen($time)-1)];
+	$password[5] = strtoupper($letters[rand(0, strlen($letters)-1)]);
+	$password[6] = $letters[rand(0, strlen($letters)-1)];
+	$password[7] = $time[rand(0, strlen($time)-1)];
+	
+	return implode('',$password);
+}
+
+
+
+# Generate a verification code for a new person
+function generate_person_code($id)
+{
+	return strrev(strtoupper(generate_random_bytes(2).dechex($id)));
+}
 
 
 

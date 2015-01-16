@@ -13,10 +13,7 @@ class Logger extends CI_Model
 	# STUB: Add an event
 	function add_event($eventDetails)
 	{
-		$isAdded = false;
-		
-		
-		return $isAdded;
+		return $this->query_reader->run('add_event_log', array('log_code'=>$eventDetails['log_code'], 'result'=>$eventDetails['result'], 'details'=>$eventDetails['details']."url=".uri_string()."|ipaddress=".$this->input->ip_address()."|browser=".$this->agent->browser()."--".$this->agent->version()."--".$this->agent->platform()));
 	}
 		
 		

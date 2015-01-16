@@ -44,10 +44,15 @@ class Validator extends CI_Model
 	
 	
 	# STUB: Check if this is a valid confirmation code
-	function is_valid_confirmation_code($code)
+	function is_valid_confirmation_code($personId, $code)
 	{
 		$isValid = false;
 		
+		if(strlen($code) > 2)
+		{
+			$hexCode = strrev(substr($code, 0, (strlen($code)-2))); 
+			$isValid = (hexdec($hexCode) == $personId)? true: false;
+		}
 		
 		return $isValid;
 	}

@@ -20,27 +20,42 @@ class Messenger extends CI_Model {
 	
 	
 	
-	#function to get the recipients of a given message
-	function get_message_recipients($msgId)
-	{
-		$recipients = array();
-		$receivedBy = $this->db->query($this->Query_reader->get_query_by_code('get_recipients_for_msg', array('messageid'=>$msgId )));
-		$recipientsRows = $receivedBy->result_array();
-		foreach($recipientsRows AS $row)
-		{
-			array_push($recipients, $row['userid']);
-		}
-			
-		return $recipients;
-	}
 	
 	
-	
-	
-	# STUB: Send email message
+	# Send email message
 	function send_email_message($userId, $messageDetails)
 	{
 		$isSent = false;
+		
+		# 1. If email address is not provided, then fetch it using the user id
+		if(empty($messageDetails['emailaddress'])) $email = $this->query_reader->get_row_as_array('get_user_email', array('user_id'=>$userId));
+		$emailTo = !empty($messageDetails['emailaddress'])? $messageDetails['emailaddress']: (!empty($email['emailaddress'])? $email['emailaddress']: "");
+		
+		if(!empty($emailTo))
+		{
+			# 2. Fetch the message template and populate the necessary details
+			$template = $this->get_template_by_code($messageDetails['code']);
+			$emailMessage = $this->populate_template($template, $messageDetails);
+			# 3. Send message
+			if(!empty($emailMessage['string']))
+			{
+				$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
+				$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
+				if($template['copy_admin'] == 'Y') $this->email->bcc(SITE_ADMIN_MAIL);
+			
+				$this->email->subject($emailMessage['subject']);
+				$this->email->message($emailMessage['details']);
+			
+				if(isset($messageDetails['fileurl']) && trim($messageDetails['fileurl']) != '')
+				{
+					$this->email->attach($messageDetails['fileurl']);
+				}
+				#Use this line to test sending of email without actually sending it
+				#return $this->email->print_debugger();
+		
+				$isSent = $this->email->send();
+			}
+		}
 		
 		return $isSent;
 	}
@@ -69,22 +84,28 @@ class Messenger extends CI_Model {
 			
 	
 	
-	# STUB: Get a template of the message given its code
+	# Get a template of the message given its code
 	function get_template_by_code($code)
 	{
-		$template = "";
-		
-		
-		return $template;
+		return $this->query_reader->get_row_as_array('get_message_template', array('message_type'=>$code));
 	}	
 				
 	
 	
-	# STUB: Populate the template to generate the actual message
+	# Populate the template to generate the actual message
 	function populate_template($template, $values=array())
 	{
-		$message = "";
-		
+		$message = array();
+		if(!empty($template['subject']) && !empty($template['details']))
+		{
+			# go through all passed values and replace where they appear in the template text
+			foreach($values AS $key=>$value)
+			{
+				$template['subject'] = str_replace('_'.strtoupper($key).'_', html_entity_decode($value, ENT_QUOTES), $template['subject']);
+				$template['details'] = str_replace('_'.strtoupper($key).'_', html_entity_decode($value, ENT_QUOTES), $template['details']);
+			}
+			$message = array('subject'=>$template['subject'], 'details'=>$template['details']);
+		}
 		
 		return $message;
 	}
