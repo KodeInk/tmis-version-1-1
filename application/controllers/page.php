@@ -192,9 +192,8 @@ class Page extends CI_Controller
 		switch($data['type'])
 		{
 			case 'address':
-				$data = !empty($_POST)? array_merge($data, $_POST): $data;
-				#Placeholder function
-				#WARNING: this has security issues
+				$data = !empty($_POST)? array_merge($data, $this->input->post(NULL, TRUE)): $data;
+				# Verify and clean up the fields and put them in the session for use layer
 				process_fields($this, $data);
 			break;
 			
@@ -206,6 +205,9 @@ class Page extends CI_Controller
 		$data['area'] = "basic_msg";
 		$this->load->view('addons/basic_addons', $data);
 	}
+	
+	
+	
 }
 
 /* End of controller file */

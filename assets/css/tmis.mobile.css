@@ -4,9 +4,6 @@
 	display:block;
 }
 
-#registration_form, .loginform {
-	display:none;
-}
 
 #mobilebuttons {
 	width: 100%;
@@ -43,4 +40,8 @@
 
 .leftcolumn .h1 {
 	font-size: 22px;
+}
+
+.loginform, #registration_form {
+	display:none;
 }

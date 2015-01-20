@@ -37,7 +37,7 @@ class Messenger extends CI_Model {
 			$template = $this->get_template_by_code($messageDetails['code']);
 			$emailMessage = $this->populate_template($template, $messageDetails);
 			# 3. Send message
-			if(!empty($emailMessage['string']))
+			if(!empty($emailMessage['details']))
 			{
 				$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
 				$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
@@ -51,7 +51,7 @@ class Messenger extends CI_Model {
 					$this->email->attach($messageDetails['fileurl']);
 				}
 				#Use this line to test sending of email without actually sending it
-				#return $this->email->print_debugger();
+				#echo $this->email->print_debugger();
 		
 				$isSent = $this->email->send();
 			}
@@ -98,6 +98,9 @@ class Messenger extends CI_Model {
 		$message = array();
 		if(!empty($template['subject']) && !empty($template['details']))
 		{
+			# Order keys by length - longest first
+			array_multisort(array_map('strlen', array_keys($values)), SORT_DESC, $values);
+			
 			# go through all passed values and replace where they appear in the template text
 			foreach($values AS $key=>$value)
 			{

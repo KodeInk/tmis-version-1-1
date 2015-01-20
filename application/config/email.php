@@ -4,7 +4,9 @@ $config['mailtype'] = 'html';
 
 $config['protocol'] = 'sendmail';
 
-$config['charset']   = 'utf-8'; 
+$config['charset']  = 'utf-8'; 
+
+$config['newline']  = "\r\n"; 
 
 $config['flag_to_redirect'] = FLAG_TO_REDIRECT; 
 

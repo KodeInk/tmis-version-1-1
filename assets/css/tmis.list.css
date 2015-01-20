@@ -45,3 +45,53 @@
 
 
 
+
+
+/* ----------------------------------------------------------------------------------------------- */
+/* START: Results list table formatting */
+/* ----------------------------------------------------------------------------------------------- */
+
+.resultslisttable {
+	width: 100%;
+}
+.resultslisttable tr td {
+	padding: 5px;
+	vertical-align:top;
+}
+.resultslisttable tr:first-child td {
+	font-style: italic;
+}
+.resultslisttable tr:not(:first-child) td {
+	border-top: 1px solid #EAECEE;
+}
+
+.resultslisttable.preview tr:not(:first-child) td:first-child, .resultslisttable.preview tr:not(:first-child) td:last-child {
+	display: none;
+}
+
+.resultslisttable.editable tr:not(:first-child) td:first-child {
+	background: url(../../assets/images/edit_icon.png) no-repeat center center;
+	width: 39px;
+	height: 39px;
+	cursor:pointer;
+}
+.resultslisttable.editable tr:not(:first-child) td:last-child {
+	background: url(../../assets/images/remove_icon_bg.png) no-repeat center center;
+	width: 39px;
+	height: 39px;
+	cursor:pointer;
+}
+
+.resultslisttable tr td div, .resultslisttable.editable tr td div {
+	vertical-align:top;
+	width: 30%;
+}
+
+
+/* ----------------------------------------------------------------------------------------------- */
+/* END: Results list table formatting */
+/* ----------------------------------------------------------------------------------------------- */
+
+
+
+

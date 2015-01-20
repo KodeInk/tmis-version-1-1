@@ -178,7 +178,7 @@ $(function() {
 				&& (($(this).attr('type') == 'radio' && !$("input:radio[name='"+$(this).attr('name')+"']").is(":checked")) 
 				|| ($(this).attr('type') != 'radio' && $(this).attr('type') != 'checkbox' && (
 						($(this).hasClass('email') && !isValidEmail($(this).attr('id'),''))
-						|| $(this).val().length < 3
+						|| $(this).val().length < 2
 				)))
 			){
 				//Keep track of the first field to be found empty so that you focus the user to that form
@@ -250,20 +250,140 @@ $(function() {
 	
 	
 	// --------------------------------------------------------------------------------------------------------
+	// Micro form functionality - picks fields in a zone with the class, submits them to a url specified in 
+	// action field and shows the result in the specified results div.
+	// --------------------------------------------------------------------------------------------------------
+	$(document).on('click', '.microform button', function(e){
+		// Collect all fields to process
+		var formContainer = $(this).parents('.microform').first();
+		var inputs = formContainer.find('input, textarea');
+		var activate = true;
+		
+		inputs.each(function(){
+			if(!$(this).hasClass('optional') && $(this).hasClass('textfield') && $(this).val().length < 1)
+			{
+				activate = false; 
+				return false;
+			}
+		});
+		
+		//Proceed if the required fields are all filled
+		if(inputs.length > 0 && activate)
+		{
+			var action = formContainer.find('#action').first().val();
+			var resultsDiv = formContainer.find('#resultsdiv').first().val();
+			$.ajax({
+        		type: "POST",
+       			url: action,
+      			data: inputs.serializeArray(),
+      			beforeSend: function() {
+           			//Do nothing
+				},
+      	 		success: function(data) {
+		   			$("#"+resultsDiv).html(data);
+					//Clear the micro form for the next entry
+					inputs.each(function(){
+						if($(this).attr('type') != 'hidden'){
+							$(this).val('').removeAttr('checked').removeAttr('selected');
+						}
+					});
+				}
+   			});
+		}
+		else
+		{
+			showServerSideFadingMessage('Enter all required fields to continue.');
+		}
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------------------------------
+	// Handling results list table actions
+	// --------------------------------------------------------------------------------------------------------
+	$(document).on('click', '.resultslisttable.editable .edit', function(e){	
+		// 1. Get the id of the clicked item from the row
+		var itemId = $(this).parents('tr').first().attr('id');
+		
+		// Clear color from all sibling rows and then color the row being edited
+		$(this).parents('.resultslisttable').first().find('tr').each(function(){
+			$(this).css('background-color', '');
+		});
+		$('#'+itemId).css('background-color', '#FFDF7D');
+		
+		// 2. Find the editing form
+		var resultsDivId = $(this).parents('.resultslisttable').first().parent('div').attr('id');
+		var editingFormDiv = $('.bodyspace').find('input[value="'+resultsDivId+'"]').first().parents('.microform').first().parent('div').attr('id');
+		var listType = editingFormDiv.split('__').pop();
+		
+		// 3. Populate the editing form with the appropriate values from the session
+		updateFieldLayer(getBaseURL()+"register/edit_list_item/type/"+listType+"/item_id/"+itemId,'','',editingFormDiv,'');
+		
+	});
+	
+	
+	
+	$(document).on('click', '.resultslisttable.editable .delete', function(e){	
+		// 1. Get the id of the clicked item from the row
+		var itemId = $(this).parents('tr').first().attr('id');
+		
+		// 2. Find the editing form
+		var resultsDivId = $(this).parents('.resultslisttable').first().parent('div').attr('id');
+		var editingFormDiv = $('.bodyspace').find('input[value="'+resultsDivId+'"]').first().parents('.microform').first().parent('div').attr('id');
+		var listType = editingFormDiv.split('__').pop();
+		
+		//Ask user to confirm if they want to delete the item
+		if(window.confirm('Are you sure you want to delete this '+listType+'?'))
+		{
+			updateFieldLayer(getBaseURL()+"register/delete_list_item/type/"+listType+"/item_id/"+itemId,'','',resultsDivId,'');
+		}
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------------------------------
 	// Some unique button actions
 	// --------------------------------------------------------------------------------------------------------
 	$(document).on('click', '#backtostep1', function(e){
 		document.location.href = getBaseURL()+"register/step_one";
 	});
+	$(document).on('click', '#editstep1', function(e){
+		document.location.href = getBaseURL()+"register/step_one/action/edit_preview";
+	});
 	$(document).on('click', '#backtostep2', function(e){
 		document.location.href = getBaseURL()+"register/step_two";
 	});
-	$(document).on('click', '#step2save', function(e){
+	$(document).on('click', '#editstep2', function(e){
+		document.location.href = getBaseURL()+"register/step_two/action/edit_preview";
+	});
+	$(document).on('click', '#backtostep3', function(e){
+		document.location.href = getBaseURL()+"register/step_three";
+	});
+	$(document).on('click', '#editstep3', function(e){
+		document.location.href = getBaseURL()+"register/step_three/action/edit_preview";
+	});
+	$(document).on('click', '#step1preview, #step2preview, #step3preview', function(e){
+		// Add a field to say that we are just editing for preview
+		$(this).after("<input type='hidden' id='justpreview' name='justpreview' value='Y' />");
+		$(this).parents('form').first().submit();
+	});
+	$(document).on('click', '#step2save, #step3save', function(e){
 		// Add a field to say that we are just saving the form
 		$(this).after("<input type='hidden' id='justsaving' name='justsaving' value='Y' />");
 		$(this).parents('form').first().submit();
 	});
-	$('#subjectlabel').width($('#institutionlabel').width());
 	
 	
 	
@@ -281,14 +401,14 @@ $(function() {
 function postFormFromLayer(formId)
 {
 	// Collect all fields to process
-	var $inputs = $('#'+formId).find('input');
+	var inputs = $('#'+formId).find('input');
 	var fieldId = formId.replace(/\__form/g, '');
 	var formType = $("#"+fieldId+'__type').val();
 	// Process the form data submitted
 	$.ajax({
         type: "POST",
        	url: getBaseURL()+"page/get_layer_form_values/type/"+formType,
-      	data: $inputs.serializeArray(),
+      	data: inputs.serializeArray(),
       	beforeSend: function() {
            	//Do nothing
 		},

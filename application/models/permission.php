@@ -10,11 +10,37 @@
 class Permission extends CI_Model
 {
 	
-	# STUB: Get group permission list
+	# Get permission list of a given user id
+	function get_user_permission_list($userId)
+	{
+		# What's the user's permission group?
+		if($this->native_session->get('permission_group'))
+		{
+			$userPermissionGroup = $this->native_session->get('permission_group');
+		}
+		else
+		{
+			$user = $this->query_reader->get_row_as_array('get_user_by_id', array('user_id'=>$userId));
+			$userPermissionGroup = $user['permission_group_id'];
+		}
+		
+		return $this->get_group_permission_list($userPermissionGroup);
+	}
+	
+	
+	
+	# Get group permission list
 	function get_group_permission_list($groupId)
 	{
 		$permissions = array();
+		$group = $this->query_reader->get_row_as_array('get_group_by_id', array('group_id'=>$groupId));
 		
+		# Only proceed if the group exists
+		if(!empty($group))
+		{
+			$this->native_session->set('permission_group_name', $group['name']);
+			$permissions = $this->query_reader->get_single_column_as_array('get_group_permissions', 'code', array('group_id'=>$groupId));
+		}
 		
 		return $permissions;
 	}

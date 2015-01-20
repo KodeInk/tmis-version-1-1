@@ -105,7 +105,12 @@
      <tr>
      <td><button type="button" name="backtostep1" id="backtostep1" class="greybtn back">BACK</button></td>
      <td class='spacefiller'>&nbsp;</td>
-     <td><button type="button" name="step2save" id="step2save" class="greybtn">SAVE &amp; EXIT</button></td>
+     <td><?php 
+	 if($this->native_session->get('just_preview_2')){
+		 echo "<button type='button' name='step2preview' id='step2preview' class='greybtn'>SAVE &amp; PREVIEW</button>";
+	 } else {
+		 ?><button type="button" name="step2save" id="step2save" class="greybtn">SAVE &amp; EXIT</button>
+<?php } ?></td>
      <td><button type="submit" name="step2" id="step2" class="btn next">NEXT</button></td>
      </tr>
      <tr>

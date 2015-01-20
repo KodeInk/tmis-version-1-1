@@ -11,10 +11,13 @@ if(!empty($area) && $area == "show_bigger_image")
 
 
 
+
+
 else if(!empty($area) && $area == "basic_msg" && !empty($msg)) 
 {
 	$tableHTML .= format_notice($msg);
 }
+
 
 
 
@@ -47,6 +50,7 @@ else if(!empty($area) && $area == "address_field_form")
 
 
 
+
 else if(!empty($area) && $area == "dropdown_list")
 {
 	$tableHTML .= !empty($list)? $list: "";
@@ -54,6 +58,128 @@ else if(!empty($area) && $area == "dropdown_list")
 
 
 
+
+
+else if(!empty($area) && $area == "education_form")
+{
+	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='10' class='microform'>
+  <tr>
+    <td class='label' style='width:150px;'>Institution:</td>
+    <td><div class='nextdiv'><input type='text' id='institutionname' name='institutionname' title='Insitution Name' class='textfield' value='".(!empty($details['institutionname'])? $details['institutionname']: '')."'/></div>
+      <div class='nextdiv'><input type='text' id='institution__institutiontype' name='institution__institutiontype' class='textfield selectfield' value='".(!empty($details['institution__institutiontype'])? $details['institution__institutiontype']: '')."' placeholder='Insitution Type' /></div></td>
+  </tr>
+  <tr>
+    <td class='label'>Period:</td>
+    <td><div class='nextdiv'>
+    <table border='0' cellspacing='0' cellpadding='0'>
+    <tr><td class='value' style='padding-right:9px;'>From</td>
+    <td><input type='text' id='from__month' name='from__month' placeholder='Month' class='textfield selectfield' style='width:100px;' value='".(!empty($details['from__month'])? $details['from__month']: date('F'))."'/></td>
+    <td><input type='text' id='from__pastyear' name='from__pastyear' placeholder='Year' class='textfield selectfield' style='width:55px;' value='".(!empty($details['from__pastyear'])? $details['from__pastyear']: date('Y'))."'/></td>
+    </tr>
+    </table>
+    </div>
+    <div class='nextdiv'>
+    <table border='0' cellspacing='0' cellpadding='0'>
+    <tr><td class='value' style='padding-right:30px;'>To</td>
+    <td><input type='text' id='to__month' name='to__month' placeholder='Month' class='textfield selectfield' style='width:100px;' value='".(!empty($details['to__month'])? $details['to__month']: date('F'))."'/></td>
+    <td><input type='text' id='to__pastyear' name='to__pastyear' placeholder='Year' class='textfield selectfield' style='width:55px;' value='".(!empty($details['to__pastyear'])? $details['to__pastyear']: date('Y'))."'/></td>
+    </tr>
+    </table>
+    </div></td>
+  </tr>
+  <tr>
+    <td class='label'>Certificate Obtained:</td>
+    <td><div class='nextdiv'><input type='text' id='certificatename' name='certificatename' title='Certificate Name' class='textfield' value='".(!empty($details['certificatename'])? $details['certificatename']: '')."'/></div>
+      <div class='nextdiv'><input type='checkbox' id='highestcertificate' name='highestcertificate' value='Y' ".(!empty($details['highestcertificate'])? 'checked': '')."/>
+      <label for='highestcertificate'>This is my highest certificate.</label></div></td>
+  </tr>
+  <tr>
+    <td class='label'>Certificate Number:</td>
+    <td><input type='text' id='certificatenumber' name='certificatenumber' title='Certificate Number' class='textfield' value='".(!empty($details['certificatenumber'])? $details['certificatenumber']: '')."'/></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url()."register/step_three/action/add_education' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='institution_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+  </tr>
+        </table>";
+	
+	
+}
+
+
+
+
+
+
+
+
+else if(!empty($area) && $area == "education_list")
+{
+
+	$tableHTML .= !empty($response['msg'])? format_notice($this, $response['msg']): "";
+	
+	if($this->native_session->get('education_list'))
+	{
+		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' class='resultslisttable".(!empty($mode) && $mode=='preview'? " preview":" editable")."'>
+			<tr><td colspan='3'>Education List</td></tr>";
+			
+		foreach($this->native_session->get('education_list') AS $row) 
+		{
+			$tableHTML .= "<tr id='".$row['education_id']."'><td class='edit'>&nbsp;</td>
+			<td><div class='nextdiv'><span class='label'>".$row['institution__institutiontype'].": ".$row['institutionname']."</span><br>".$row['certificatename']."</div>
+				<div class='nextdiv'>(".$row['from__month']." ".$row['from__pastyear']." - ".$row['to__month']." ".$row['to__pastyear'].")<br>Certificate # ".$row['certificatenumber']."</div>
+				<div class='nextdiv'>".(!empty($row['highestcertificate']) && $row['highestcertificate'] == 'Y'? "-- highest --": "&nbsp;")."</div></td>
+			<td class='delete'>&nbsp;</td>
+			</tr>";
+		}
+		$tableHTML .= "</table>";
+	}
+}
+
+
+
+
+
+else if(!empty($area) && $area == "subject_form")
+{
+	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='10' class='microform'>
+  <tr>
+    <td class='label' style='width:150px;'>Subject Name:</td>
+    <td><div class='nextdiv'><input type='text' id='subjectname' name='subjectname' title='Subject Name' class='textfield' value='".(!empty($details['subjectname'])? $details['subjectname']: '')."'/></div>
+      <div class='nextdiv'><input type='text' id='subject__subjecttype' name='subject__subjecttype' class='textfield selectfield' value='".(!empty($details['subject__subjecttype'])? $details['subject__subjecttype']: '')."' placeholder='Subject Type' /></div></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url()."register/step_three/action/add_subject' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='subject_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+  </tr>
+  </table>";
+}
+
+
+
+
+
+
+else if(!empty($area) && $area == "subject_list")
+{
+	$tableHTML .= !empty($response['msg'])? format_notice($this, $response['msg']): "";
+	
+	if($this->native_session->get('subject_list'))
+	{
+		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' class='resultslisttable".(!empty($mode) && $mode=='preview'? " preview":" editable")."'>
+			<tr><td colspan='3'>Subject List</td></tr>";
+			
+		foreach($this->native_session->get('subject_list') AS $row) 
+		{
+			$tableHTML .= "<tr id='".$row['subject_id']."'><td class='edit'>&nbsp;</td>
+			<td><div class='nextdiv'>".$row['subjectname']."</div>
+				<div class='nextdiv'>".(!empty($row['subject__subjecttype']) && $row['subject__subjecttype'] != 'Other'? "-- ".strtolower($row['subject__subjecttype'])." --": "&nbsp;")."</div></td>
+			<td class='delete'>&nbsp;</td>
+			</tr>";
+		}
+		$tableHTML .= "</table>";
+	}
+}
 
 
 

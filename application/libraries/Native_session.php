@@ -36,4 +36,9 @@ class Native_session
     {
         unset( $_SESSION[$key] );
     }
+	
+    public function delete_all()
+    {
+        session_destroy();
+    }
 }

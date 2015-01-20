@@ -689,12 +689,11 @@ function string_to_hex($bytes)
 #Function to generate random bytes
 function generate_random_bytes($length) 
 {
-	
 	# Use mt_rand to generate $length random bytes. 
 	$data = '';
 	for($i = 0; $i < $length; $i++) 
 	{
-		$data .= chr(mt_rand(0, 255));
+		$data .= (rand()%9);
 	}
 
 	return $data;
@@ -913,7 +912,7 @@ function format_date($dateString, $instruction)
 	switch($instruction)
 	{
 		case "YYYY-MM-DD":
-			$date = date("YY-MM-DD", strtotime($dateString));
+			$date = date("Y-m-d", strtotime($dateString));
 		break;
 		
 	}
@@ -1322,6 +1321,8 @@ function array_key_contains($keyPart, $array)
 
 
 
+
+
 # Generates an 8-character temporary password for the user - this is a one time case and system does not keep un-encrypted copy
 function generate_temp_password()
 {
@@ -1351,6 +1352,93 @@ function generate_person_code($id)
 	return strrev(strtoupper(generate_random_bytes(2).dechex($id)));
 }
 
+
+
+
+# Get the row in a multi dimensional array that has a specified key set as the given value
+function get_row_from_list($list, $key, $value, $return='value')
+{
+	$selected = array();
+	foreach($list AS $i=>$row)
+	{
+		if(array_key_exists($key, $row) && $row[$key] == $value){
+			$selected = ($return == 'key')? $i: $row; 
+			break;
+		}
+	}
+	
+	return $selected;
+}
+
+
+# Get the first page to hit when logged in
+function get_user_dashboard($obj, $userId)
+{
+	# 1. Has the system set a default page to redirect to?
+	if($obj->native_session->get('redirect_url'))
+	{
+		$page = $obj->native_session->get('redirect_url');
+		$obj->native_session->delete('redirect_url');
+	} 
+	else
+	{
+		# 2. Get the user group
+		if($obj->native_session->get('permission_group'))
+		{
+			$groupId = $obj->native_session->get('permission_group');
+		}
+		else
+		{
+			$user = $obj->query_reader->get_row_as_array('get_user_by_id', array('user_id'=>$userId));
+			$groupId = $user['permission_group_id'];
+		}
+	
+		# 3. Get the group default page
+		if($obj->native_session->get('group_default_page'))
+		{
+			$page = $obj->native_session->get('group_default_page');
+		}
+		else if($obj->native_session->get('permissions'))
+		{
+			#Go to the group default page if allowed
+			$default = $obj->query_reader->get_row_as_array('get_group_default_permission', array('group_id'=>$groupId));
+			if(!empty($default['code']) && in_array($default['code'], $obj->native_session->get('permissions')))
+			{
+				$page = $default['page'];
+			}
+			# 4. If the user is not allowed to view default page, go to the first allowed permission
+			else 
+			{
+				$permissions = $obj->native_session->get('permissions');
+				$permission = $obj->query_reader->get_row_as_array('get_permission_by_code', array('code'=>$permissions[0]));
+				$page = !empty($permission['url'])? $permission['url']: "";
+			}
+			
+			# Set this so that you do not have to fetch the default page from the DB again - for this user's session
+			$obj->native_session->set('group_default_page', $page);
+		}
+		
+		# 5. If none, logout the user and notify
+		if(empty($page))
+		{
+			$page = 'account/logout';
+			$obj->native_session->set('msg', 'ERROR: Your account does not have any access permissions.');
+		}
+	}
+	
+	return $page;
+}
+
+
+
+# Get the message stored in the session to be shown at the given area
+function get_session_msg($obj)
+{
+	$msg = $obj->native_session->get('msg')? $obj->native_session->get('msg'): "";
+	$obj->native_session->delete('msg');
+	
+	return $msg;
+}
 
 
 ?>

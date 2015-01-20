@@ -15,7 +15,6 @@ class Register extends CI_Controller
 	public function __construct()
     {
         parent::__construct();
-		#Use the query cache if its enabled
 		$this->load->model('person');
 	}
 	
@@ -25,6 +24,12 @@ class Register extends CI_Controller
 	{
 		$data = filter_forwarded_data($this);
 		
+		# Are you just editing the step for preview?
+		if(!empty($data['action']) && $data['action'] == 'edit_preview')
+		{
+			$this->native_session->set('just_preview_1', 'Y');
+		}
+		
 		# The user posted the form
 		if(!empty($_POST))
 		{
@@ -33,9 +38,32 @@ class Register extends CI_Controller
 			$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please check your email for a confirmation code to proceed.": $data['result']['msg'];
 		}
 		
-		$viewToLoad = !empty($data['result']['boolean']) && $data['result']['boolean']? 'register/step_two': 'register/step_one';
+		
+		# Prepare appropriate message and view to load
+		if(!empty($data['result']['boolean']) && $data['result']['boolean'])
+		{
+			if($this->input->post('justpreview'))
+			{
+				$data['msg'] = "Your application had been saved. Click Submit to finish.";
+				$this->native_session->delete('just_preview_1');
+				$viewToLoad = 'register/step_four';
+			}
+			else
+			{
+				$viewToLoad = 'register/step_two';
+			} 
+		}
+		else
+		{
+			$viewToLoad = 'register/step_one';
+		}
+		
 		$this->load->view($viewToLoad, $data); 
 	}
+	
+	
+	
+	
 	
 	
 	#The second step form for the registration process
@@ -43,12 +71,18 @@ class Register extends CI_Controller
 	{
 		$data = filter_forwarded_data($this);
 		
+		# Are you just editing the step for preview?
+		if(!empty($data['action']) && $data['action'] == 'edit_preview')
+		{
+			$this->native_session->set('just_preview_2', 'Y');
+		}
+		
 		# The user posted the form
 		if(!empty($_POST))
 		{
-			#Pass these details to the person object to handle with XSS filter turned on
 			if($this->native_session->get('person_id'))
 			{
+				#Pass these details to the person object to handle with XSS filter turned on
 				$data['result'] = $this->person->add_id_and_contacts($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
 				$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please enter your education and qualifications to proceed.": $data['result']['msg'];
 			} 
@@ -58,16 +92,185 @@ class Register extends CI_Controller
 			}
 		}
 		
+		# Prepare appropriate message and view to load
 		if(!empty($data['result']['boolean']) && $data['result']['boolean'])
 		{
-			$data['msg'] = $this->input->post('justsaving')? "Your application had been saved. <br>You will need to login using the details sent to your email to proceed with your application.": $data['msg'];
-			$viewToLoad = $this->input->post('justsaving')? 'account/login': 'register/step_three'; 
+			if($this->input->post('justpreview'))
+			{
+				$data['msg'] = "Your application had been saved. Click Submit to finish.";
+				$this->native_session->delete('just_preview_2');
+				$viewToLoad = 'register/step_four';
+			}
+			else if($this->input->post('justsaving'))
+			{
+				$data['msg'] = "Your application had been saved. <br>You will need to login using the details sent to your email to proceed with your application.";
+				$viewToLoad = 'account/login';
+			}
+			else
+			{
+				$viewToLoad = 'register/step_three';
+			} 
 		}
 		else
 		{
 			$viewToLoad = 'register/step_two';
 		}
 		
+		$this->load->view($viewToLoad, $data); 
+	}
+	
+	
+	
+	
+	
+	
+	#The third step form for the registration process
+	public function step_three()
+	{
+		$data = filter_forwarded_data($this);
+		
+		# Are you just editing the step for preview?
+		if(!empty($data['action']) && $data['action'] == 'edit_preview')
+		{
+			$this->native_session->set('just_preview_3', 'Y');
+		}
+		
+		# The user posted the form
+		if(!empty($_POST))
+		{
+			if($this->native_session->get('person_id'))
+			{
+				# a) Are they adding an education?
+				if(!empty($data['action']) && $data['action'] == 'add_education')
+				{
+					$data['response'] = $this->person->add_education($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+					$data['area'] = "education_list";
+					$viewToLoad = "addons/basic_addons";
+				}
+			
+				# b) Are they adding a subject?
+				else if(!empty($data['action']) && $data['action'] == 'add_subject')
+				{
+					$data['response'] = $this->person->add_subject_taught($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+					$data['area'] = "subject_list";
+					$viewToLoad = "addons/basic_addons";
+				}
+			
+				# c) Are they submitting the entire form to save the data?
+				else if($this->native_session->get('education_list') && $this->native_session->get('subject_list'))
+				{
+					#Pass these details to the person object to handle with XSS filter turned on
+					$data['result'] = $this->person->add_education_and_qualifications($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+					$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please review your details and submit.": $data['result']['msg'];
+				}
+				
+				# d) Has the user submitted an incomplete form?
+				else
+				{
+					$data['result']['boolean'] = false;
+					$data['msg'] = "WARNING: You need to provide both the education and subjects studied to continue.";
+				}
+			}
+			else 
+			{
+				$data['msg'] = "ERROR: We could not verify your data. Your session may have expired. If this problem persists, please contact us.";
+			}
+		}
+		
+		
+		if(!empty($data['result']['boolean']) && $data['result']['boolean'])
+		{
+			if($this->input->post('justpreview'))
+			{
+				$data['msg'] = "Your application has been saved. Click Submit to finish.";
+				$this->native_session->delete('just_preview_3');
+				$viewToLoad = 'register/step_four';
+			}
+			else if($this->input->post('justsaving'))
+			{
+				$data['msg'] = "Your application had been saved. <br>You will need to login using the details sent to your email to proceed with your application.";
+				$viewToLoad = 'account/login';
+			}
+			else
+			{
+				$viewToLoad = 'register/step_four';
+			} 
+		}
+		
+		
+		$viewToLoad = !empty($viewToLoad)? $viewToLoad: 'register/step_three';
+		$this->load->view($viewToLoad, $data); 
+	}
+	
+	
+	
+	
+	# Function to edit a registration list item
+	function edit_list_item()
+	{
+		$data = filter_forwarded_data($this);
+		
+		# Populate the edit form if the necessary data is available
+		if(!empty($data['type']) && !empty($data['item_id']) && $this->native_session->get($data['type'].'_list'))
+		{
+			$this->native_session->set('edit_step_3_'.$data['type'], 'Y');
+			$data['details'] = get_row_from_list($this->native_session->get($data['type'].'_list'), $data['type'].'_id', $data['item_id']);
+			$data['details']['item_id'] = $data['item_id'];
+		}
+		# Prepare appropriate message
+		$data['msg'] = empty($data['details'])? "ERROR: We could not resolve the item you are attempting to edit.": "";
+		
+		$data['area'] = !empty($data['type'])? $data['type']."_form": "basic_msg";
+		$this->load->view('addons/basic_addons', $data); 
+	}
+	
+	
+	
+	
+	# Function to delete a registration list item
+	function delete_list_item()
+	{
+		$data = filter_forwarded_data($this);
+		
+		if(!empty($data['type']) && !empty($data['item_id']))
+		{
+			$result = $this->person->remove_list_item($data['type'], $data['item_id']);
+		}
+		
+		$data['response']['msg'] = (!empty($result) && $result)? "The ".$data['type']." has been deleted.": "ERROR: There was a problem deleting the ".$data['type'].".";
+		$data['area'] = !empty($data['type'])? $data['type']."_list": "basic_msg";
+		$this->load->view('addons/basic_addons', $data); 
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	#The third step form for the registration process
+	public function step_four()
+	{
+		# The user posted the form
+		if(!empty($_POST))
+		{
+			$result = $this->person->submit_application($this->native_session->get('person_id'), array('user_id'=>$this->native_session->get('user_id'), 'emailaddress'=>$this->native_session->get('emailaddress'), 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname')));
+			if($result['boolean'])
+			{
+				$data['msg'] = !empty($result['msg'])? $result['msg']: "Your application has been submitted. You will be notified using your registered email when it is approved.";
+				$viewToLoad = 'account/login';
+			}
+			else
+			{
+				$data['msg'] = !empty($result['msg'])? $result['msg']: "ERROR: There was a problem submitting your application. Please try again or contact us if the problem persists.";
+				$viewToLoad = 'register/step_four';
+			}
+			
+		}
+		
+		$viewToLoad = !empty($viewToLoad)? $viewToLoad: 'register/step_four';
 		$this->load->view($viewToLoad, $data); 
 	}
 	

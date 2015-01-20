@@ -46,6 +46,44 @@ function get_option_list($obj, $list_type, $return = 'div')
 		break;
 		
 		
+		case "institutiontype":
+			$types = array('University', 'College', 'Technical', 'Secondary', 'Primary');
+			foreach($types AS $row)
+			{
+				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
+		break;
+		
+		
+		case "month":
+			$months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+			foreach($months AS $row)
+			{
+				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
+		break;
+		
+		
+		case "pastyear":
+			for($i=date('Y'); $i>(date('Y') - 80); $i--)
+			{
+				$optionString .= "<div data-value='".$i."'>".$i."</div>";
+			}
+		break;
+		
+		
+		case "subjecttype":
+			$types = array('Major', 'Other', 'Minor');
+			foreach($types AS $row)
+			{
+				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
+		break;
+		
+		
+		
+		
+		
 		
 		
 		default:
