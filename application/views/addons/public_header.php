@@ -1,5 +1,5 @@
 <?php 
-//Which page is this header being loaded on?
+# Which page is this header being loaded on?
 $page = !empty($page)? $page: "home"; 
 
 #Show the home link if you are not on the home page

@@ -15,7 +15,7 @@ class Account extends CI_Controller
 	public function __construct()
     {
         parent::__construct();
-		$this->load->model('validator');
+		$this->load->model('_validator');
 	}
 	
 	
@@ -23,7 +23,6 @@ class Account extends CI_Controller
 	public function login()
 	{
 		$data = filter_forwarded_data($this);
-		$this->load->model('permission');
 		
 		if(!empty($_POST))
 		{
@@ -31,21 +30,22 @@ class Account extends CI_Controller
 			if($this->input->post('verified'))
 			{
 				#Is user verified?
-				$results = $this->validator->is_valid_account(array('login_name'=>trim($this->input->post('loginusername')), 'login_password'=>trim($this->input->post('loginpassword')) ));
+				$results = $this->_validator->is_valid_account(array('login_name'=>trim($this->input->post('loginusername')), 'login_password'=>trim($this->input->post('loginpassword')) ));
 				if($results['boolean'])
 				{
+					$this->load->model('_permission');
 					#If so, assign permissions and redirect to their respective dashboard
-					$this->native_session->set('permissions', $this->permission->get_user_permission_list($results['user_id']));
+					$this->native_session->set('permissions', $this->_permission->get_user_permission_list($results['user_id']));
 					#Log sign-in event
-					$this->logger->add_event(array('log_code'=>'user_login', 'result'=>'success', 'details'=>"username=".trim($this->input->post('loginusername')) ));
+					$this->_logger->add_event(array('log_code'=>'user_login', 'result'=>'success', 'details'=>"username=".trim($this->input->post('loginusername')) ));
 					
 					# Go to the user dashboard
-					redirect(get_user_dashboard($this, $results['user_id']));
+					redirect(base_url().get_user_dashboard($this, $results['user_id']));
 				}
 				# Invalid credentials
 				else
 				{
-					$this->logger->add_event(array('log_code'=>'user_login', 'result'=>'fail', 'details'=>"username=".trim($this->input->post('loginusername')) ));
+					$this->_logger->add_event(array('log_code'=>'user_login', 'result'=>'fail', 'details'=>"username=".trim($this->input->post('loginusername')) ));
 					$data['msg'] = "WARNING: Invalid login details.";
 				}
 			}
@@ -67,20 +67,18 @@ class Account extends CI_Controller
 		
 	
 	# Log out a user
-	function logout($userId)
+	function logout()
 	{
-		$isLoggedOut = false;
-		
 		#Log sign-out event
 		$userId = $this->native_session->get('user_id')? $this->native_session->get('user_id'): "";
 		$email = $this->native_session->get('email_address')? $this->native_session->get('email_address'): "";
-		$this->logger->add_event(array('log_code'=>'user_logout', 'result'=>'success', 'details'=>"userid=".$userId."|email=".$email ));
-					
-		#Remove any set session variables
-		$this->native_session->delete_all();
+		$this->_logger->add_event(array('log_code'=>'user_logout', 'result'=>'success', 'details'=>"userid=".$userId."|email=".$email ));
 		
 		# Set appropriate message - reason for log out.
 		$data['msg'] = $this->native_session->get('msg')? get_session_msg($this): "You have been logged out.";
+					
+		#Remove any set session variables
+		$this->native_session->delete_all();
 		$this->load->view('account/login', $data);
 	}
 	

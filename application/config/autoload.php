@@ -64,7 +64,7 @@ $autoload['libraries'] = array('database', 'user_agent', 'session', 'native_sess
 |	$autoload['helper'] = array('url', 'file');
 */
 
-$autoload['helper'] = array('url', 'cookie', 'common_functions', 'communications', 'dropdown');
+$autoload['helper'] = array('url', 'cookie', 'common_functions', 'communications', 'dropdown', 'form');
 
 
 /*
@@ -109,7 +109,7 @@ $autoload['language'] = array();
 |
 */
 
-$autoload['model'] = array('query_reader', 'user', 'messenger', 'logger');
+$autoload['model'] = array('_query_reader', '_user', '_messenger', '_logger');
 
 
 /* End of file autoload.php */

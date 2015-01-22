@@ -13,14 +13,14 @@
 
 # Get a list of options 
 # Allowed return values: [div, option]
-function get_option_list($obj, $list_type, $return = 'div')
+function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 {
 	$optionString = "";
 	
 	switch($list_type)
 	{
 		case "district":
-			$districts = $obj->query_reader->get_list('get_list_of_districts');
+			$districts = $obj->_query_reader->get_list('get_list_of_districts');
 			foreach($districts AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
@@ -28,8 +28,19 @@ function get_option_list($obj, $list_type, $return = 'div')
 		break;
 		
 		
+		case "institutions":
+			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
+			$searchQuery = !empty($searchString)? " MATCH(name) AGAINST('+".implode(" +",explode(" ",$searchString))."') OR name LIKE '".$searchString."%' OR name LIKE '% ".$searchString."%'": " 1=1 ";
+			$institutions = $obj->_query_reader->get_list('get_list_of_institutions', array('search_query'=>$searchQuery));
+			foreach($institutions AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
+			}
+		break;
+		
+		
 		case "country":
-			$countries = $obj->query_reader->get_list('get_list_of_countries');
+			$countries = $obj->_query_reader->get_list('get_list_of_countries');
 			foreach($countries AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
@@ -77,6 +88,15 @@ function get_option_list($obj, $list_type, $return = 'div')
 			foreach($types AS $row)
 			{
 				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
+		break;
+		
+		
+		case "jobroles":
+			$countries = $obj->_query_reader->get_list('get_permission_groups', array('system_only'=>"'N'"));
+			foreach($countries AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
 			}
 		break;
 		

@@ -246,20 +246,6 @@ function validate_form($formType, $formData, $requiredFields=array())
 
 
 
-#Function to update form data from messages set in session
-function add_msg_if_any($obj, $data)
-{
-	if(!empty($data['m']) && !empty($_SESSION[$data['m']])){
-		$data['msg'] = $_SESSION[$data['m']];
-		unset($_SESSION[$data['m']]);
-	}
-	
-	return $data;
-}
-
-
-
-
 #Checks if a password is valid
 function is_valid_password($password, $validationSettings=array())
 {
@@ -309,7 +295,7 @@ function format_notice($obj, $msg)
 	
 	if(is_array($msg))
 	{
-		$result = $msg['obj']->db->query($msg['obj']->query_reader->get_query_by_code('save_error_msg', array('msgcode'=>$msg['code'], 'details'=>$msg['details'], 'username'=>$msg['obj']->session->userdata('username'), 'ipaddress'=>$msg['obj']->input->ip_address() )));
+		$result = $obj->_query_reader->run('save_error_msg', array('msgcode'=>$msg['code'], 'details'=>$msg['details'], 'username'=>$obj->session->userdata('username'), 'ipaddress'=>$obj->input->ip_address() ));
 	
 		$msg = $msg['details'];
 	}
@@ -328,7 +314,7 @@ function format_notice($obj, $msg)
 						"<tr><td class='error' style='border:0px;' width='1%' nowrap>".str_replace("ERROR:", "<img src='".base_url()."assets/images/error.png'  border='0'/></td><td  width='99%' class='error'  style='font-size:13px;border:0px;' valign='middle'>", $msg)."</td></tr>".
 					  "</table>";
 		
-		$obj->logger->add_event(array('log_code'=>'system_error', 'result'=>'fail', 'details'=>"msg=".$msg));
+		$obj->_logger->add_event(array('log_code'=>'system_error', 'result'=>'fail', 'details'=>"msg=".$msg));
 	}
 	
 	#Normal Message
@@ -490,53 +476,6 @@ function get_ajax_constructor($needsAjax, $extraIds=array())
 
 
 
-
-
-
-# Returns the color you can assign to a row based on the passed counter
-function get_row_color($counter, $noOfSteps, $rowBorders='', $darkColor='#EEEEEE', $lightColor='#FFFFFF', $colorOnly='N')
-{
-	if(($counter%$noOfSteps)==0) {
-		if($rowBorders == 'row_borders')
-		{
-			if($colorOnly == 'Y'){
-				$rowClass = $lightColor;
-			} else {
-				$rowClass = "background-color: ".$lightColor."; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: ".$darkColor.";";
-			}
-		}
-		else
-		{
-			if($colorOnly == 'Y'){
-				$rowClass = $lightColor;
-			} else {
-				$rowClass = "background-color: ".$lightColor.";";
-			}
-		}
-	} else {
-		if($rowBorders == 'row_borders')
-		{
-			if($colorOnly == 'Y'){
-				$rowClass = $darkColor;
-			} else {
-				$rowClass = "background-color: ".$darkColor."; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: ".$lightColor.";";
-			}
-		} 
-		else
-		{
-			if($colorOnly == 'Y'){
-				$rowClass = $darkColor;
-			} else {
-				$rowClass = "background-color: ".$darkColor.";";
-			}
-		}
-	}
-	
-	return $rowClass;
-}
-
-
-
 //Function to return a number with two decimal places and a comma after three places
 function add_commas($number, $noDecimalPlaces=2)
 {
@@ -604,51 +543,6 @@ function get_current_uri($escapeQuotes=TRUE)
 	return $escapeQuotes? htmlspecialchars($link, ENT_QUOTES, 'UTF-8'): $link;
 }
 
-
-
-#Function to paginate a list given its query and other data
-function paginate_list($obj, $data, $queryCode, $variableArray=array(), $rowsPerPage=NUM_OF_ROWS_PER_PAGE)
-{
-	#determine the page to show
-	if(!empty($data['p'])){
-		$data['currentListPage'] = $data['p'];
-	} else {
-		#If it is an array of results
-		if(is_array($queryCode))
-		{
-			$obj->session->set_userdata('search_total_results', count($queryCode));
-		}
-		#If it is a real query
-		else
-		{
-			if(empty($variableArray['limittext']))
-			{
-				$variableArray['limittext'] = '';
-			}
-			
-			$listResult = $obj->db->query($obj->query_reader->get_query_by_code($queryCode, $variableArray ));
-			$obj->session->set_userdata('search_total_results', $listResult->num_rows());
-		}
-		
-		$data['currentListPage'] = 1;
-	}
-	
-	$data['rowsPerPage'] = $rowsPerPage;
-	$start = ($data['currentListPage']-1)*$rowsPerPage;
-	
-	#If it is an array of results
-	if(is_array($queryCode))
-	{
-		$data['pageList'] = array_slice($queryCode, $start, $rowsPerPage);
-	}
-	else
-	{
-		$limitTxt = " LIMIT ".$start." , ".$rowsPerPage;
-		$data['pageList'] = $obj->db->query($obj->query_reader->get_query_by_code($queryCode, array_merge($variableArray, array('limittext'=>$limitTxt)) ))->result_array();
-	}
-	
-	return $data;
-}
 
 
 
@@ -743,24 +637,6 @@ function hide_digits($fullString, $showLast=2, $hideChar='*')
 	$finalString .= substr($fullString, -$showLast);
 	
 	return $finalString;
-}
-
-
-#Function to eliminate one of the items from array and show the selected 
-function eliminate_this_and_glue($eliminateItem, $arrayType, $glueString="<>")
-{
-	$allString = "";
-	$theArray = array();
-	
-	if($arrayType == "level_layers")
-	{
-		$theArray = array('level_0_tab','level_1_tab','level_2_tab','level_3_tab','level_4_tab','level_5_tab','level_6_tab','level_7_tab','level_8_tab','level_9_tab','level_10_tab');
-	}
-	
-	$remainderArray = array_diff($theArray, array($eliminateItem));
-	$allString = implode($glueString, $remainderArray);
-	
-	return $allString;
 }
 
 
@@ -1065,50 +941,6 @@ function pagination($itemCount, $noPerPage=5, $currentPage=1, $tableId='', $extr
 
 
 
-
-
-#Function to control access to a function based on the passed variables
-function access_control($obj, $usertypes=array())
-{	
-	#By default, this function checks that the user is logged in
-	if($obj->native_session->get('userId'))
-	{
-		$usertype = $obj->native_session->get('user_type');
-		#If logged in, check if the user is allowed to access the given page
-		if(!empty($usertypes) && !in_array($usertype, $usertypes))
-		{
-			$qmsg = 'WARNING: You do not have the priviledges to access this function.';
-		}
-	}
-	else
-	{
-		$qmsg = 'WARNING: You are not logged in or your session expired. Please login to continue.';
-	}
-		
-	#Redirect if the user has no access to the given page
-	if(!empty($qmsg))
-	{
-		$obj->native_session->set('qmsg', $qmsg);
-		redirect(base_url()."web/account/logout/m/qmsg");
-	}
-}
-
-
-
-#Returns appropriate message for a dorp down list
-function get_list_message($obj, $messageCode, $defaultMessage='')
-{
-	$message = $defaultMessage;
-	if(empty($message))
-	{
-		$messageDetails = $obj->db->query($obj->query_reader->get_query_by_code('get_system_message', array('message_code'=>$messageCode)) )->row_array();
-		$message = !empty($messageDetails['message'])? $messageDetails['message']: $message;
-	}
-	return $message;
-}
-
-
-
 #limit string length
 function limit_string_length($string, $maxLength, $ignoreSpaces=TRUE, $endString='..')
 {
@@ -1389,7 +1221,7 @@ function get_user_dashboard($obj, $userId)
 		}
 		else
 		{
-			$user = $obj->query_reader->get_row_as_array('get_user_by_id', array('user_id'=>$userId));
+			$user = $obj->_query_reader->get_row_as_array('get_user_by_id', array('user_id'=>$userId));
 			$groupId = $user['permission_group_id'];
 		}
 	
@@ -1401,7 +1233,7 @@ function get_user_dashboard($obj, $userId)
 		else if($obj->native_session->get('permissions'))
 		{
 			#Go to the group default page if allowed
-			$default = $obj->query_reader->get_row_as_array('get_group_default_permission', array('group_id'=>$groupId));
+			$default = $obj->_query_reader->get_row_as_array('get_group_default_permission', array('group_id'=>$groupId));
 			if(!empty($default['code']) && in_array($default['code'], $obj->native_session->get('permissions')))
 			{
 				$page = $default['page'];
@@ -1410,12 +1242,12 @@ function get_user_dashboard($obj, $userId)
 			else 
 			{
 				$permissions = $obj->native_session->get('permissions');
-				$permission = $obj->query_reader->get_row_as_array('get_permission_by_code', array('code'=>$permissions[0]));
+				$permission = $obj->_query_reader->get_row_as_array('get_permission_by_code', array('code'=>$permissions[0]));
 				$page = !empty($permission['url'])? $permission['url']: "";
 			}
 			
 			# Set this so that you do not have to fetch the default page from the DB again - for this user's session
-			$obj->native_session->set('group_default_page', $page);
+			if(!empty($page)) $obj->native_session->set('group_default_page', $page);
 		}
 		
 		# 5. If none, logout the user and notify
@@ -1440,5 +1272,77 @@ function get_session_msg($obj)
 	return $msg;
 }
 
+
+
+# Check user access to a given feature
+# Valid return options [msg, boolean]
+function check_access($obj, $accessCode, $return='msg')
+{
+	# 1. Are the user's permissions set and they have the requested permission?
+	# then, return appropriate response
+	if($obj->native_session->get('permissions') && in_array($accessCode, $obj->native_session->get('permissions')))
+	{
+		$obj->native_session->set('selected_permission', $accessCode);
+		return $return == 'boolean'? true: '';
+	}
+	else
+	{
+		if($return == 'boolean')
+		{
+			return false;
+		}
+		else
+		{
+			$obj->native_session->set('msg', "ERROR: You do not have access to this feature.");
+			redirect(base_url().($obj->native_session->get('user_id')? get_user_dashboard($obj, $obj->native_session->get('user_id')): 'account/logout')); 
+		}
+	}
+}
+
+
+
+# Choose the right permission access code to return to the function - up to 2 levels
+function get_access_code($data, $instructions)
+{
+	$code = '';
+	
+	# $key = 'action', $value = full array for action permissions
+	foreach($instructions AS $key=>$value)
+	{
+		# 'action' is passed in the data
+		if(array_key_exists($key, $data))
+		{
+			# Check if this is an array - which requires further processing
+			if(!empty($value[$data[$key]]) && is_array($value[$data[$key]]))
+			{
+				# Loop through 'level' array
+				foreach($value[$data[$key]] AS $key2=>$value2)
+				{
+					# Level exists
+					if(array_key_exists($key2, $data))
+					{
+						$code = $value2[$data[$key2]];
+						break 2;
+					}
+				}
+			}
+			#Code is available at the first level
+			else if(!empty($value[$data[$key]]))
+			{
+				$code = $value[$data[$key]];
+				break;
+			}
+		}
+	}
+	
+	#Handle a unique case where a default access code for the function is provided
+	if(empty($code) && array_key_exists('', $instructions))
+	{
+		$code = $instructions[''];
+	}
+	
+	
+	return $code;
+}
 
 ?>

@@ -176,7 +176,8 @@ class Page extends CI_Controller
 		$data = filter_forwarded_data($this);
 		
 		if(!empty($data['type'])){
-			$data['list'] =  get_option_list($this, $data['type'], 'div');
+			$searchBy = !empty($data['search_by'])? $data['search_by']: '';
+			$data['list'] =  get_option_list($this, $data['type'], 'div', $searchBy);
 		}
 		
 		$data['area'] = "dropdown_list";

@@ -12,15 +12,15 @@
 class Register extends CI_Controller 
 {
 	#Constructor to set some default values at class load
-	public function __construct()
+	function __construct()
     {
         parent::__construct();
-		$this->load->model('person');
+		$this->load->model('_person');
 	}
 	
 	
 	#The first step form for the registration process
-	public function step_one()
+	function step_one()
 	{
 		$data = filter_forwarded_data($this);
 		
@@ -34,7 +34,7 @@ class Register extends CI_Controller
 		if(!empty($_POST))
 		{
 			#Pass these details to the person object to handle with XSS filter turned on
-			$data['result'] = $this->person->add_profile($this->input->post(NULL, TRUE));
+			$data['result'] = $this->_person->add_profile($this->input->post(NULL, TRUE));
 			$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please check your email for a confirmation code to proceed.": $data['result']['msg'];
 		}
 		
@@ -67,7 +67,7 @@ class Register extends CI_Controller
 	
 	
 	#The second step form for the registration process
-	public function step_two()
+	function step_two()
 	{
 		$data = filter_forwarded_data($this);
 		
@@ -83,7 +83,7 @@ class Register extends CI_Controller
 			if($this->native_session->get('person_id'))
 			{
 				#Pass these details to the person object to handle with XSS filter turned on
-				$data['result'] = $this->person->add_id_and_contacts($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+				$data['result'] = $this->_person->add_id_and_contacts($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
 				$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please enter your education and qualifications to proceed.": $data['result']['msg'];
 			} 
 			else 
@@ -124,8 +124,8 @@ class Register extends CI_Controller
 	
 	
 	
-	#The third step form for the registration process
-	public function step_three()
+	# The third step form for the registration process
+	function step_three()
 	{
 		$data = filter_forwarded_data($this);
 		
@@ -143,7 +143,7 @@ class Register extends CI_Controller
 				# a) Are they adding an education?
 				if(!empty($data['action']) && $data['action'] == 'add_education')
 				{
-					$data['response'] = $this->person->add_education($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+					$data['response'] = $this->_person->add_education($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
 					$data['area'] = "education_list";
 					$viewToLoad = "addons/basic_addons";
 				}
@@ -151,7 +151,7 @@ class Register extends CI_Controller
 				# b) Are they adding a subject?
 				else if(!empty($data['action']) && $data['action'] == 'add_subject')
 				{
-					$data['response'] = $this->person->add_subject_taught($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+					$data['response'] = $this->_person->add_subject_taught($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
 					$data['area'] = "subject_list";
 					$viewToLoad = "addons/basic_addons";
 				}
@@ -160,7 +160,7 @@ class Register extends CI_Controller
 				else if($this->native_session->get('education_list') && $this->native_session->get('subject_list'))
 				{
 					#Pass these details to the person object to handle with XSS filter turned on
-					$data['result'] = $this->person->add_education_and_qualifications($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+					$data['result'] = $this->_person->add_education_and_qualifications($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
 					$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please review your details and submit.": $data['result']['msg'];
 				}
 				
@@ -234,7 +234,7 @@ class Register extends CI_Controller
 		
 		if(!empty($data['type']) && !empty($data['item_id']))
 		{
-			$result = $this->person->remove_list_item($data['type'], $data['item_id']);
+			$result = $this->_person->remove_list_item($data['type'], $data['item_id']);
 		}
 		
 		$data['response']['msg'] = (!empty($result) && $result)? "The ".$data['type']." has been deleted.": "ERROR: There was a problem deleting the ".$data['type'].".";
@@ -247,16 +247,13 @@ class Register extends CI_Controller
 	
 	
 	
-	
-	
-	
 	#The third step form for the registration process
-	public function step_four()
+	function step_four()
 	{
 		# The user posted the form
 		if(!empty($_POST))
 		{
-			$result = $this->person->submit_application($this->native_session->get('person_id'), array('user_id'=>$this->native_session->get('user_id'), 'emailaddress'=>$this->native_session->get('emailaddress'), 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname')));
+			$result = $this->_person->submit_application($this->native_session->get('person_id'), array('user_id'=>$this->native_session->get('user_id'), 'emailaddress'=>$this->native_session->get('emailaddress'), 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname')));
 			if($result['boolean'])
 			{
 				$data['msg'] = !empty($result['msg'])? $result['msg']: "Your application has been submitted. You will be notified using your registered email when it is approved.";
@@ -272,6 +269,26 @@ class Register extends CI_Controller
 		
 		$viewToLoad = !empty($viewToLoad)? $viewToLoad: 'register/step_four';
 		$this->load->view($viewToLoad, $data); 
+	}
+	
+	
+	
+	
+	#STUB: View teacher applications
+	function applications()
+	{
+		$data = filter_forwarded_data($this);
+		$instructions['action'] = array(
+			'view'=>'view_teacher_applications', 
+			'verify'=>array('level'=>array('hr'=>'verify_teacher_application_at_hr_level', 'instructor'=>'verify_teacher_application_at_instructor_level'))
+			# Can add more permission instructions here
+		);
+		check_access($this, get_access_code($data, $instructions));
+		
+		
+		
+		
+		$this->load->view('page/under_construction', $data); 
 	}
 	
 }

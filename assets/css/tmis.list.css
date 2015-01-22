@@ -43,6 +43,45 @@
 	padding-left: 25px;
 }
 
+.reducecolumnwidth {
+	padding-right: 0px;
+	padding-left: 0px;
+	vertical-align: top;
+}
+
+.approverow {
+	background: url(../../assets/images/approve_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.approverow:hover {
+	background: url(../../assets/images/approve_yellow.png) no-repeat center center;
+}
+
+.rejectrow {
+	background: url(../../assets/images/reject_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.rejectrow:hover {
+	background: url(../../assets/images/reject_yellow.png) no-repeat center center;
+}
+
+.archiverow {
+	background: url(../../assets/images/archive_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.archiverow:hover {
+	background: url(../../assets/images/archive_yellow.png) no-repeat center center;
+}
+
 
 
 

@@ -1,7 +1,6 @@
 /* CSS Document */
 
 ::selection { background-color: #E13300; color: white; }
-/*::moz-selection { background-color: #E13300; color: white; }*/
 ::webkit-selection { background-color: #E13300; color: white; }
 
 body {
@@ -44,6 +43,12 @@ label {
 	font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif;
 	font-size: 16px;
 	font-weight: bold;
+	padding-right: 0px;
+}
+
+.label.top {
+	vertical-align:top;
+	padding-top: 15px;
 	padding-right: 0px;
 }
 
@@ -160,10 +165,28 @@ a.error {
 	background-color: #F0F0F0;
 }
 
+.bluebg {
+	background-color: #00698C;
+	color: #E4E4E4;
+}
+
+.bluebg a {
+	color: #87D8D8;
+	text-decoration:none;
+}
+
+.largelinks a {
+	font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif;
+	font-size: 18px;
+}
+
 .topwhiteborder {
 	border-top: solid 2px #FFFFFF;
 }
 
+.topgreyborder {
+	border-top: solid 2px #E4E4E4;
+}
 
 .leftcolumn {
 	width:60%;
@@ -185,8 +208,16 @@ a.error {
 	color: #999999;
 }
 
+.lightgrey {
+	color: #E4E4E4;
+}
+
 .blue {
 	color: #00688C;
+}
+
+.yellow, a.yellow {
+	color: #FFD418;
 }
 
 .h1 {
@@ -215,6 +246,12 @@ a.error {
 
 .placefield {
 	background: url(../../assets/images/place_bg.jpg) no-repeat right center #F9F9F9;
+	padding-right: 40px;
+	width: 188px;
+}
+
+.filefield {
+	background: url(../../assets/images/file_bg.jpg) no-repeat right center #F9F9F9;
 	padding-right: 40px;
 	width: 188px;
 }
@@ -250,6 +287,8 @@ a.error {
 
 .selectfield {
 	background: url(../../assets/images/select_arrow_bg.png) no-repeat right center #FFF;
+	padding-right: 40px;
+	width: 188px;
 }
 
 select {
@@ -358,6 +397,24 @@ textarea {
 .back {
 	background: url(../../assets/images/back_arrow.png) no-repeat left center #999999;
 	padding-left: 30px;
+}
+
+.usericon {
+	background: url(../../assets/images/user_icon.png) no-repeat center center;
+	width: 20px;
+	height: 20px;
+}
+
+.usericon.active {
+	background: url(../../assets/images/user_active_icon.png) no-repeat center center;
+	width: 20px;
+	height: 20px;
+}
+
+.secureicon {
+	background: url(../../assets/images/secure_icon.png) no-repeat center center;
+	width: 20px;
+	height: 20px;
 }
 
 .footer {
@@ -719,36 +776,49 @@ textarea {
 }
 
 
-
-
 .editicon {
 	background: url(../../assets/images/edit_icon.png) no-repeat center center;
-	width: 30px;
-	height: 25px;
+	width: 35px;
+	height: 35px;
 	cursor:pointer;
 }
 
 
+.editdiv {
+	display:none;
+}
 
 
+.editcontenticon {
+	background: url(../../assets/images/edit_icon.png) no-repeat center center;
+	width: 42px;
+	height: 27px;
+	cursor:pointer;
+	border: solid 2px #CCC;
+	margin-left: 25px;
+	min-width: 40px;
+	border-radius: 5px;
+	-webkit-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+	-webkit-border-bottom-left-radius: 5px;
+	-webkit-border-bottom-right-radius: 5px;
+}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.addcontenticon {
+	background: url(../../assets/images/add_icon.png) no-repeat center center;
+	width: 42px;
+	height: 27px;
+	cursor: pointer;
+	border: solid 2px #CCC;
+	margin-left: 25px;
+	min-width: 40px;
+	border-radius: 5px;
+	-webkit-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+	-webkit-border-bottom-left-radius: 5px;
+	-webkit-border-bottom-right-radius: 5px;
+}
 
 
 

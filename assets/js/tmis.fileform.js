@@ -9,7 +9,6 @@ $(function() {
 	if($('#submitlogin').length > 0)
 	{
 		var loginForm = $('#submitlogin').parents('form').first();
-		var loginFormId = loginForm.attr("id");
 		
 		$('#loginusername, #loginpassword').on('keyup', function(){
 			if($('#loginusername').val().length > 4 && $('#loginpassword').val().length > 4){
@@ -43,7 +42,7 @@ $(function() {
 		var listType = fieldId.split('__').pop();
 		
 		//Disable if editable is not set
-		if(!$(this).hasClass('editable')){
+		if(!$(this).hasClass('editable') && !$(this).hasClass('searchable')){
 			$(this).attr('disabled', 'disabled');
 		}
 		
@@ -95,7 +94,7 @@ $(function() {
 		$('#'+fieldId).removeAttr('disabled');
 		$('#'+fieldId).val($(this).html());
 		$('#'+fieldId).trigger('change'); // Make this look like the person has entered the stuff
-		if(!$('#'+fieldId).hasClass('editable'))
+		if(!$('#'+fieldId).hasClass('editable') && !$(this).hasClass('searchable'))
 		{
 			$(this).attr('disabled', 'disabled');
 		}
@@ -112,7 +111,31 @@ $(function() {
 		if(!$('#'+fieldId+'__div').is(":focus") && !$('#'+fieldId+'__div button').is(":focus")) 
     	{
        	 	$('#'+fieldId+'__div').fadeOut('fast');
+			// Now if this is searchable clear the field if it is not among the list of selectable options
+			if($(this).hasClass('searchable'))
+			{
+				var fieldValue = $(this).val();
+				var isIn = false;
+				$('#'+fieldId+'__div').children('div').each(function(){
+					if($(this).data('value') == fieldValue) 
+					{
+						isIn = true;
+						return false;
+					}
+				});
+				//Clear
+				if(!isIn) $(this).val('');
+			}
     	}
+	});
+	
+	// Handle cases where the select field is searchable
+	$(document).on('keyup', '.selectfield.searchable', function(){
+		var fieldId = $(this).attr('id');
+		var listType = fieldId.split('__').pop();
+		var searchValue = ($(this).val() != ''? '/search_by/'+replaceBadChars($(this).val()): '');
+		
+		updateFieldLayer(getBaseURL()+"page/get_custom_drop_list/type/"+listType+searchValue,'','',fieldId+'__div','');
 	});
 	
 	
@@ -384,6 +407,35 @@ $(function() {
 		$(this).after("<input type='hidden' id='justsaving' name='justsaving' value='Y' />");
 		$(this).parents('form').first().submit();
 	});
+	$(document).on('click', '.addicon', function(e){
+		document.location.href = getBaseURL()+$(this).data('url');
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------------------------------
+	// Handling editable content
+	// --------------------------------------------------------------------------------------------------------
+	$(document).on('click', '.editcontent', function(e){
+		// If the edit div is hidden show them and then hide the view divs
+		if(!$(this).closest('.editdiv').is(':visible')){
+			$('.viewdiv').css('display', 'none');
+			$('.editdiv').css('display', 'block');
+			$(this).fadeOut('fast');
+		}
+	
+	
+	});
+	
+	
+	
+	
 	
 	
 	

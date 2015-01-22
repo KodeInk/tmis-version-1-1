@@ -37,8 +37,17 @@ class Native_session
         unset( $_SESSION[$key] );
     }
 	
-    public function delete_all()
+    public function delete_all($list=array())
     {
-        session_destroy();
+        # Just delete those in the list
+		if(!empty($list))
+		{
+			foreach($list AS $key=>$value) unset( $_SESSION[$key] );
+		}
+		# Delete all
+		else 
+		{
+			session_destroy();
+		}
     }
 }

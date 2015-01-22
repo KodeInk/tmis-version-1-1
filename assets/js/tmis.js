@@ -2318,6 +2318,13 @@ $(function(){
 	var footerHeight = $('body table tr:last').height();
 	// The 30 at the end removes the top and bottom padding height
 	$('.bodyspace').css('height', (windowHeight - headerHeight - footerHeight)+"px");
+	
+	//If the menu container is on the page
+	if($('#menucontainer').length > 0){
+		$('#menucontainer').css('height', (windowHeight - headerHeight - footerHeight)+"px");
+		var menuTable = $('#menucontainer').parents('table').first();
+		menuTable.children('tr').first().children('td').eq(1).css('width', '99%');
+	}
 });
 
 

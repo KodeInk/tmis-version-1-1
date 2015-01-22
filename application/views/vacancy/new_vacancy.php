@@ -1,0 +1,109 @@
+<?php $msg = empty($msg)? get_session_msg($this): $msg; ?>
+<!DOCTYPE html>
+<html>
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="<?php echo base_url();?>favicon.ico" type="image/x-icon">
+<link rel="icon" href="<?php echo base_url();?>favicon.ico" type="image/x-icon">
+
+<title><?php echo SITE_TITLE;?>: New Job</title>
+
+<!-- Stylesheets -->
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/jquery-ui.css"/>
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.css"/>
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
+
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/trumbowyg.css"/>
+
+<!-- Javascript -->
+<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
+<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
+<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script> 
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/trumbowyg.js"></script> 
+
+
+</head>
+
+<body style="margin:0px;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <?php $this->load->view("addons/secure_header");?>
+  <tr>
+    <td valign="top" colspan="2" class="bodyspace" style="padding-top:0px;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td id="menucontainer"><?php $this->load->view("addons/menu");?></td>
+        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+      		<?php echo !empty($msg)?"<tr><td>".format_notice($this,$msg)."</td></tr>": "";?>
+            <tr><td class="h1 grey">New Job</td></tr>
+            <tr><td>
+            
+            
+            <form id="user_data" method="post" autocomplete="off" action="<?php echo base_url();?>vacancy/add" class='simplevalidator'>
+            <table border="0" cellspacing="0" cellpadding="10">
+  <tr>
+    <td class="label">Institution:</td>
+    <td style="padding-right:42px;"><input type="text" id="institution__institutions" name="institution__institutions" title="Select or Search for Instution" class="textfield selectfield searchable" value="<?php echo $this->native_session->get('institution__institutions');?>" style="width:97%;"/></td>
+  </tr>
+  <tr>
+    <td class="label">Role:</td>
+    <td style="padding-right:42px;"><input type="text" id="role__jobroles" name="role__jobroles" title="Select Role" class="textfield selectfield" value="<?php echo $this->native_session->get('role__jobroles');?>" style="width:97%;"/></td>
+  </tr>
+  <tr>
+    <td class="label">Headline:</td>
+    <td><input type="text" id="headline" name="headline" title="Headline" class="textfield" style="width:97%;" value="<?php echo $this->native_session->get('headline');?>"/></td>
+  </tr>
+  <tr>
+    <td class="label top">Summary:</td>
+    <td><textarea id="summary" name="summary" title="Job Summary" class="textfield" style="width:97%; height:60px;"><?php echo $this->native_session->get('summary');?></textarea></td>
+  </tr>
+  <tr>
+    <td class="label top">Details:</td>
+    <td style="padding-top:0px;"><textarea id="details" name="details" title="Job Details" class="textfield" placeholder="Enter the job details here."><?php echo $this->native_session->get('details');?></textarea></td>
+  </tr>
+  <tr>
+    <td class="label">Publish Duration:</td>
+    <td><div class="nextdiv"><input type="text" id="publishstart" name="publishstart" title="Start Date" placeholder="Start Date" maxlength="20" class="textfield datefield" value="<?php echo $this->native_session->get('publishstart');?>"/></div><div class="nextdiv"><input type="text" id="publishend" name="publishend" title="End Date" placeholder="End Date" maxlength="20" class="textfield datefield" value="<?php echo $this->native_session->get('publishend');?>"/></div></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td><button type="submit" name="save" id="save" class="btn">SAVE</button><?php echo !empty($vacancy_id)? "<input type='hidden' id='vacancyid' name='vacancyid' value='".$vacancy_id."' />": "";
+	
+	echo  "<input type='hidden' id='forwardurl' name='forwardurl' value='".(check_access($this, 'publish_job_notices', 'boolean')? 'vacancy/lists/action/publish': get_user_dashboard($this, $this->native_session->get('user_id')))."' />";?></td>
+  </tr>
+            </table>
+            </form>
+            
+            </td></tr>
+        </table></td>
+      </tr>
+     </table>
+    </td>
+  </tr>
+  <?php $this->load->view("addons/secure_footer");?>
+</table>
+
+<script type="text/javascript">
+$(function(){	
+	var btnsGrps = jQuery.trumbowyg.btnsGrps;
+	$('#details').trumbowyg({btns: ['formatting',
+           '|', btnsGrps.design,
+           '|', 'link',
+           '|', btnsGrps.justify,
+           '|', btnsGrps.lists,
+           '|', 'insertHorizontalRule']
+	});
+});
+</script>
+</body>
+</html>
