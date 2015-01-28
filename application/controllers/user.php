@@ -68,7 +68,7 @@ class User extends CI_Controller
 			$check = array_key_contains('userpermission_', $data);
 			if($check['boolean'])
 			{
-				$result = $this->_user->change_role($data['set_id'], $check['key']);
+				$result = $this->_user->change_role($data['set_id'], $data[$check['key']]);
 				$data['msg'] = $result? 'User role updated': 'ERROR: User not updated.';
 			}
 			else
