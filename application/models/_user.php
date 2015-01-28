@@ -242,13 +242,10 @@ class _user extends CI_Model
 	
 
 	
-	# STUB: Change the role of the user
-	function change_role($userId, $newRoleId)
+	# Change the role of the user
+	function change_role($userId, $newRole)
 	{
-		$isChanged = false;
-		
-		
-		return $isChanged;
+		return $this->_query_reader->run('update_user_permission_group', array('user_id'=>$userId, 'permission_group'=>$newRole, 'updated_by'=>$this->native_session->get('__user_id')));
 	}
 	
 	

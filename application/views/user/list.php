@@ -21,7 +21,7 @@ if(!empty($list))
 	$listType = " data-type='user' ";
 	if(!empty($action) && $action == 'update')
 	{
-		if($row['status'] == 'complete'){
+		if($row['status'] == 'completed'){
 			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm'></div>
 			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow'></div>
 			<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
@@ -64,9 +64,12 @@ if(!empty($list))
 	<td>".$row['email_address']."</td>
 	<td>".$row['telephone']."</td>
 	<td>".$row['status']."</td>
-	<td>".(!empty($row['last_updated']) && $row['last_updated'] != '0000-00-00 00:00:00'? date('d-M-Y h:i:sa T', strtotime($row['last_updated'])): '&nbsp;')."
-	<br><div class='rightnote'><a href='".base_url()."user/details/id/".$row['id']."' class='shadowbox closable'>details</a></div>".(check_access($this, 'add_new_user', 'boolean')? "<div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."' class='shadowbox'>edit</a></div>": "")."
-	</td></tr>
+	<td>".(!empty($row['last_updated']) && $row['last_updated'] != '0000-00-00 00:00:00'? date('d-M-Y h:i:sa T', strtotime($row['last_updated'])): '&nbsp;').
+	"<br><div class='rightnote'><a href='".base_url()."user/details/id/".$row['id']."' class='shadowbox closable'>details</a></div>".
+	
+	((check_access($this, 'add_new_user', 'boolean') && !empty($action) && $action == 'update')? "<div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."' class='shadowbox'>edit</a></div>": "")
+	
+	."</td></tr>
 	<tr><td style='padding:0px;'></td><td colspan='6' style='padding:0px;'><div id='action__".$row['id']."' class='actionrowdiv' style='display:none;'></div>".$stop."</td></tr>";
 	
 	}  

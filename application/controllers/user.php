@@ -78,10 +78,12 @@ class User extends CI_Controller
 			$data['area'] = 'basic_msg';
 			$this->load->view('addons/basic_addons', $data);
 		}
-		
-		$data['action'] = 'setpermission';
-		$data['list'] = $this->_user->get_list(array('action'=>'setpermission'));
-		$this->load->view('user/list_users', $data);
+		else
+		{
+			$data['action'] = 'setpermission';
+			$data['list'] = $this->_user->get_list(array('action'=>'setpermission'));
+			$this->load->view('user/list_users', $data);
+		}
 	}
 	
 	
