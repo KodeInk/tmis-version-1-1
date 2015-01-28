@@ -19,7 +19,11 @@ class _person extends CI_Model
 	# Add a person's profile
 	function add_profile($profileDetails)
 	{
-		$required = array('firstname', 'lastname', 'emailaddress', 'gender', 'marital', 'birthday', 'birthplace');
+		#Check if this is an admin adding the profile
+		$isAdmin = check_access($this, 'add_new_user', 'boolean');
+		
+		$required = array('firstname', 'lastname', 'emailaddress');
+		if(!$isAdmin) array_push($required, 'gender', 'marital', 'birthday', 'birthplace'); 
 		
 		# 1. Add all provided data into the session
 		$passed = process_fields($this, $profileDetails, $required, array("/"));
@@ -32,7 +36,7 @@ class _person extends CI_Model
 			
 			# First check if a user with the given email already exists
 			$check = $this->_query_reader->get_row_as_array('get_user_by_email', array('email_address'=>$details['emailaddress']));
-			if(empty($check) && !$this->native_session->get('person_id'))
+			if(empty($check))
 			{
 				# Determine whether to update the data or to create a new record
 				if($this->native_session->get('person_id'))
@@ -43,7 +47,10 @@ class _person extends CI_Model
 				}
 				else
 				{
-					$personId = $this->_query_reader->add_data('add_person_data', array('first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'last_name'=>htmlentities($details['lastname'], ENT_QUOTES), 'gender'=>$details['gender'], 'date_of_birth'=>format_date($details['birthday'], 'YYYY-MM-DD') )); 
+					$details['gender'] = !empty($details['gender'])? $details['gender']: 'unknown';
+					$details['birthday'] = !empty($details['birthday'])? format_date($details['birthday'], 'YYYY-MM-DD'): '0000-00-00';
+					
+					$personId = $this->_query_reader->add_data('add_person_data', array('first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'last_name'=>htmlentities($details['lastname'], ENT_QUOTES), 'gender'=>$details['gender'], 'date_of_birth'=>$details['birthday'] )); 
 			
 					if(!empty($personId) || $personId == 0)
 					{
@@ -52,14 +59,17 @@ class _person extends CI_Model
 						{
 							$phoneContactId = $this->_query_reader->add_data('add_contact_data', array('contact_type'=>'telephone', 'carrier_id'=>'', 'details'=>$details['telephone'], 'parent_id'=>$personId, 'parent_type'=>'person'));
 						}
+						
 						# Save the birth place
-						$birthPlaceId = $this->add_address($personId, array('address_type'=>'physical', 'importance'=>'birthplace', 'details'=>htmlentities($this->native_session->get('birthplace__addressline'), ENT_QUOTES), 'district'=>$this->native_session->get('birthplace__district'), 'country'=>$this->native_session->get('birthplace__country'), 'county'=>($this->native_session->get('birthplace__county')? $this->native_session->get('birthplace__county'): "") ));
+						if($this->native_session->get('birthplace__addressline'))
+						{
+							$birthPlaceId = $this->add_address($personId, array('address_type'=>'physical', 'importance'=>'birthplace', 'details'=>htmlentities($this->native_session->get('birthplace__addressline'), ENT_QUOTES), 'district'=>$this->native_session->get('birthplace__district'), 'country'=>$this->native_session->get('birthplace__country'), 'county'=>($this->native_session->get('birthplace__county')? $this->native_session->get('birthplace__county'): "") ));
+						}
 		
 						# 3. Create an account and generate a confirmation code
 						# For the first account, use the user's email address as the login username.
 						$password = generate_temp_password();
-						$code = generate_person_code($personId);
-						$userId = $this->_query_reader->add_data('add_user_data', array('person_id'=>$personId, 'login_name'=>$details['emailaddress'], 'login_password'=>sha1($password) ));
+						$userId = $this->_query_reader->add_data('add_user_data', array('person_id'=>$personId, 'login_name'=>$details['emailaddress'], 'login_password'=>sha1($password), 'permission_group'=>(!empty($details['role__roles'])? $details['role__roles']: ''), 'status'=>($isAdmin? 'active':'pending') ));
 						if(empty($userId)) 
 						{
 							$msg = "ERROR: We could not create your user record.";
@@ -70,8 +80,18 @@ class _person extends CI_Model
 						}
 					
 						# 4. Send confirmation code to contacts
-						$result = $this->_messenger->send_email_message($userId, array('code'=>'new_teacher_first_step', 'email_from'=>SIGNUP_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'verification_code'=>$code, 'password'=>$password, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ));
-						if(!$result) $msg = "ERROR: We could not send the email message with your code.";
+						if($isAdmin)
+						{
+							$result = $this->_messenger->send($userId, array('code'=>'introduce_new_user', 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME, 'password'=>$password, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ), array('email'));
+							if(!$result) $msg = "ERROR: We could not send the new account email message to the user.";
+						}
+						else
+						{
+							$code = generate_person_code($personId);
+							$result = $this->_messenger->send_email_message($userId, array('code'=>'new_teacher_first_step', 'email_from'=>SIGNUP_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'verification_code'=>$code, 'password'=>$password, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ));
+							if(!$result) $msg = "ERROR: We could not send the email message with your code.";
+						}
+						
 						if($result) $this->native_session->set('person_id', $personId);
 					}
 					else
@@ -107,8 +127,10 @@ class _person extends CI_Model
 	function update_profile($personId, $details)
 	{
 		$results = array();
-		
-		$result = $this->_query_reader->run('update_person_data', array('person_id'=>$personId, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'last_name'=>htmlentities($details['lastname'], ENT_QUOTES), 'gender'=>$details['gender'], 'date_of_birth'=>format_date($details['birthday'], 'YYYY-MM-DD') )); 
+		$details['gender'] = !empty($details['gender'])? $details['gender']: 'unknown';
+		$details['birthday'] = !empty($details['birthday'])? format_date($details['birthday'], 'YYYY-MM-DD'): '0000-00-00';
+					
+		$result = $this->_query_reader->run('update_person_data', array('person_id'=>$personId, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'last_name'=>htmlentities($details['lastname'], ENT_QUOTES), 'gender'=>$details['gender'], 'date_of_birth'=>$details['birthday'] )); 
 		array_push($results, $result);
 		
 		if(!empty($details['telephone'])) 
@@ -117,12 +139,15 @@ class _person extends CI_Model
 			array_push($results, $result);
 		}
 		
-		$result = $this->_query_reader->run('update_address_data', array('parent_id'=>$personId, 'parent_type'=>'person', 'address_type'=>'physical', 'importance'=>'birthplace', 'details'=>htmlentities($this->native_session->get('birthplace__addressline'), ENT_QUOTES), 'district'=>$this->native_session->get('birthplace__district'), 'country'=>$this->native_session->get('birthplace__country'), 'county'=>($this->native_session->get('birthplace__county')? $this->native_session->get('birthplace__county'): "") ));
+		if($this->native_session->get('birthplace__addressline'))
+		{
+			$result = $this->_query_reader->run('update_address_data', array('parent_id'=>$personId, 'parent_type'=>'person', 'address_type'=>'physical', 'importance'=>'birthplace', 'details'=>htmlentities($this->native_session->get('birthplace__addressline'), ENT_QUOTES), 'district'=>$this->native_session->get('birthplace__district'), 'country'=>$this->native_session->get('birthplace__country'), 'county'=>($this->native_session->get('birthplace__county')? $this->native_session->get('birthplace__county'): "") ));
 		array_push($results, $result);
+		}
 		
 		$isUpdated = get_decision($results);
 		
-		return array('boolean'=>$isUpdated, 'msg'=>($isUpdated? 'Your profile has been updated.': 'ERROR: Your profile could not be updated.'));
+		return array('boolean'=>$isUpdated, 'msg'=>($isUpdated? 'The profile has been updated.': 'ERROR: The profile could not be updated.'));
 	}	
 	
 	
@@ -438,16 +463,22 @@ class _person extends CI_Model
 	{
 		$msg = "";
 		
-		# Record message exchange
-		$result1 = $this->_query_reader->run('record_message_exchange', array('code'=>'teacher_application_submitted', 'send_format'=>'email', 'details'=>'email='.$details['emailaddress'].'|first name='.$details['first_name'].'|last name='.$details['last_name'], 'category'=>'registration', 'recipient_id'=>$details['user_id'], 'sender_id'=>'system'));
+		# 1. Mark the user status as complete - for the admin to be able to approve it
+		$result1 = $this->_query_reader->run('update_user_status', array('user_id'=>$details['user_id'], 'status'=>'completed'));
+		if(!$result1) $msg = "ERROR: We could not set up your user account for activation.";
 		
-		# Send email message notifying the user - copy admin - about the confirmation
-		$result2 = $this->_messenger->send_email_message('', array('code'=>'teacher_application_submitted', 'email_from'=>SIGNUP_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'first_name'=>htmlentities($details['first_name'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ));	
-		if(!$result2) $msg = "ERROR: We could not send your application confirmation email.";
+		# 2. Start the teacher approval chain
+		$result = $this->_approval_chain->add_chain($details['user_id'], 'registration', '1', 'approved');
+		$result2 = $result['boolean'];
+		if(!$result2) $msg = "ERROR: We could not set up your registration for approval.";
 		
-		$isSent = get_decision(array($result1, $result2));
+		# 3. Send notification of application submission
+		$result3 =  $this->_messenger->send($details['user_id'], array('code'=>'teacher_application_submitted', 'email_from'=>SIGNUP_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'first_name'=>htmlentities($details['first_name'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ), array('email'));
 		
-		return array('boolean'=>$isSent, 'msg'=>($isSent? "Your application has been submitted": $msg));
+		if(!$result3) $msg = "ERROR: We could not send your application confirmation email.";
+		$isSubmitted = get_decision(array($result1,$result2), FALSE);
+		
+		return array('boolean'=>$isSubmitted, 'msg'=>($isSubmitted? "Your application has been submitted": $msg));
 	}
 	
 	

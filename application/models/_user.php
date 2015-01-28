@@ -9,32 +9,68 @@
  */
 class _user extends CI_Model
 {
-	# STUB: Add a new user
-	function add_new()
+	# Verify a user
+	function verify($instructions)
 	{
-		$userId = "";
+		$result = array('boolean'=>false, 'msg'=>'ERROR: The user instructions could not be resolved.');
 		
-		return $userId;
+		if(!empty($instructions['action']))
+		{
+			switch($instructions['action'])
+			{
+				case 'approve':
+					$result['boolean'] = $this->change_status($instructions['id'], 'active');
+				break;
+				
+				case 'reject':
+					$result['boolean'] = $this->reject($instructions['id'],(!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): 'NONE'));
+				break;
+				
+				case 'block':
+					$result['boolean'] = $this->change_status($instructions['id'], 'blocked');
+				break;
+				
+				case 'archive':
+					$result['boolean'] = $this->change_status($instructions['id'], 'archived');
+				break;
+				
+				case 'restore':
+					$result['boolean'] = $this->change_status($instructions['id'], 'completed');
+				break;
+			}
+			
+			if(!empty($result['boolean'])) 
+			{
+				$result['msg'] = $result['boolean']? "The user status has been changed": "ERROR: The user status could not be changed.";
+			}
+		}
+		
+		return $result;
 	}
 	
 	
-	# STUB: Activate a user account
-	function activate($userId)
+	
+
+	
+	# Change the status of the user
+	function change_status($userId, $newStatus)
 	{
-		$isActive = false;
+		$result1 = !in_array($newStatus, array('archived','complete'))? $this->_messenger->send($userId, array('code'=>'notify_change_of_user_status', 'status'=>strtoupper($newStatus)), array('email')): true;
+		$result2 = $this->_query_reader->run('update_user_status', array('user_id'=>$userId, 'status'=>$newStatus));
 		
-		return $isActive;
+		return get_decision(array($result1,$result2), FALSE);
 	}
 	
 	
-	# STUB: Deactivate a user account
-	function deactivate($userId)
+	# Reject a user application
+	function reject($userId, $reason)
 	{
-		$isDeactivated = false;
+		$result1 = $this->_messenger->send($userId, array('code'=>'reject_user_application', 'reason'=>$reason), array('email'));
+		$result2 = $this->_query_reader->run('delete_user_data', array('user_id'=>$userId));
 		
-		
-		return $isDeactivated;
+		return get_decision(array($result1,$result2), FALSE);
 	}
+	
 	
 	
 	# STUB: Delete a user account
@@ -69,7 +105,7 @@ class _user extends CI_Model
 						
 						if(!empty($user))
 						{
-							$isUpdated = $this->_query_reader->run('update_user_password', array('new_password'=>sha1($details['newpassword']), 'old_password'=>sha1($details['currentpassword']), 'updated_by'=>$this->native_session->get('user_id'), 'user_id'=>$this->native_session->get('profile_id') ));
+							$isUpdated = $this->_query_reader->run('update_user_password', array('new_password'=>sha1($details['newpassword']), 'old_password'=>sha1($details['currentpassword']), 'updated_by'=>$this->native_session->get('__user_id'), 'user_id'=>$this->native_session->get('profile_id') ));
 							$msg = $isUpdated? "Your profile changes have been applied.": "ERROR: Your password could not be updated.";
 						}
 						else
@@ -100,7 +136,7 @@ class _user extends CI_Model
 		if($isUpdated || (!$isUpdated && $msg == ''))
 		{
 			# Update the person details
-			$isUpdated = $this->_query_reader->run('update_person_profile_part', array('query_part'=>" first_name='".htmlentities($details['firstname'], ENT_QUOTES)."', last_name='".htmlentities($details['lastname'], ENT_QUOTES)."' ", 'person_id'=>$this->native_session->get('profile_personid') ));
+			$isUpdated = $this->_query_reader->run('update_person_profile_part', array('query_part'=>" first_name='".htmlentities($details['firstname'], ENT_QUOTES)."', last_name='".htmlentities($details['lastname'], ENT_QUOTES)."' ", 'person_id'=>$this->native_session->get('__person_id') ));
 			if(!$isUpdated)
 			{
 				$msg = "ERROR: We could not update your name.";
@@ -109,7 +145,7 @@ class _user extends CI_Model
 			else if(!empty($details['telephone']))
 			{
 				$queryCode = $this->native_session->get('profile_telephone')? 'update_contact_data': 'add_contact_data';
-				$isUpdated = $this->_query_reader->run($queryCode, array('details'=>$details['telephone'], 'carrier_id'=>'', 'contact_type'=>'telephone', 'parent_type'=>'person', 'parent_id'=>$this->native_session->get('profile_personid') ));
+				$isUpdated = $this->_query_reader->run($queryCode, array('details'=>$details['telephone'], 'carrier_id'=>'', 'contact_type'=>'telephone', 'parent_type'=>'person', 'parent_id'=>$this->native_session->get('__person_id') ));
 				
 				$msg = $isUpdated? "Your profile updates have been applied.": "ERROR: We could not update your name.";
 			}
@@ -151,15 +187,7 @@ class _user extends CI_Model
 		
 		return $isRejected;
 	}
-		
 	
-	# STUB: Block a user from accessing the system
-	function block($userId, $notes)
-	{
-		$isRejected = false;
-		
-		return $isRejected;
-	}
 			
 	
 	# STUB: Get the vacancies the user saved to view later
@@ -223,16 +251,6 @@ class _user extends CI_Model
 		return $isChanged;
 	}
 	
-
-	
-	# STUB: Change the status of the user
-	function change_status($userId, $newStatus)
-	{
-		$isChanged = false;
-		
-		
-		return $isChanged;
-	}
 	
 
 	# Populate a user session profile
@@ -251,6 +269,26 @@ class _user extends CI_Model
 			$this->native_session->set('profile_emailaddress', $profile['email_address']);
 		}
 		
+	}
+	
+	
+	
+		
+	
+	# Get list of users
+	function get_list($instructions=array())
+	{
+		$searchString = " 1=1 ";
+		# If a search phrase is sent in the instructions
+		if(!empty($instructions['searchstring']))
+		{
+			$searchString .= " AND ".$instructions['searchstring'];
+		}
+		
+		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
+		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
+		
+		return $this->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" ORDER BY U.last_updated DESC "));
 	}
 	
 }

@@ -60,6 +60,7 @@ class Interview extends CI_Controller
 		check_access($this, 'view_recommendation_list');
 		
 		
+		
 		$this->load->view('page/under_construction', $data); 
 	}
 	

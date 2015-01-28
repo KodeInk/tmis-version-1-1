@@ -21,6 +21,7 @@ function process_fields($obj, $data, $required=array(), $allowChars=array())
 		
 	foreach($data AS $key=>$value)
 	{
+		$value = htmlentities($value, ENT_QUOTES);
 		# Add if the string is not empty and does not contain any of the disallowed characters
 		if(!empty($value) && !(0 < count(array_intersect(str_split(strtolower($value)), $disallowChars))) )
 		{

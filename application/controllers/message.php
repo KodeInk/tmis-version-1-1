@@ -59,7 +59,6 @@ class Message extends CI_Controller
 		$data = filter_forwarded_data($this);
 		check_access($this, 'view_message_inbox');
 		
-		
 		$this->load->view('page/under_construction', $data); 
 	}
 	

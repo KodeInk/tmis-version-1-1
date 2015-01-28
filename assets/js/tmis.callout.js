@@ -13,7 +13,6 @@ $(function() {
 		} 
 		else 
 		{
-			
 			//Now specify where the callouts pick their forms
 			if($(this).hasClass('placefield'))
 			{

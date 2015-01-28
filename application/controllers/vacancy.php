@@ -30,6 +30,16 @@ class Vacancy extends CI_Controller
 	}
 	
 	
+	#STUB: shortlist a user for a given vacancy
+	function shortlist()
+	{
+		$data = filter_forwarded_data($this);
+		check_access($this, 'set_vacancy_shortlist');
+		
+		
+		$this->load->view('page/under_construction', $data); 
+	}
+	
 	
 	#STUB: Apply for a job
 	function apply()
@@ -65,11 +75,37 @@ class Vacancy extends CI_Controller
 	}
 	
 	
+	
+	#Verify the vacancy before proceeding to the next stage
+	function verify()
+	{
+		$data = filter_forwarded_data($this);
+		if(!empty($_POST))
+		{
+			# Approve or reject a vacancy
+			$result = $this->_vacancy->verify($_POST);
+			
+			$actionPart = current(explode("_", $_POST['action']));
+			$actions = array('approve'=>'approved', 'reject'=>'rejected', 'archive'=>'archived', 'restore'=>'restored', 'publish'=>'published');
+			$actionWord = !empty($actions[$actionPart])? $actions[$actionPart]: 'made';
+			$this->native_session->set('msg', ($result['boolean']? "The vacancy has been ".$actionWord: (!empty($result['msg'])? $result['msg']: "ERROR: The vacancy could not be ".$actionWord) ));
+		}
+		else
+		{
+			# Get list type
+			$data['list_type'] = current(explode("_", $data['action']));
+			$data['area'] = 'verify_vacancy';
+			$this->load->view('addons/basic_addons', $data);
+		}
+	}
+	
 	# Add a new job
 	function add()
 	{
 		$data = filter_forwarded_data($this);
 		check_access($this, 'add_new_job');
+		# Remove any session variables if still in the session.
+		$this->_vacancy->clear_session();
 		
 		# If the user has posted the vacancy details
 		if(!empty($_POST))
@@ -88,13 +124,12 @@ class Vacancy extends CI_Controller
 			$data['vacancy_id'] = !empty($data['result']['id'])? $data['result']['id']: '';
 			$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Your job details have been saved.": $data['result']['msg'];
 			# Redirect to appropriate page if successful
-			$this->native_session->set('msg', $data['result']['msg']);
+			$this->native_session->set('msg', $data['msg']);
 			if($data['result']['boolean'] && $this->input->post('forwardurl')) redirect(base_url().$this->input->post('forwardurl'));
 		}
 		
-		#If editing, load the id for the first time
-		if(!empty($data['id'])) $data['vacancy_id'] = decrypt_value($data['id']);
-		
+		#If editing, load the id details into the session for the first time 
+		if(!empty($data['id']) && empty($_POST)) $this->_vacancy->populate_session($data['id']);
 		$this->load->view('vacancy/new_vacancy', $data); 
 	}
 	
@@ -111,6 +146,24 @@ class Vacancy extends CI_Controller
 		$this->load->view('vacancy/list_vacancies', $data); 
 	}
 	
+	
+	
+	# View a job's details
+	function details()
+	{
+		$data = filter_forwarded_data($this);
+		
+		if(!empty($data['id']))
+		{
+			$data['details'] = $this->_vacancy->get_details($data['id']);
+		}
+		else
+		{
+			$data['msg'] = "ERROR: We could not find the vacancy details.";
+		}
+		
+		$this->load->view('vacancy/details', $data); 
+	}
 	
 }
 

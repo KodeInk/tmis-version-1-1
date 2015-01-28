@@ -22,16 +22,21 @@ class _validator extends CI_Model
 			$boolean = true;
 			$userId = $user['id'];
 			
-			#Set the user's session variables
-			$this->native_session->set('user_id', $user['id']);
-			$this->native_session->set('email_address', $user['email_address']);
-			if(!empty($user['telephone'])) $this->native_session->set('telephone', $user['telephone']);
-			$this->native_session->set('permission_group', $user['permission_group_id']);
-			$this->native_session->set('default_permission', $user['default_permission_code']);
-			$this->native_session->set('first_name', $user['first_name']);
-			$this->native_session->set('last_name', $user['last_name']);
-			$this->native_session->set('gender', $user['gender']);
-			$this->native_session->set('date_of_birth', $user['date_of_birth']);
+			# Set the user's session variables
+			
+			# Start each variable with two underscores to uniquely mark these as this user's profile variables 
+			# and should not modified by other system functions
+			$this->native_session->set('__user_id', $user['id']);
+			$this->native_session->set('__email_address', $user['email_address']);
+			$this->native_session->set('__person_id', $user['person_id']);
+			if(!empty($user['telephone'])) $this->native_session->set('__telephone', $user['telephone']);
+			$this->native_session->set('__permission_group', $user['permission_group_id']);
+			$this->native_session->set('__permission_group_name', $user['permission_group_name']);
+			$this->native_session->set('__default_permission', $user['default_permission_code']);
+			$this->native_session->set('__first_name', $user['first_name']);
+			$this->native_session->set('__last_name', $user['last_name']);
+			$this->native_session->set('__gender', $user['gender']);
+			$this->native_session->set('__date_of_birth', $user['date_of_birth']);
 		}
 		
 		return array('boolean'=>$boolean, 'user_id'=>$userId);

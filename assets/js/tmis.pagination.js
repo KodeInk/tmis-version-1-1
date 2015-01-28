@@ -3,7 +3,7 @@
 /*For use, the following is the basic HTML setup
 -----------------------------------------------------------------------
 <!-- The div that shows the list of items -->
-<div id="paginationdiv__[pagination div ID]_list" class="paginationlist">[Load the first pagination div details. The rest will be loaded by pagination.]</div>
+<div id="paginationdiv__[pagination div ID]_list" class="paginationlist"><div id="[pagination div ID]__1">[Load the first page list. The rest will be loaded by pagination.]</div></div>
     
 <!-- The div that shows the pagination -->
 <div id="[pagination div ID]" class="paginationdiv">
@@ -40,13 +40,13 @@ $(function() {
 		var maxPages = !$('#paginationdiv__'+parentDiv.attr('id')+'_maxpages').length? 5 : parseInt($('#paginationdiv__'+parentDiv.attr('id')+'_maxpages').val());
 		var noPerList = !$('#paginationdiv__'+parentDiv.attr('id')+'_noperlist').length? 10 : parseInt($('#paginationdiv__'+parentDiv.attr('id')+'_noperlist').val());
 		//Specify the base URL to go to when the div is clicked
-		var baseUrl = !$('#paginationdiv__'+parentDiv.attr('id')+'_action').length? getBaseURL()+'web/search/load_side_list/t/'+parentDiv.attr('id') : $('#paginationdiv__'+parentDiv.attr('id')+'_action').val();
+		var baseUrl = !$('#paginationdiv__'+parentDiv.attr('id')+'_action').length? getBaseURL()+'web/search/load_list/t/'+parentDiv.attr('id') : $('#paginationdiv__'+parentDiv.attr('id')+'_action').val();
 		//The number of div children in the pagination parent div
 		var noOfChildren = parentDiv.children('div').length;
 			
 		
 		
-		
+		// Remove any selected class marker in the divs before assigning it to the clicked div
 		parentDiv.children('div').each(function(){
 			$(this).removeClass('selected');
 		});
@@ -116,12 +116,12 @@ $(function() {
 							}
 						});
 				
-						//Put a border on the previous if we have reached the limit of shown divs
-						//Remember first div does not have a left border
+						// Put a border on the previous if we have reached the limit of shown divs
+						// Remember first div does not have a left border
 						if(noOfChildren == (maxPages+1)){
-							parentDiv.find('.previousbtn').first().css('border-right','solid 1px #DDD');
+							parentDiv.find('.previousbtn').first().addClass('rightborder');
 						} else {
-							parentDiv.find('.previousbtn').first().css('border-right','0px');
+							parentDiv.find('.previousbtn').first().removeClass('rightborder');
 						}
 				
 						//Show the previous btn if it is invisible
@@ -133,7 +133,7 @@ $(function() {
 					//Make the div selected
 					$(this).prev('div').addClass('selected');
 			
-					//Also load the page list
+					//Now load the actual list on the page
 					//-----------------------------------------------------------------------
 					var pageIndex = noOfChildren - 1;//Remove the previous div (index 0) therefore it is = (noOfChildren - 2) + 1
 					var divContainerId = parentDiv.attr('id')+'__'+pageIndex;

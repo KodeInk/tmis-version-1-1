@@ -15,8 +15,9 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.shadowbox.css"/>
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.pagination.css"/>
 
 <!-- Javascript -->
 <script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
@@ -25,17 +26,11 @@
 <script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
 <script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.callout.js"></script> 
 <script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
- 
-
-<!-- Functionality to handle pagination. -->
-<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.pagination.css" type="text/css" media="screen" />
-<style type="text/css"> 
-.centerpagination {width: 100%; text-align: center;}
-.paginationdiv {display: table;  margin: 0 auto;} 
-.paginationdiv div { background-color: #FFF; } 
-</style>
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script>  
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.list.js"></script>
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.shadowbox.js"></script> 
 <script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.pagination.js"></script>
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.search.js"></script>
 
 
 </head>
@@ -49,7 +44,9 @@
     <td><div id="mobilebuttons_details"></div>
     <div id="mobilebuttons"><button type="button" name="step1btnbig" id="step1btnbig" class="bigbtn">REGISTER</button><br><br>
 <button type="button" name="loginbtnbig" id="loginbtnbig" class="biggreybtn">LOGIN</button></div>
-    <div class="h1 blue nowrap listheader">Job Notices</div><div class="listsearchfield"><input type="text" id="jobsearch" name="jobsearch" placeholder="Search Jobs" class="findfield" value=""/></div></td>
+    <div class="h1 blue nowrap listheader">Job Notices</div><div class="listsearchfield"><input type="text" id="jobsearch__jobs" name="jobsearch__jobs" placeholder="Search Jobs" class="findfield" value=""/>
+<input type='hidden' id='jobsearch__displaydiv' name='jobsearch__displaydiv' value='jobsearch__1' />
+</div></td>
     </tr>
   <tr>
     <td>
@@ -57,43 +54,41 @@
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td><div id="paginationdiv__jobsearch_list">
+    <div id="jobsearch__1">
     <table border="0" cellspacing="0" cellpadding="0" class="listtable">
-    
-    <tr>
-    <td><div class="rowcontent"><span class="header">1. Kampala: Primary School Teacher</span><br>
-A Mathematics teacher with more than 15 years of experience is desired. They should be willing to move closer to the school and work more than 12 hours on some days. This is not a requirement but may be..</div>
-    <div class="leftnote">16-Jan-2015</div><div class="rightnote"><a href="javascript:;">details</a></div></td>
-  </tr>
-  
-  <tr>
-    <td><div class="rowcontent"><span class="header">2. Moroto: Secondary School Teacher</span><br>
-A Social Studies teacher with at least 2 years of experience is desired. They may be allowed to work from  home after proving that they can keep time for in-person classes. The class size will be about 30 studen..</div>
-    <div class="leftnote">27-Jan-2015</div><div class="rightnote"><a href="javascript:;">details</a></div></td>
-  </tr>
-  
-  <tr>
-    <td><div class="rowcontent"><span class="header">3. Moroto: Secondary School Teacher</span><br>
-A Social Studies teacher with at least 2 years of experience is desired. They may be allowed to work from  home after proving that they can keep time for in-person classes. The class size will be about 30 studen..</div>
-    <div class="leftnote">27-Jan-2015</div><div class="rightnote"><a href="javascript:;">details</a></div></td>
-  </tr>
-  
-  <tr>
-    <td><div class="rowcontent"><span class="header">4. Moroto: Secondary School Teacher</span><br>
-A Social Studies teacher with at least 2 years of experience is desired. They may be allowed to work from  home after proving that they can keep time for in-person classes. The class size will be about 30 studen..</div>
-    <div class="leftnote">27-Jan-2015</div><div class="rightnote"><a href="javascript:;">details</a></div></td>
-  </tr>
-  
-  <tr>
-    <td><div class="rowcontent"><span class="header">5. Moroto: Secondary School Teacher</span><br>
-A Social Studies teacher with at least 2 years of experience is desired. They may be allowed to work from  home after proving that they can keep time for in-person classes. The class size will be about 30 studen..</div>
-    <div class="leftnote">27-Jan-2015</div><div class="rightnote"><a href="javascript:;">details</a></div></td>
-  </tr>
+<?php 
+if(!empty($list))
+{
+	foreach($list AS $row)
+	{
+		echo "<tr class='listrow'>
+    <td>
+	<table border='0' cellspacing='0' cellpadding='0' width='100%'>
+	<tr><td>
+	<div class='rowcontent'><div class='nextdiv header'>".$row['topic']."</div>
+	<br><div class='nextdiv value'>ROLE: ".$row['role_name']."</div><div class='nextdiv value'>AT: ".$row['institution_name']."</div>
+	<br>
+".$row['summary']."</div>
+    <div class='leftnote'>Respond By: ".date('d-M-Y', strtotime($row['end_date']))."</div>
+	<div class='rightnote'><a href='".base_url()."vacancy/details/id/".$row['id']."' class='shadowbox closable'>details</a></div>
+	</td></tr>
+	</table>
+	</td>
+  </tr>";
+	}  
+}
+else
+{
+	echo "<tr><td>".format_notice($this,'WARNING: There are no items in this list.')."</td></tr>";
+}
+?>
+
   
     </table>
-    </div></td>
+    </div></div></td>
   </tr>
   <tr>
-    <td style="padding:15px;"><div class='centerpagination' style="margin:0px;padding:0px;"><div id="jobsearch" class="paginationdiv"><div class="previousbtn">&#x25c4;</div><div class="selected">1</div><div>2</div><div>3</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__jobsearch_action" id="paginationdiv__jobsearch_action" type="hidden" value="<?php echo base_url()."search/load_list/t/jobs";?>" />
+    <td style="padding:15px;"><div class='centerpagination' style="margin:0px;padding:0px;"><div id="jobsearch" class="paginationdiv"><div class="previousbtn" style='display:none;'>&#x25c4;</div><div class="selected">1</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__jobsearch_action" id="paginationdiv__jobsearch_action" type="hidden" value="<?php echo base_url()."search/load_list/t/jobs";?>" />
 <input name="paginationdiv__jobsearch_maxpages" id="paginationdiv__jobsearch_maxpages" type="hidden" value="5" />
 <input name="paginationdiv__jobsearch_showdiv" id="paginationdiv__jobsearch_showdiv" type="hidden" value="paginationdiv__jobsearch_list" /></div></td>
   </tr>
@@ -127,7 +122,7 @@ A Social Studies teacher with at least 2 years of experience is desired. They ma
   </tr>
   <tr>
     <td class="label">Telephone:</td>
-    <td><input type="text" id="telephone" name="telephone" title="Telephone" placeholder="Optional" maxlength="16" class="textfield numbersonly optional" value="<?php echo ($this->native_session->get('telephone')? $this->native_session->get('telephone'): '');?>"/></td>
+    <td><input type="text" id="telephone" name="telephone" title="Telephone" placeholder="Optional (e.g: 0782123456)" maxlength="10" class="textfield numbersonly telephone optional" value="<?php echo ($this->native_session->get('telephone')? $this->native_session->get('telephone'): '');?>"/></td>
   </tr>
   <tr>
     <td class="label">Email Address:</td>

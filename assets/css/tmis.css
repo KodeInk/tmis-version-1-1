@@ -317,6 +317,13 @@ textarea {
 	color: #999999;
 }
 
+.lastdiv {
+	display:inline-block;
+	min-width:100px;
+	margin-right: 15px;
+	float: right;
+}
+
 .btn {
 	color:#F0F0F0;
 	font: 16px normal Helvetica, Arial, sans-serif;
@@ -822,3 +829,8 @@ textarea {
 
 
 
+.clearfield {
+	background: url(../../assets/images/clear_icon.png) no-repeat left center;
+	padding-left: 30px;
+	cursor: pointer;
+}

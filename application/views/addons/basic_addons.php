@@ -1,5 +1,5 @@
 <?php 
-$jquery = "<script src='".base_url()."assets/js/jquery.min.js' type='text/javascript'></script>";
+$jquery = "<script src='".base_url()."assets/js/jquery-2.1.1.min.js' type='text/javascript'></script>";
 $javascript = "<script type='text/javascript' src='".base_url()."assets/js/tmis.js'></script>".get_AJAX_constructor(TRUE); 
 
 $tableHTML = "<link rel='stylesheet' href='".base_url()."assets/css/tmis.css' type='text/css' media='screen' />"; 
@@ -15,7 +15,7 @@ if(!empty($area) && $area == "show_bigger_image")
 
 else if(!empty($area) && $area == "basic_msg" && !empty($msg)) 
 {
-	$tableHTML .= format_notice($msg);
+	$tableHTML .= format_notice($this, $msg);
 }
 
 
@@ -181,6 +181,17 @@ else if(!empty($area) && $area == "subject_list")
 	}
 }
 
+
+
+
+
+else if(!empty($area) && in_array($area, array("verify_vacancy", "verify_user")))
+{
+	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='5' width='100%' />
+	<tr><td width='99%'><textarea id='reason_".$action."_".$id."' name='reason_".$action."_".$id."' class='yellowfield' style='width:100%' placeholder='Enter the reason you want to ".$list_type." this item. (Optional)'></textarea></td>
+	<td width='1%'><input id='confirm_".$action."_".$id."' name='confirm_".$action."_".$id."' type='button' class='greybtn confirmlistbtn' style='width:125px;' value='CONFIRM' /><div style='padding-top:5px;'><input id='cancel_".$action."_".$id."' name='cancel_".$action."_".$id."' type='button' class='greybtn cancellistbtn' style='width:125px;' value='CANCEL' /><input type='hidden' id='hidden_".$action."_".$id."' name='hidden_".$action."_".$id."' value='".str_replace('verify_', '', $area)."' /></div></td></tr>
+	</table>";
+}
 
 
 

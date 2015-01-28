@@ -304,14 +304,14 @@ function format_notice($obj, $msg)
 	if(strcasecmp(substr($msg, 0, 8), 'WARNING:') == 0)
 	{
 		$msgString = "<table width='100%' border='0' cellspacing='0' cellpadding='5' style=\"".$style."border:0px;\">".
-						"<tr><td width='1%' class='error' style='border:0px;' nowrap>".str_replace("WARNING:", "<img src='".base_url()."assets/images/warning.png' border='0'/></td><td  class='error'  style='font-size:13px; color:#000;border:0px;' width='99%' valign='middle'>", $msg)."</td></tr>".
+						"<tr><td width='1%' class='error' style='border:0px;padding:5px;min-width:0px;' nowrap>".str_replace("WARNING:", "<img src='".base_url()."assets/images/warning.png' border='0'/></td><td  class='error'  style='font-size:13px; color:#000;border:0px;' width='99%' valign='middle'>", $msg)."</td></tr>".
 					  "</table>";
 	}
 	# Error message. look for "ERROR:" in the message
 	else if(strcasecmp(substr($msg, 0, 6), 'ERROR:') == 0)
 	{
 		$msgString = "<table width='100%' border='0' cellspacing='0' cellpadding='5' style=\"".$style."border:0px;\">".
-						"<tr><td class='error' style='border:0px;' width='1%' nowrap>".str_replace("ERROR:", "<img src='".base_url()."assets/images/error.png'  border='0'/></td><td  width='99%' class='error'  style='font-size:13px;border:0px;' valign='middle'>", $msg)."</td></tr>".
+						"<tr><td class='error' style='border:0px;padding:5px;min-width:0px;' width='1%' nowrap>".str_replace("ERROR:", "<img src='".base_url()."assets/images/error.png'  border='0'/></td><td  width='99%' class='error'  style='font-size:13px;border:0px;' valign='middle'>", $msg)."</td></tr>".
 					  "</table>";
 		
 		$obj->_logger->add_event(array('log_code'=>'system_error', 'result'=>'fail', 'details'=>"msg=".$msg));
@@ -1148,7 +1148,7 @@ function array_key_contains($keyPart, $array)
 		}
 	}
 	
-	return array('bool'=>$exists, 'key'=>$theKey);
+	return array('boolean'=>$exists, 'key'=>$theKey);
 }
 
 
@@ -1282,8 +1282,14 @@ function check_access($obj, $accessCode, $return='msg')
 	# then, return appropriate response
 	if($obj->native_session->get('permissions') && in_array($accessCode, $obj->native_session->get('permissions')))
 	{
-		$obj->native_session->set('selected_permission', $accessCode);
-		return $return == 'boolean'? true: '';
+		if($return == 'boolean')
+		{
+			return true;
+		}
+		else
+		{
+			$obj->native_session->set('selected_permission', $accessCode);
+		}
 	}
 	else
 	{
@@ -1294,7 +1300,7 @@ function check_access($obj, $accessCode, $return='msg')
 		else
 		{
 			$obj->native_session->set('msg', "ERROR: You do not have access to this feature.");
-			redirect(base_url().($obj->native_session->get('user_id')? get_user_dashboard($obj, $obj->native_session->get('user_id')): 'account/logout')); 
+			redirect(base_url().($obj->native_session->get('__user_id')? get_user_dashboard($obj, $obj->native_session->get('__user_id')): 'account/logout')); 
 		}
 	}
 }

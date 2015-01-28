@@ -405,7 +405,29 @@ INSERT INTO query (id, code, details) VALUES
 
 
 
+-- -------------------------------------------------------------------------------------
+-- Changed the ENGINE to allow fulltext indexing for searching the table.
+-- -------------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS institution;
+CREATE TABLE institution (
+  id bigint(20) NOT NULL AUTO_INCREMENT,
+  `name` varchar(500) NOT NULL,
+  start_date date NOT NULL,
+  end_date date NOT NULL,
+  `status` enum('verified','pending','rejected') NOT NULL DEFAULT 'pending',
+  date_added datetime NOT NULL,
+  added_by varchar(100) NOT NULL,
+  last_updated datetime NOT NULL,
+  last_updated_by varchar(100) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
 ALTER TABLE institution ADD FULLTEXT(name);
+
+
+
+
 
 DROP TABLE role;
 

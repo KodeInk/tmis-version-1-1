@@ -5,19 +5,11 @@
 	padding: 0px;
 }
 
-.listtable tr:nth-child(even) {
-	background-color: #F0F0F0;
-}
-
-.listtable tr:nth-child(odd) {
-	background-color: #FFFFFF;
-}
-
 .listtable .rowcontent {
 	padding-bottom: 5px;
 }
 
-.listtable .rowcontent .header {
+.listtable .rowcontent .header, .listtable .header td {
 	font-family: Calibri,Candara,Segoe,Segoe UI,Optima,Arial,sans-serif;
 	font-size: 18px;
 	font-weight:600;
@@ -56,7 +48,7 @@
 	cursor: pointer;
 }
 
-.approverow:hover {
+.approverow:hover, .approverow.active {
 	background: url(../../assets/images/approve_yellow.png) no-repeat center center;
 }
 
@@ -67,7 +59,7 @@
 	cursor: pointer;
 }
 
-.rejectrow:hover {
+.rejectrow:hover, .rejectrow.active {
 	background: url(../../assets/images/reject_yellow.png) no-repeat center center;
 }
 
@@ -78,12 +70,58 @@
 	cursor: pointer;
 }
 
-.archiverow:hover {
+.archiverow:hover, .archiverow.active {
 	background: url(../../assets/images/archive_yellow.png) no-repeat center center;
+}
+
+.restorerow {
+	background: url(../../assets/images/restore_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.restorerow:hover, .restorerow.active {
+	background: url(../../assets/images/restore_yellow.png) no-repeat center center;
+}
+
+.publishrow {
+	background: url(../../assets/images/publish_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.publishrow:hover, .publishrow.active {
+	background: url(../../assets/images/publish_yellow.png) no-repeat center center;
+}
+
+.blockrow {
+	background: url(../../assets/images/block_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.blockrow:hover, .blockrow.active {
+	background: url(../../assets/images/block_yellow.png) no-repeat center center;
+}
+
+.publishicon {
+	background: url(../../assets/images/publish_yellow.png) no-repeat center center;
+	width: 30px;
+	height: 25px;
 }
 
 
 
+.yellowfield {
+	border: 2px solid #FFD418;
+	padding:8px;
+	font-size: 16px;
+    color:#333333;
+	width: 220px;
+}
 
 
 /* ----------------------------------------------------------------------------------------------- */

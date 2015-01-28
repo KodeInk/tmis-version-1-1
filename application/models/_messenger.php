@@ -20,6 +20,21 @@ class _messenger extends CI_Model {
 	
 	
 	
+	# Notify a user by sending a message to their email, sms and in the system
+	# $required - makes sure that the sending formats required were successful, although the other formats are still attempted
+	function send($userId, $message, $required=array('system'))
+	{
+		$results['email'] = $this->send_email_message($userId, $message);
+		$results['sms'] = $this->send_sms_message($userId, $message);
+		$results['system'] = $this->send_system_message($userId, $message);
+		
+		#If the sending format required passed then return the result as successful even if the others may have failed
+		$considered = array();
+		foreach($results AS $key=>$value) if(in_array($key, $required)) array_push($considered, $value);
+		
+		return get_decision($considered);
+	}
+	
 	
 	
 	# Send email message
@@ -28,8 +43,17 @@ class _messenger extends CI_Model {
 		$isSent = false;
 		
 		# 1. If email address is not provided, then fetch it using the user id
-		if(empty($messageDetails['emailaddress'])) $email = $this->_query_reader->get_row_as_array('get_user_email', array('user_id'=>$userId));
-		$emailTo = !empty($messageDetails['emailaddress'])? $messageDetails['emailaddress']: (!empty($email['emailaddress'])? $email['emailaddress']: "");
+		if(!empty($userId))
+		{
+			$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$userId));
+			if(!empty($user))
+			{
+				$emailaddress = $user['email_address'];
+				$messageDetails['firstname'] = !empty($messageDetails['firstname'])? $messageDetails['firstname']: $user['first_name'];
+			}
+		}
+		
+		$emailTo = !empty($messageDetails['emailaddress'])? $messageDetails['emailaddress']: (!empty($emailaddress)? $emailaddress: "");
 		
 		if(!empty($emailTo))
 		{
@@ -39,6 +63,7 @@ class _messenger extends CI_Model {
 			# 3. Send message
 			if(!empty($emailMessage['details']))
 			{
+				$this->email->to($emailTo);
 				$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
 				$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
 				if($template['copy_admin'] == 'Y') $this->email->bcc(SITE_ADMIN_MAIL);
@@ -50,36 +75,69 @@ class _messenger extends CI_Model {
 				{
 					$this->email->attach($messageDetails['fileurl']);
 				}
-				#Use this line to test sending of email without actually sending it
-				#echo $this->email->print_debugger();
+				
+				# Use this line to test sending of email without actually sending it
+				# echo $this->email->print_debugger();
 		
 				$isSent = $this->email->send();
+				
+				#Record messsage exchange if sent
+				if($isSent) $result = $this->_query_reader->run('record_message_exchange', array('code'=>$messageDetails['code'], 'send_format'=>'email', 'details'=>$emailMessage['details'], 'subject'=>$emailMessage['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
 			}
 		}
 		
 		return $isSent;
 	}
-		
 	
 	
-	# STUB: Send an SMS to the specified user
+	
+	# Send an SMS to the specified user
 	function send_sms_message($userId, $messageDetails)
 	{
 		$isSent = false;
-		
+		if(!empty($userId))
+		{
+			$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$userId));
+			if(!empty($user['telephone']))
+			{
+				$this->load->model('_carrier');
+				
+				$carrierEmailDomain = $this->_carrier->get_email_domain($user['telephone']);
+				if(!empty($carrierEmailDomain))
+				{
+					$template = $this->get_template_by_code($messageDetails['code']);
+					$smsMessage = $this->populate_template($template, $messageDetails);
+				
+					$this->email->to($user['telephone'].'@'.$carrierEmailDomain);
+					$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
+					$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
+					if($template['copy_admin'] == 'Y') $this->email->bcc(SITE_ADMIN_MAIL);
+			
+					$this->email->subject($smsMessage['subject']);
+					$this->email->message($smsMessage['sms']);
+				
+					$isSent = $this->email->send();
+					
+					#Record messsage exchange if sent
+					if($isSent) $result = $this->_query_reader->run('record_message_exchange', array('code'=>$messageDetails['code'], 'send_format'=>'sms', 'details'=>$smsMessage['sms'], 'subject'=>$smsMessage['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
+				}
+			}
+		}
 		
 		return $isSent;
 	}	
 			
 	
 	
-	# STUB: Send a system message to the specified user
+	# Send a system message to the specified user
 	function send_system_message($userId, $messageDetails)
 	{
-		$isSent = false;
+		# 1. Fetch the message template and populate the necessary details
+		$template = $this->get_template_by_code($messageDetails['code']);
+		$systemMessage = $this->populate_template($template, $messageDetails);
 		
-		
-		return $isSent;
+		# 2. Record the message exchange to be accessed by the recipient in their inbox
+		return $this->_query_reader->run('record_message_exchange', array('code'=>$messageDetails['code'], 'send_format'=>'system', 'details'=>$systemMessage['details'], 'subject'=>$systemMessage['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
 	}	
 			
 	
@@ -93,24 +151,33 @@ class _messenger extends CI_Model {
 	
 	
 	# Populate the template to generate the actual message
-	function populate_template($template, $values=array())
+	function populate_template($template, $values=array(), $type='email')
 	{
-		$message = array();
-		if(!empty($template['subject']) && !empty($template['details']))
+		# Order keys by length - longest first
+		array_multisort(array_map('strlen', array_keys($values)), SORT_DESC, $values);
+		
+		# SMS message
+		if($type == 'sms' && !empty($template['sms']))
 		{
-			# Order keys by length - longest first
-			array_multisort(array_map('strlen', array_keys($values)), SORT_DESC, $values);
-			
-			# go through all passed values and replace where they appear in the template text
+			foreach($values AS $key=>$value)
+			{
+				$template['subject'] = str_replace('_'.strtoupper($key).'_', html_entity_decode($value, ENT_QUOTES), $template['subject']);
+				$template['sms'] = str_replace('_'.strtoupper($key).'_', html_entity_decode($value, ENT_QUOTES), $template['sms']);
+			}
+		}
+		
+		# Email or system message
+		else if(in_array($type, array('email','system')) && !empty($template['subject']) && !empty($template['details']))
+		{
+			# Go through all passed values and replace where they appear in the template text
 			foreach($values AS $key=>$value)
 			{
 				$template['subject'] = str_replace('_'.strtoupper($key).'_', html_entity_decode($value, ENT_QUOTES), $template['subject']);
 				$template['details'] = str_replace('_'.strtoupper($key).'_', html_entity_decode($value, ENT_QUOTES), $template['details']);
 			}
-			$message = array('subject'=>$template['subject'], 'details'=>$template['details']);
 		}
 		
-		return $message;
+		return $template;
 	}
 					
 	

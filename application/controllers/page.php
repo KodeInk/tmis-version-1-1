@@ -23,6 +23,9 @@ class Page extends CI_Controller
 	function index()
 	{
 		$data = filter_forwarded_data($this);
+		$this->load->model('_vacancy');
+		
+		$data['list'] = $this->_vacancy->get_list();
 		$this->load->view('home', $data);
 	}
 	

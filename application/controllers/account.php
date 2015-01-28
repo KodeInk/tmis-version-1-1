@@ -55,9 +55,9 @@ class Account extends CI_Controller
 			}
 		}
 		# If already logged in, log out of current session
-		else if($this->native_session->get('user_id'))
+		else if($this->native_session->get('__user_id'))
 		{
-			$this->logout($this->native_session->get('user_id'));
+			$this->logout($this->native_session->get('__user_id'));
 			$data['msg'] = "You have been logged out.";
 		}
 		
@@ -70,8 +70,8 @@ class Account extends CI_Controller
 	function logout()
 	{
 		#Log sign-out event
-		$userId = $this->native_session->get('user_id')? $this->native_session->get('user_id'): "";
-		$email = $this->native_session->get('email_address')? $this->native_session->get('email_address'): "";
+		$userId = $this->native_session->get('__user_id')? $this->native_session->get('__user_id'): "";
+		$email = $this->native_session->get('__email_address')? $this->native_session->get('__email_address'): "";
 		$this->_logger->add_event(array('log_code'=>'user_logout', 'result'=>'success', 'details'=>"userid=".$userId."|email=".$email ));
 		
 		# Set appropriate message - reason for log out.

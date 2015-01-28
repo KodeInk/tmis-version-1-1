@@ -35,15 +35,15 @@ class Profile extends CI_Controller
 	{
 		$data = filter_forwarded_data($this);
 		# Log out the user if the session is not available
-		if($this->native_session->get('user_id'))
+		if($this->native_session->get('__user_id'))
 		{
 			if(!empty($_POST))
 			{
-				$data['result'] = $this->_user->update($this->native_session->get('user_id'), $this->input->post(NULL, TRUE));
+				$data['result'] = $this->_user->update($this->native_session->get('__user_id'), $this->input->post(NULL, TRUE));
 				$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please check your email for a confirmation code to proceed.": $data['result']['msg'];
 			}
 			
-			$this->_user->populate_session($this->native_session->get('user_id'));
+			$this->_user->populate_session($this->native_session->get('__user_id'));
 			$this->load->view('profile/user_data', $data); 
 		}
 		else

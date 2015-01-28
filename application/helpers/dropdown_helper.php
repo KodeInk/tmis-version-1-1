@@ -93,13 +93,21 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 		
 		
 		case "jobroles":
-			$countries = $obj->_query_reader->get_list('get_permission_groups', array('system_only'=>"'N'"));
-			foreach($countries AS $row)
+			$roles = $obj->_query_reader->get_list('get_permission_groups', array('system_only'=>"'N'"));
+			foreach($roles AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
 			}
 		break;
 		
+		
+		case "roles":
+			$roles = $obj->_query_reader->get_list('get_permission_groups', array('system_only'=>"'N','Y'"));
+			foreach($roles AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
+			}
+		break;
 		
 		
 		

@@ -2118,92 +2118,6 @@ $(document).on('click', '.paginationtable td', function(){
 
 
 
-//Handles search dropdowns
-$(function() {
-	$(document).on('click', '.searchselect', function(e){ 
-		//Execute if the user is not clicking on the actual search list item
-		if (e.target.className != 'searchlistitem') 
-		{
-			var inputBtn = $(this).children('input').first();
-			//Do not enable searching, just show the list of items
-			if(!(inputBtn.hasClass("nosearch") || inputBtn.hasClass("plainfield")))
-			{
-				inputBtn.css('background', 'url('+getBaseURL()+'assets/images/search_icon.png) no-repeat  right center #FFF');
-			}
-			//Do not allow entering a value
-			if(inputBtn.hasClass("nosearch") || inputBtn.hasClass("noenter"))
-			{
-				inputBtn.attr('readonly', 'readonly');
-			}
-		
- 			var inputBtnId = inputBtn.attr('id');
-			//First hide all previously shown divs
-			$(".searchselect").children('div').not('#'+inputBtnId+'__searchlist').not('#'+inputBtnId+'__container').hide('fast');
-		
-			//Check if a div exists before adding a new div
-			if(!$(this).children('div').length)
-			{
-				$(this).append("<div id='"+inputBtnId+"__container' class='listcontainer'><em></em><div id='"+inputBtnId+"__searchlist' style='overflow-y:auto;overflow-x:hidden;'>"+inputBtnId+"</div></div>");
-				$('#'+inputBtnId+'__container').css('min-width', $('#'+inputBtnId).width()+15);
-				
-				var listDivObj = $('#'+inputBtnId+'__searchlist');
-				
-				//Determine the maximum height of the select
-				var windowBottom = $(window).height() - listDivObj.offset().top - listDivObj.height();
-				var maxHeight = 150;
-				if(windowBottom > 150)
-				{
-					maxHeight = 150+((windowBottom-150)/2);
-				}
-				
-				listDivObj.css('max-height', maxHeight);
-			}
-			else
-			{
-				universalUpdate(inputBtnId, '');
-				$(this).children('div').show('fast');
-			}
-			
-			//Show a default list for the user to choose from if given
-			if(inputBtn.is("[data-rel]"))
-			{
-				runSearchForSelect($('#'+inputBtnId), inputBtnId);
-			}
-		}
-	});
-	
-	
-	$(document).mouseup(function (e)
-	{
-    	var searchContainer = $(".searchselect");
-		var searchContainerDiv = searchContainer.children('div');
-		
-		//If the target of the click isn't the container... nor a descendant of the container
-		//Hide it
-   		if (!searchContainer.is(e.target) && searchContainer.has(e.target).length === 0 && !searchContainerDiv.is(e.target) && searchContainerDiv.has(e.target).length === 0) 
-    	{
-       	 	searchContainerDiv.hide('fast');
-			searchContainer.children('input').not('.plainfield').css('background', 'url('+getBaseURL()+'assets/images/down_select_arrow_medium_grey.png) no-repeat right center #FFF');
-    	}
-	});
-	
-	
-	//Carry out the search if the user has decided not to choose a value
-	$(document).on('keyup', '.searchselect input', function(){
-		var inputBtnId = $(this).attr('id');
-		runSearchForSelect($(this), inputBtnId);
-	});
-	
-	$(document).keyup(function(e) {
-		var code = e.keyCode || e.which;
-    	if (code == '9') 
-		{
-			$('.searchselect').children('div').hide('fast');
-		}
-	});
-});
-
-
 
 //Handles file upload fields
 $(function() {
@@ -2252,28 +2166,6 @@ $(function() {
 
 
 
-//Handles simple tip show by the div
-$(function() {
-	$(document).on('click', '.tiplink', function(){ 
-	
-		var tipDiv = $(this).attr('data-rel');
-		var elementPosition = $(this).position();
-		var topPosition = elementPosition.top;
-		var leftPosition = elementPosition.left;//-$(this).outerWidth(true);
-		$('#'+tipDiv).position({ top: topPosition, left: leftPosition });
-		//Wrap in div for both the tip and element to fix the positioning
-		$(this).wrapAll("<div id='"+tipDiv+"_container' style='display:inline'>");
-		//Get the tip content
-		var tipContent = $('#'+tipDiv).wrapAll('<div></div>').parent().html(); 
-		$('#'+tipDiv).remove();
-		$('#'+tipDiv+'_container').append(tipContent);
-		$('#'+tipDiv).show('fast');
-		
-	});	
-});
-
-
-
 
 
 //For accepting numbers only in a field
@@ -2284,6 +2176,14 @@ $(function() {
         	// Filter non-digits from input value.
        	 	this.value = this.value.replace(/\D/g, '');
     	}
+	});
+	
+	
+	$('.telephone').keyup(function(e){
+    	if($(this).val().substr(0,3) == '256') 
+		{
+			$(this).val($(this).val().replace(/^256/, '0'));
+		}
 	});
 });
 
@@ -2329,18 +2229,21 @@ $(function(){
 
 
 
+
 // Initialize the calendars on the page
 $(function() {
 	if($('.datefield').length > 0){
 	$( ".datefield.birthday" ).datepicker({
 		changeMonth: true,
 		changeYear: true,
-		yearRange: "-100:+0"
+		yearRange: "-100:+0",
+		dateFormat: 'dd-M-yy'
 	});
 	
 	$( ".datefield" ).datepicker({
 		changeMonth: true,
-		changeYear: true
+		changeYear: true,
+		dateFormat: 'dd-M-yy'
 	});
 	}
 });
