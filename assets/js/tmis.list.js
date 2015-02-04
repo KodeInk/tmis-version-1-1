@@ -10,23 +10,6 @@ $(function(){
 
 
 
-// Formating of list table
-$(function(){
-	var counter = 0;
-	$('.listtable').find('.listrow').each(function(){
-		if(counter%2 == 1) {
-			$(this).css('background-color', '#F0F0F0');
-			// Color the next row too if it has no listrow class
-			if($(this).next('tr').length > 0 && !$(this).next('tr').hasClass('listrow')) {
-				$(this).next('tr').css('background-color', '#F0F0F0');
-			}
-		}
-		counter++;
-	});
-});
-
-
-
 
 //Handles list actions 
 $(function() {
@@ -44,6 +27,7 @@ $(function() {
 			if(window.confirm("Are you sure you want to "+rowValues[0]+" this "+listType+"?")) {
 				// Post this for processing archive or restore
 				var fieldsToPost = { id: rowValues[1], listtype: listType, action: rowValues[0] };
+				
 				$.ajax({
         			type: "POST",
        				url: getBaseURL()+listType+'/verify',
@@ -90,9 +74,25 @@ $(function() {
 		var idStub = btnId.substring(btnId.indexOf("_")+1, btnId.length );
 		var id = btnId.split('_').pop();
 		var listType = $('#hidden_'+idStub).val();
-		var fieldsToPost = { reason: $('#reason_'+idStub).val(), id: id, listtype: listType, action: idStub.replace('_'+id, '') };
+		var clearToPost = true;
 		
-		$.ajax({
+		// Check if there are other custom field values
+		var otherValues = "";
+		$(this).parents('table').first().find('.otherfield').each(function(){
+			if($(this).val() != ''){
+				otherValues += '|'+$(this).attr('id').replace('_'+idStub, '')+'='+replaceBadChars($(this).val());
+			} else if(!$(this).hasClass('optional')){
+				clearToPost = false;
+			}
+		});
+		
+		
+		
+		if(clearToPost)
+		{
+			var fieldsToPost = { reason: $('#reason_'+idStub).val(), id: id, listtype: listType, action: idStub.replace('_'+id, ''), other:otherValues.replace(/^|/, '') };
+		
+			$.ajax({
         		type: "POST",
        			url: getBaseURL()+listType+"/verify",
       			data: fieldsToPost,
@@ -103,10 +103,15 @@ $(function() {
   					console.log(xhr.responseText);
 				},
       	 		success: function(data) {
-		   			updateFieldLayer(document.URL,'','','','');
+		   			//console.log(data);
+					updateFieldLayer(document.URL,'','','','');
 				}
-   		});
-		
+   			});
+		}
+		else
+		{
+			showServerSideFadingMessage('Enter all required fields to continue.');
+		}
 	});
 	
 });

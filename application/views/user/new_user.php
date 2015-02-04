@@ -1,5 +1,5 @@
 <?php 
-$forward = check_access($this, 'change_user_status', 'boolean')? 'user/update_status': get_user_dashboard($this, $this->native_session->get('__user_id'));
+$forwardUrl = !empty($forward)? $forward: get_user_dashboard($this, $this->native_session->get('__user_id'));
 ?>
 <!DOCTYPE html>
 <html>
@@ -10,7 +10,7 @@ $forward = check_access($this, 'change_user_status', 'boolean')? 'user/update_st
 <link rel="shortcut icon" href="<?php echo base_url();?>favicon.ico" type="image/x-icon">
 <link rel="icon" href="<?php echo base_url();?>favicon.ico" type="image/x-icon">
 
-<title><?php echo SITE_TITLE;?>: <?php echo !empty($id)? 'Edit': 'New';?> User</title>
+<title><?php echo SITE_TITLE;?>: <?php echo !empty($id)? (!empty($action) && $action=='view'? 'View':'Edit'): 'New';?> User</title>
 
 <!-- Stylesheets -->
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/jquery-ui.css"/>
@@ -21,7 +21,6 @@ $forward = check_access($this, 'change_user_status', 'boolean')? 'user/update_st
 
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
-<link rel="stylesheet" href="<?php echo base_url();?>assets/css/trumbowyg.css"/>
 
 <!-- Javascript -->
 <script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
@@ -30,11 +29,10 @@ $forward = check_access($this, 'change_user_status', 'boolean')? 'user/update_st
 <script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
 <script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
 <script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/trumbowyg.js"></script> 
+<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script>
 
 <script type="text/javascript">
-<?php echo !empty($id) && !empty($result['boolean']) && $result['boolean']?"window.top.location.href = '".base_url().$forward."';": "";?>
+<?php echo !empty($id) && !empty($result['boolean']) && $result['boolean']?"window.top.location.href = '".$forwardUrl."';": "";?>
 </script>
 </head>
 
@@ -53,7 +51,7 @@ if(empty($id)) {?>
 <?php }?>		
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
-      		<tr><td class="h1 grey"><?php echo !empty($id)? 'Edit': 'New';?> User</td></tr>
+      		<tr><td class="h1 grey"><?php echo !empty($id)? (!empty($action) && $action=='view'? 'View':'Edit'): 'New';?> User</td></tr>
             <?php echo !empty($msg)?"<tr><td>".format_notice($this,$msg)."</td></tr>": "";?>
             <tr><td>
             
@@ -63,32 +61,50 @@ if(empty($id)) {?>
   
   <tr>
     <td class="label">Role:</td>
-    <td style="padding-right:42px;"><?php if(!empty($id) && $this->native_session->get('role__jobroles')){
+    <td style="padding-right:42px;"><?php if(!empty($id) && $this->native_session->get('role__roles') || (!empty($action) && $action=='view')){
 		echo "<div class='value'>".$this->native_session->get('role__roles')."</div>";
 		} else {?><input type="text" id="role__roles" name="role__roles" title="Select Role" placeholder="Select User Role" class="textfield selectfield" value="<?php echo $this->native_session->get('role__roles');?>" style="width:97%;"/><?php }?></td>
   </tr>
   <tr>
     <td class="label">Surname:</td>
-    <td><input type="text" id="lastname" name="lastname" title="Surname" class="textfield" style="width:97%;" value="<?php echo $this->native_session->get('lastname');?>"/></td>
+    <td><?php if(!empty($action) && $action=='view'){
+		echo "<div class='value'>".$this->native_session->get('lastname')."</div>";
+		} else {?><input type="text" id="lastname" name="lastname" title="Surname" class="textfield" style="width:97%;" value="<?php echo $this->native_session->get('lastname');?>"/><?php }?></td>
   </tr>
   <tr>
     <td class="label">Other Names:</td>
-    <td><input type="text" id="firstname" name="firstname" title="Other Names" class="textfield" style="width:97%;" value="<?php echo $this->native_session->get('firstname');?>"/></td>
+    <td><?php if(!empty($action) && $action=='view'){
+		echo "<div class='value'>".$this->native_session->get('firstname')."</div>";
+		} else {?><input type="text" id="firstname" name="firstname" title="Other Names" class="textfield" style="width:97%;" value="<?php echo $this->native_session->get('firstname');?>"/><?php }?></td>
   </tr>
   <tr>
     <td class="label top">Email Address:</td>
-    <td><input type="text" id="emailaddress" name="emailaddress" title="Email Address" class="textfield" style="width:97%;" value="<?php echo $this->native_session->get('emailaddress');?>"/><br><span class="smalltext">The user's password will be automatically generated <br>and sent to this email address.</span></td>
+    <td><?php if(!empty($id) && $this->native_session->get('emailaddress') || (!empty($action) && $action=='view')){
+		echo "<div class='value'>".$this->native_session->get('emailaddress')."</div>";
+		} else {?><input type="text" id="emailaddress" name="emailaddress" title="Email Address" class="textfield" style="width:97%;" value="<?php echo $this->native_session->get('emailaddress');?>"/><br><span class="smalltext">The user's password will be automatically generated <br>and sent to this email address.</span><?php }?></td>
   </tr>
   <tr>
     <td class="label">Telephone:</td>
-    <td><input type="text" id="telephone" name="telephone" title="Telephone"  placeholder="Optional (e.g: 0782123456)" maxlength="10" class="textfield numbersonly telephone optional" style="width:97%;" value="<?php echo $this->native_session->get('telephone');?>"/></td>
+    <td><?php if(!empty($action) && $action=='view'){
+		echo "<div class='value'>".$this->native_session->get('telephone')."</div>";
+		} else {?><input type="text" id="telephone" name="telephone" title="Telephone"  placeholder="Optional (e.g: 0782123456)" maxlength="10" class="textfield numbersonly telephone optional" style="width:97%;" value="<?php echo $this->native_session->get('telephone');?>"/><?php }?></td>
   </tr>
+  <?php if(!(!empty($action) && $action=='view')) {?>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SAVE</button><?php echo !empty($id)? "<input type='hidden' id='userid' name='userid' value='".$id."' />": "";
+    <td><button type="submit" name="save" id="save" class="btn">SAVE</button><?php 
+	if(!empty($actionurl) && $actionurl == 'update'){
+		$forward = "user/update_status";
+	} else if(!empty($actionurl) && $actionurl == 'changepassword'){
+		$forward = "user/change_password";
+	} else if(!empty($actionurl) && $actionurl == 'setpermission'){
+		$forward = "user/set_permissions";
+	}
 	
-	echo  empty($id)? "<input type='hidden' id='forwardurl' name='forwardurl' value='".$forward."' />": "";?></td>
+	echo !empty($id)? "<input type='hidden' id='userid' name='userid' value='".$id."' /><input type='hidden' id='forward' name='forward' value='".$forward."' />": "";
+	?></td>
   </tr>
+  <?php }?>
             </table>
             </form>
             
@@ -106,18 +122,5 @@ if(empty($id)) {?>
   <?php $this->load->view("addons/secure_footer");?>
 </table>
 <?php } else {echo "<input type='hidden' id='layerid' name='layerid' value='' />";}?>
-
-<script type="text/javascript">
-$(function(){	
-	var btnsGrps = jQuery.trumbowyg.btnsGrps;
-	$('#details').trumbowyg({btns: ['formatting',
-           '|', btnsGrps.design,
-           '|', 'link',
-           '|', btnsGrps.justify,
-           '|', btnsGrps.lists,
-           '|', 'insertHorizontalRule']
-	});
-});
-</script>
 </body>
 </html>

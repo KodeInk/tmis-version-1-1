@@ -1,18 +1,18 @@
 <?php 
-	$permissions = $this->_query_reader->get_list('get_permission_details', array('permissions'=>"'".implode("','", $this->native_session->get('permissions'))."'"));
+	$permissions = $this->_query_reader->get_list('get_permission_details', array('permissions'=>"'".implode("','", $this->native_session->get('__permissions'))."'"));
 	$menu = array();
 	$selectedCategory = "";
 	if(empty($clear_menu))
 	{
-		if(!$this->native_session->get('selected_permission'))
+		if(!$this->native_session->get('__selected_permission'))
 		{
-			$default = $this->native_session->get('default_permission');
-			$this->native_session->set('selected_permission', $default);
+			$default = $this->native_session->get('__default_permission');
+			$this->native_session->set('__selected_permission', $default);
 		}
 	}
 	else
 	{
-		$this->native_session->delete('selected_permission');
+		$this->native_session->delete('__selected_permission');
 	}	
 	
 	# Generate the menu array with the data results
@@ -21,7 +21,7 @@
 		$menu[$row['category']] = !empty($menu[$row['category']])? $menu[$row['category']]:array();
 		array_push($menu[$row['category']], array('code'=>$row['code'], 'display'=>$row['display'], 'url'=>$row['url']));
 			
-		if(empty($clear_menu) && $row['code'] == $this->native_session->get('selected_permission')) 
+		if(empty($clear_menu) && $row['code'] == $this->native_session->get('__selected_permission')) 
 		{
 			$selectedCategory = $row['category'];
 		}
@@ -35,7 +35,7 @@
             <div class='header'>".ucwords(str_replace('_',' ', $item))."</div>";
 		foreach($subMenus AS $sub)
 		{
-			echo "<div data-rel='".$sub['url']."'".($this->native_session->get('selected_permission') == $sub['code']? " class='selected'": '').">".$sub['display']."</div>";
+			echo "<div data-rel='".$sub['url']."'".($this->native_session->get('__selected_permission') == $sub['code']? " class='selected'": '').">".$sub['display']."</div>";
 		}
         echo "</div>";
 	}

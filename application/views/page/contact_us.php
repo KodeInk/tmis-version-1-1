@@ -36,30 +36,38 @@
       <td class="h1 grey">Contact Us</td>
      </tr>
      <tr>
-      <td style="text-align:center;"><div style="display:inline-block;"><form id="tmiscontact" method="post" autocomplete="off" ><table border="0" cellspacing="0" cellpadding="10">
+      <td style="text-align:center;"><div style="display:inline-block;"><form method="post" autocomplete="off" action="<?php echo base_url();?>page/contact_us" class='simplevalidator' ><table border="0" cellspacing="0" cellpadding="10">
+<?php
+if(!empty($result) && $result){
+	echo "<tr><td style='padding-bottom:100px;'>".format_notice($this, $msg)."</td></tr>";
+} else {
+	echo !empty($msg)? "<tr><td colspan='2'>".format_notice($this, $msg)."</td></tr>": "";
+?>
+  
   <tr>
     <td class="label">Your Name: </td>
     <td><input type="text" id="yourname" name="yourname" class="textfield" value="" maxlength="100"/></td>
   </tr>
   <tr>
     <td class="label">Email Address: </td>
-    <td><input type="text" id="emailaddress" name="emailaddress" class="textfield" value="" maxlength="100"/></td>
+    <td><input type="text" id="emailaddress" name="emailaddress" class="textfield email" value="" maxlength="100"/></td>
   </tr>
   <tr>
     <td class="label">Telephone: </td>
-    <td><input type="text" id="telephone" name="telephone" placeholder="Optional" class="textfield" value="" maxlength="100"/></td>
+    <td><input type="text" id="telephone" name="telephone" placeholder="Optional (e.g: 0782123456)" class="textfield numbersonly telephone optional" value="" maxlength="10"/></td>
   </tr>
   <tr>
     <td class="label">Reason: </td>
-    <td><select id="reason" name="reason"><?php echo get_option_list($this,"contact_us","option");?></select></td>
+    <td><input type="text" id="reason__contactreason" name="reason__contactreason" placeholder="Enter or Select reason" class="textfield selectfield editable"/></td>
   </tr>
   <tr>
     <td class="label" valign="top">Message: </td>
     <td><textarea id="message" name="message" placeholder="Enter your message here" class="textfield" style="height:120px;"></textarea></td>
   </tr>
   <tr>
-    <td colspan="2" style="text-align:right;"><button type="button" class="greybtn" id="submitmessage" name="submitmessage" style="width:340px;">SUBMIT</button></td>
+    <td colspan="2" style="text-align:right;"><button type="submit" class="btn" id="submitmessage" value-'send' name="submitmessage" style="width:238px;">SEND</button></td>
   </tr>
+<?php }?>
       </table>
       </form></div></td>
      </tr>

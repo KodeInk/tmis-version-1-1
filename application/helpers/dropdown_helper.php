@@ -110,6 +110,68 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 		break;
 		
 		
+		case "users":
+			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
+			$searchQuery = !empty($searchString)? " P.first_name LIKE '".$searchString."%' OR P.first_name LIKE '% ".$searchString."%' OR P.last_name LIKE '".$searchString."%' AND U.status='active' ": " U.status='active' ";
+			$orderBy = " ORDER BY P.last_name ASC";
+			
+			$users = $obj->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			foreach($users AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."' onclick=\"universalUpdate('userid', '".$row['id']."')\">".$row['display']."</div>";
+			}
+		break;
+		
+		
+		case "schooltypes":
+			$types = array('Primary', 'Secondary', 'Tertiary', 'University', 'Other');
+			foreach($types AS $row)
+			{
+				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
+		break;
+		
+		
+		case "teachers":
+			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
+			$searchQuery = !empty($searchString)? " P.first_name LIKE '".$searchString."%' OR P.first_name LIKE '% ".$searchString."%' OR P.last_name LIKE '".$searchString."%' AND U.status='active' ": " U.status='active' ";
+			$orderBy = " ORDER BY P.last_name ASC";
+			
+			$users = $obj->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchQuery." AND U.permission_group_id='2' ", 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			foreach($users AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."' onclick=\"universalUpdate('teacherid', '".$row['id']."')\">".$row['display']."</div>";
+			}
+		break;
+		
+		
+		
+		case "contactreason":
+			$reasons = array('Account Access', 'Job Application', 'Information Security', 'General Inquiries');
+			foreach($reasons AS $row)
+			{
+				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
+		break;
+		
+		
+		case "grades":
+			$grades = $obj->_query_reader->get_list('get_teacher_grades');
+			foreach($grades AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
+			}
+		break;
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		

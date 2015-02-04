@@ -35,7 +35,7 @@ class Account extends CI_Controller
 				{
 					$this->load->model('_permission');
 					#If so, assign permissions and redirect to their respective dashboard
-					$this->native_session->set('permissions', $this->_permission->get_user_permission_list($results['user_id']));
+					$this->native_session->set('__permissions', $this->_permission->get_user_permission_list($results['user_id']));
 					#Log sign-in event
 					$this->_logger->add_event(array('log_code'=>'user_login', 'result'=>'success', 'details'=>"username=".trim($this->input->post('loginusername')) ));
 					
@@ -81,6 +81,32 @@ class Account extends CI_Controller
 		$this->native_session->delete_all();
 		$this->load->view('account/login', $data);
 	}
+	
+	
+	
+	
+	# Apply for an account
+	function apply()
+	{
+		$data = filter_forwarded_data($this);
+		
+		if(!empty($_POST))
+		{
+			$this->load->model('_person');
+			#Pass these details to the person object to handle with XSS filter turned on
+			$data['result'] = $this->_person->add_profile($this->input->post(NULL, TRUE));
+			$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Your account has been created but will need approval for you to login.": $data['result']['msg'];
+			if($data['result']['boolean'])
+			{
+				$this->native_session->delete_all(array('person_id'=>'', 'firstname'=>'', 'lastname'=>'', 'role__roles'=>'', 'emailaddress'=>'', 'telephone'=>''));
+				$this->native_session->set('msg', $data['msg']);
+				redirect(base_url().'account/login');
+			}
+		}
+		
+		$this->load->view('application/new_application', $data);
+	}
+	
 	
 }
 

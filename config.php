@@ -142,7 +142,7 @@
  *---------------------------------------------------------------
  */
 	
-	define("NOREPLY_EMAIL", "no-reply@tmis.go.ug");
+	define("NOREPLY_EMAIL", "noreply@tmis.go.ug");
 	
 	define("APPEALS_EMAIL", "appeals@tmis.go.ug");
 	

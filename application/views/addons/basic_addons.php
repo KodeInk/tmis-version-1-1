@@ -2,7 +2,8 @@
 $jquery = "<script src='".base_url()."assets/js/jquery-2.1.1.min.js' type='text/javascript'></script>";
 $javascript = "<script type='text/javascript' src='".base_url()."assets/js/tmis.js'></script>".get_AJAX_constructor(TRUE); 
 
-$tableHTML = "<link rel='stylesheet' href='".base_url()."assets/css/tmis.css' type='text/css' media='screen' />"; 
+$tableHTML = "<link rel='stylesheet' href='".base_url()."assets/css/tmis.css' type='text/css' media='screen' />
+<link rel='stylesheet' href='".base_url()."assets/css/tmis.list.css' type='text/css' media='screen' />"; 
 
 if(!empty($area) && $area == "show_bigger_image")
 {
@@ -99,7 +100,7 @@ else if(!empty($area) && $area == "education_form")
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url()."register/step_three/action/add_education' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='institution_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().($this->native_session->get('is_admin_adding_teacher')? "teacher": "register/step_three/action")."/add_education' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='institution_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
   </tr>
         </table>";
 	
@@ -150,7 +151,7 @@ else if(!empty($area) && $area == "subject_form")
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url()."register/step_three/action/add_subject' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='subject_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().($this->native_session->get('is_admin_adding_teacher')? "teacher": "register/step_three/action")."/add_subject' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='subject_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
   </tr>
   </table>";
 }
@@ -185,13 +186,150 @@ else if(!empty($area) && $area == "subject_list")
 
 
 
-else if(!empty($area) && in_array($area, array("verify_vacancy", "verify_user")))
+else if(!empty($area) && in_array($area, array("verify_vacancy", "verify_user", "verify_permission", "verify_school")))
 {
+	$item = str_replace('verify_', '', $area);
+	$additional = in_array($area, array("verify_user", "verify_permission", "verify_school"))? "WARNING: The ".$item." will be completely removed from the system. ": "";
+	
 	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='5' width='100%' />
-	<tr><td width='99%'><textarea id='reason_".$action."_".$id."' name='reason_".$action."_".$id."' class='yellowfield' style='width:100%' placeholder='Enter the reason you want to ".$list_type." this item. (Optional)'></textarea></td>
-	<td width='1%'><input id='confirm_".$action."_".$id."' name='confirm_".$action."_".$id."' type='button' class='greybtn confirmlistbtn' style='width:125px;' value='CONFIRM' /><div style='padding-top:5px;'><input id='cancel_".$action."_".$id."' name='cancel_".$action."_".$id."' type='button' class='greybtn cancellistbtn' style='width:125px;' value='CANCEL' /><input type='hidden' id='hidden_".$action."_".$id."' name='hidden_".$action."_".$id."' value='".str_replace('verify_', '', $area)."' /></div></td></tr>
+	<tr><td width='99%'><textarea id='reason_".$action."_".$id."' name='reason_".$action."_".$id."' class='yellowfield' style='width:100%' placeholder='".$additional."Enter the reason you want to ".$list_type." this ".$item.". (Optional)'></textarea></td>
+	<td width='1%'><input id='confirm_".$action."_".$id."' name='confirm_".$action."_".$id."' type='button' class='greybtn confirmlistbtn' style='width:125px;' value='CONFIRM' /><div style='padding-top:5px;'><input id='cancel_".$action."_".$id."' name='cancel_".$action."_".$id."' type='button' class='greybtn cancellistbtn' style='width:125px;' value='CANCEL' /><input type='hidden' id='hidden_".$action."_".$id."' name='hidden_".$action."_".$id."' value='".$item."' /></div></td></tr>
 	</table>";
 }
+
+
+
+
+
+else if(!empty($area) && $area == 'verify_teacher')
+{
+	$item = str_replace('verify_', '', $area);
+	
+	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='5' width='100%' />
+	<tr><td width='99%'>";
+	
+	
+	if($action == 'approve_toactive')
+	{
+		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' width='100%' />
+		<tr><td class='label'>Grade:</td><td><input type='text' id='_".$action."_".$id."grade__grades' name='_".$action."_".$id."grade__grades' placeholder='Select Grade' class='textfield selectfield yellowfield otherfield' style='width:97%' onclick='setDatePicker()'/></td>
+			<td class='label'>Effective Date:</td><td><input type='text' id='effectivedate_".$action."_".$id."' name='effectivedate_".$action."_".$id."' title='Effective Date' class='textfield datefield clickactivated yellowfield otherfield' value='' style='width:97%'/></td>
+		</tr>
+		<tr>
+			<td class='label top'>Comment:</td><td colspan='3'><textarea id='reason_".$action."_".$id."' name='reason_".$action."_".$id."' class='yellowfield' style='width:100%' maxlength='200' placeholder='This comment will be sent to all those parties involved in the approval of this teacher. (Optional)'></textarea></td>
+		</tr>
+		</table>"; 
+	}
+	else
+	{
+		$tableHTML .="<textarea id='reason_".$action."_".$id."' name='reason_".$action."_".$id."' class='yellowfield' style='width:100%' placeholder='Enter the reason you want to ".$list_type." this ".$item.". (Optional)'></textarea>";
+	}
+	
+	$tableHTML .= "</td>
+	<td width='1%' style='vertical-align:top; padding-top:10px;'><input id='confirm_".$action."_".$id."' name='confirm_".$action."_".$id."' type='button' class='greybtn confirmlistbtn' style='width:125px;' value='CONFIRM' /><div style='padding-top:5px;'><input id='cancel_".$action."_".$id."' name='cancel_".$action."_".$id."' type='button' class='greybtn cancellistbtn' style='width:125px;' value='CANCEL' /><input type='hidden' id='hidden_".$action."_".$id."' name='hidden_".$action."_".$id."' value='".$item."' /></div></td></tr>
+	</table>";
+}
+
+
+
+
+else if(!empty($area) && $area == 'permission_list')
+{
+	$tableHTML .= "<link rel='stylesheet' href='".base_url()."assets/css/tmis.list.css' type='text/css' media='screen' />
+	<table border='0' cellspacing='0' cellpadding='5' width='100%' class='listtable' />
+	<tr class='header'><td>Category</td><td>Permission</td></tr>";
+	foreach($list AS $row)
+	{
+		$tableHTML .= "<tr class='listrow'><td>".ucwords(str_replace('_', ' ', $row['category']))."</td><td>".$row['display']."</td></tr>";
+	}
+	$tableHTML .= "</table>";
+}
+
+
+
+
+
+else if(!empty($area) && $area == 'message_sending_results')
+{
+	if($result['boolean'])
+	{
+		$msg = !empty($result['msg'])? $result['msg']: 'The message has been sent';
+		$this->native_session->set('msg', $msg);
+		$tableHTML = "<script>document.location.href='".base_url()."message/inbox';</script>";
+	}
+	else 
+	{
+		$tableHTML = !empty($result['msg'])? $result['msg']: 'error';
+	}
+}
+
+
+
+
+
+else if(!empty($area) && $area == 'message_details')
+{
+	if(!empty($message))
+	{
+		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='5' width='100%' class='listtable' />
+			<tr><td colspan='2' class='h2' style='font-weight:bold;'>".$message['subject']."</td></tr>
+			<tr><td class='label'>Date:</td><td class='value'>".date('d-M-Y h:i:sA T', strtotime($message['date_sent']))."</td></tr>
+			<tr><td class='label'>From:</td><td class='value'>".$message['sender_name']."</td></tr>
+			<tr><td class='label'>To:</td><td class='value'>".$message['recipient_name']."</td></tr>
+			<tr><td class='label top'>Details:</td><td>".html_entity_decode($message['details'],ENT_QUOTES)."</td></tr>".
+			(!empty($message['attachment'])? "<tr><td class='label'>Attachment:</td><td class='value'><a href='".base_url()."page/download/folder/documents/file/".$message['attachment']."'>".$message['attachment']."</a></td></tr>": '')."</table>";
+			
+	} 
+	else 
+	{
+		$tableHTML .= format_notice($this,$msg);
+	}
+}
+
+
+
+
+
+
+
+
+else if(!empty($area) && $area == "census_sub_lists")
+{
+	if(!empty($list))
+	{
+		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' class='listtable'>
+			<tr class='header'><td>Code</td><td>Name</td>".($type=='training'? "<td>Type</td>": '')."</tr>";
+			
+		foreach($list AS $row) 
+		{
+			$tableHTML .= "<tr class='listrow'>
+			<td>".$row['code']."</td>
+			<td>".$row[$type]."</td>".
+			($type=='training'? "<td>".$row['type']."</td>": '')
+			."</tr>";
+		}
+		$tableHTML .= "</table>";
+	}
+	else if(empty($msg))
+	{
+		$tableHTML .= format_notice($this, 'WARNING: There is no '.$type.' for this census.');
+	}
+	else
+	{
+		$tableHTML .= format_notice($this, $msg);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

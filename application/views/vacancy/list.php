@@ -56,7 +56,7 @@ if(!empty($list))
 	<br><div class='nextdiv value'>ROLE: ".$row['role_name']."</div><div class='nextdiv value'>AT: ".$row['institution_name']."</div>
 	<br>
 ".$row['summary']."</div>
-    <div class='leftnote'>Respond By: ".date('d-M-Y', strtotime($row['end_date']))."</div>
+    <div class='leftnote'>Respond By: ".format_date($row['end_date'],'d-M-Y')."</div>
 	<div class='rightnote'><a href='".base_url()."vacancy/details/id/".$row['id']."' class='shadowbox closable'>details</a></div>";
 	
 	echo check_access($this, 'add_new_job', 'boolean') && (!empty($action) && $action == 'publish')?"<div class='rightnote'><a href='".base_url()."vacancy/add/id/".$row['id']."' class='shadowbox'>edit</a></div>": "";
@@ -70,7 +70,8 @@ if(!empty($list))
 }
 else
 {
-	echo "<tr><td>".format_notice($this,'WARNING: There are no items in this list.')."</td></tr>";
+	$stop = "<input name='paginationdiv__".$listid."_stop' id='paginationdiv__".$listid."_stop' type='hidden' value='1' />";
+	echo "<tr><td>".format_notice($this,'WARNING: There are no items in this list.').$stop."</td></tr>";
 }
 ?>
 

@@ -50,8 +50,33 @@ $(function() {
 			
 			//Update the pagination URL if available
 			if($('#paginationdiv__'+searchFieldId+'_action').length > 0) $('#paginationdiv__'+searchFieldId+'_action').val(action);
-			
 			updateFieldLayer(action,'','',displayDiv,'');
+			
+			
+			//Find if the results div is in a list and make proper adjustments
+			var listId = displayDiv.substr(0, displayDiv.indexOf('__'));
+			if($('#'+displayDiv).parents('#paginationdiv__'+listId+'_list').first().length > 0)
+			{
+				var containerDiv = $('#'+displayDiv).parents('#paginationdiv__'+listId+'_list').first();
+				//Remove all divs not being used to display the list
+				containerDiv.find('div').each(function(){
+					if($(this).attr('id') != displayDiv){
+						$(this).remove();
+					}
+				});
+				//Remove all divs not the first page of pagination or the previous and next
+				if($('#'+listId).length > 0){
+					$('#'+listId).find('div').each(function(){
+						if(!($(this).hasClass('previousbtn') || $(this).hasClass('nextbtn') || $(this).html() == '1')){
+							$(this).remove();
+						}
+						if($(this).html() == '1'){
+							$(this).addClass('selected');
+							$(this).fadeIn('fast');
+						}
+					});
+				}
+			}
 		}
 	});
 	

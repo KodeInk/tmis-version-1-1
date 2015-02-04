@@ -15,6 +15,10 @@
 	font-weight:600;
 }
 
+.listtable tr.listrow:nth-child(odd) td {
+	background-color: #F0F0F0;
+}
+
 .listtable td {
 	padding: 5px 15px 10px 15px;
 }
@@ -94,6 +98,17 @@
 
 .publishrow:hover, .publishrow.active {
 	background: url(../../assets/images/publish_yellow.png) no-repeat center center;
+}
+
+.respondrow {
+	background: url(../../assets/images/respond_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.respondrow:hover, .respondrow.active {
+	background: url(../../assets/images/respond_yellow.png) no-repeat center center;
 }
 
 .blockrow {

@@ -1,3 +1,4 @@
+<?php $msg = empty($msg)? get_session_msg($this): $msg; ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -50,7 +51,7 @@
     <td colspan="2"><button type="button" class="greybtn" id="submitlogin" name="submitlogin" style="width:325px;">SUBMIT</button></td>
   </tr>
   <tr>
-    <td colspan="2"><a href="javascript:;">Forgot Username or Password?</a> &nbsp;|&nbsp; <a href="javascript:;">Apply for Account</a></td>
+    <td colspan="2"><a href="javascript:;">Forgot Username or Password?</a> &nbsp;|&nbsp; <a href="<?php echo base_url().'account/apply';?>">Apply for Account</a></td>
   </tr>
       </table>
       </form></div></td>

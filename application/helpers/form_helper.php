@@ -21,29 +21,33 @@ function process_fields($obj, $data, $required=array(), $allowChars=array())
 		
 	foreach($data AS $key=>$value)
 	{
-		$value = htmlentities($value, ENT_QUOTES);
-		# Add if the string is not empty and does not contain any of the disallowed characters
-		if(!empty($value) && !(0 < count(array_intersect(str_split(strtolower($value)), $disallowChars))) )
+		# Do not validate arrays
+		if(!is_array($value))
 		{
+			$value = htmlentities(trim($value), ENT_QUOTES); 
+			# Add if the string is not empty and does not contain any of the disallowed characters
+			if(!empty($value) && !(0 < count(array_intersect(str_split(strtolower($value)), $disallowChars))) )
+			{
 			
-			# If this is a birthday, check to see whether they are above 18 years of age
-			if($key == 'birthday'){
-				$userDate = new DateTime($value);
-				$today = new DateTime('now');
-				$difference = $userDate->diff($today);
+				# If this is a birthday, check to see whether they are above 18 years of age
+				if($key == 'birthday'){
+					$userDate = new DateTime($value);
+					$today = new DateTime('now');
+					$difference = $userDate->diff($today);
 				
-				if(!($difference->y >= 18)){
-					$msg = "WARNING: The submitted birth date is not valid for a teacher.";
-					$hasPassed = false;
+					if(!($difference->y >= 18)){
+						$msg = "WARNING: The submitted birth date is not valid for a teacher.";
+						$hasPassed = false;
+					}
 				}
+				$obj->native_session->set($key, $value);
+				$finalData[$key] = $value;
 			}
-			$obj->native_session->set($key, $value);
-			$finalData[$key] = $value;
-		}
-		# Catch the case where a required field was not entered
-		else if(in_array($key, $required))
-		{
-			$hasPassed = false;
+			# Catch the case where a required field was not entered
+			else if(in_array($key, $required))
+			{
+				$hasPassed = false;
+			}
 		}
 	}
 		

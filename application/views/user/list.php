@@ -1,4 +1,10 @@
-<?php echo !empty($msg)?format_notice($this,$msg): "";?> 
+<?php echo !empty($msg)?format_notice($this,$msg): "";
+if(!empty($action) && $action == 'changepassword')
+{
+	echo "<div class='smalltext' style='padding-left:18px;padding-top:5px;'>NOTE: A password should be at least 8 characters and contain a number and a letter.</div>";
+}
+
+?> 
 <table border="0" cellspacing="0" cellpadding="0" class="listtable">
 <?php 
 if(!empty($list))
@@ -12,13 +18,15 @@ if(!empty($list))
 	
 	# Pick the lesser of the two - since if there is a next page, the list count will come with an extra row
 	$maxRows = $listCount < $rowsPerPage? $listCount: $rowsPerPage;
+	$listType = " data-type='user' ";
+	
 	for($i=0; $i<$maxRows; $i++)
 	{
 		$row = $list[$i];
-		echo "<tr class='listrow'>
+		echo "<tr class='listrow' ".($i%2 == 1? "style='background-color:#F0F0F0;'": "").">
     <td width='1%' style='padding:0px; padding-top:5px; vertical-align:top;'>";
 	
-	$listType = " data-type='user' ";
+	
 	if(!empty($action) && $action == 'update')
 	{
 		if($row['status'] == 'completed'){
@@ -36,22 +44,28 @@ if(!empty($list))
 		else if($row['status'] == 'blocked'){
 			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm'></div>";
 		}
-	} 
-	else if(!empty($action) && $action == 'archive')
-	{
-		if($row['status'] == 'archived'){
-			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm'></div>";
-		} 
-		else if(in_array($row['status'], array('active', 'completed'))){
-			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
-		}
 	}
 	
-	echo "</td>
-	<td>".$row['last_name']." ".$row['first_name']."</td>";
+	echo "</td> <td>".$row['last_name']." ".$row['first_name'];
 	
+	# Changing the user's password
+	if(!empty($action) && $action == 'changepassword')
+	{
+		echo "<div id='userpassword_".$row['id']."__form'>
+		<table border='0' cellspacing='0' cellpadding='0' class='microform'>
+		<tr>
+			<td style='padding-left:0px;'><input type='text' id='userpassword_".$row['id']."__field' name='userpassword_".$row['id']."__field' title='The New User Password' placeholder='New Password' class='textfield password' value='' style='width:140px;'/></td>
+			<td style='padding-left:0px;'><button type='button' id='userpassword_".$row['id']."__btn' name='userpassword_".$row['id']."__btn' class='greybtn submitmicrobtn'>SET</button>
+			<input type='hidden' name='action' id='action' value='".base_url()."user/change_password/id/".$row['id']."' />
+			<input type='hidden' name='resultsdiv' id='resultsdiv' value='userpassword_".$row['id']."__form' /></td>
+		</tr>
+		</table>
+		</div>";
+	}
 	
-	echo "<td>";
+	echo "</td> <td>";
+	
+	#Setting user permissions
 	if(!empty($action) && $action == 'setpermission')
 	{
 		echo "<div id='userpermission_".$row['id']."'></div><input type='text' id='userpermission_".$row['id']."__roles' name='userpermission_".$row['id']."__roles' title='The User Permission Group' placeholder='Select Permission' class='textfield selectfield' onchange=\"updateFieldLayer('".base_url()."user/set_permissions/set_id/".$row['id']."','userpermission_".$row['id']."__roles','','userpermission_".$row['id']."','')\" value='".$row['user_role']."'/>";
@@ -60,14 +74,15 @@ if(!empty($list))
 	{
 		echo $row['user_role'];
 	}
+	
 	echo "</td>
 	<td>".$row['email_address']."</td>
 	<td>".$row['telephone']."</td>
 	<td>".$row['status']."</td>
-	<td>".(!empty($row['last_updated']) && $row['last_updated'] != '0000-00-00 00:00:00'? date('d-M-Y h:i:sa T', strtotime($row['last_updated'])): '&nbsp;').
-	"<br><div class='rightnote'><a href='".base_url()."user/details/id/".$row['id']."' class='shadowbox closable'>details</a></div>".
+	<td>".format_date($row['last_updated'],'d-M-Y h:i:sa T').
+	"<br><div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."/action/view' class='shadowbox closable'>details</a></div>".
 	
-	((check_access($this, 'add_new_user', 'boolean') && !empty($action) && $action == 'update')? "<div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."' class='shadowbox'>edit</a></div>": "")
+	((check_access($this, 'add_new_user', 'boolean') && !empty($action) && $action == 'update')? "<div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."/action/edit/actionurl/".$action."' class='shadowbox'>edit</a></div>": "")
 	
 	."</td></tr>
 	<tr><td style='padding:0px;'></td><td colspan='6' style='padding:0px;'><div id='action__".$row['id']."' class='actionrowdiv' style='display:none;'></div>".$stop."</td></tr>";
@@ -76,7 +91,8 @@ if(!empty($list))
 }
 else
 {
-	echo "<tr><td>".format_notice($this,'WARNING: There are no items in this list.')."</td></tr>";
+	$stop = "<input name='paginationdiv__".$listid."_stop' id='paginationdiv__".$listid."_stop' type='hidden' value='1' />";
+	echo "<tr><td>".format_notice($this,'WARNING: There are no items in this list.').$stop."</td></tr>";
 }
 ?>
 

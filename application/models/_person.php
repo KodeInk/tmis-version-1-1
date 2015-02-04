@@ -23,7 +23,7 @@ class _person extends CI_Model
 		$isAdmin = check_access($this, 'add_new_user', 'boolean');
 		
 		$required = array('firstname', 'lastname', 'emailaddress');
-		if(!$isAdmin) array_push($required, 'gender', 'marital', 'birthday', 'birthplace'); 
+		if(!$isAdmin && $this->native_session->get('__user_id')) array_push($required, 'gender', 'marital', 'birthday', 'birthplace'); 
 		
 		# 1. Add all provided data into the session
 		$passed = process_fields($this, $profileDetails, $required, array("/"));
@@ -50,7 +50,7 @@ class _person extends CI_Model
 					$details['gender'] = !empty($details['gender'])? $details['gender']: 'unknown';
 					$details['birthday'] = !empty($details['birthday'])? format_date($details['birthday'], 'YYYY-MM-DD'): '0000-00-00';
 					
-					$personId = $this->_query_reader->add_data('add_person_data', array('first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'last_name'=>htmlentities($details['lastname'], ENT_QUOTES), 'gender'=>$details['gender'], 'date_of_birth'=>$details['birthday'] )); 
+					$personId = $this->_query_reader->add_data('add_person_data', array('first_name'=>$details['firstname'], 'last_name'=>$details['lastname'], 'gender'=>$details['gender'], 'citizenship_country'=>$details['citizenship__country'], 'citizenship_type'=>$details['citizenship__citizentype'], 'marital_status'=>$details['marital'], 'date_of_birth'=>$details['birthday'] )); 
 			
 					if(!empty($personId) || $personId == 0)
 					{
@@ -69,7 +69,7 @@ class _person extends CI_Model
 						# 3. Create an account and generate a confirmation code
 						# For the first account, use the user's email address as the login username.
 						$password = generate_temp_password();
-						$userId = $this->_query_reader->add_data('add_user_data', array('person_id'=>$personId, 'login_name'=>$details['emailaddress'], 'login_password'=>sha1($password), 'permission_group'=>(!empty($details['role__roles'])? $details['role__roles']: ''), 'status'=>($isAdmin? 'active':'pending') ));
+						$userId = $this->_query_reader->add_data('add_user_data', array('person_id'=>$personId, 'login_name'=>$details['emailaddress'], 'login_password'=>sha1($password), 'permission_group'=>(!empty($details['role__roles'])? $details['role__roles']: ''), 'status'=>($isAdmin? 'active':(!empty($details['citizenship__citizentype'])? 'pending': 'completed')) ));
 						if(empty($userId)) 
 						{
 							$msg = "ERROR: We could not create your user record.";
@@ -85,11 +85,21 @@ class _person extends CI_Model
 							$result = $this->_messenger->send($userId, array('code'=>'introduce_new_user', 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME, 'password'=>$password, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ), array('email'));
 							if(!$result) $msg = "ERROR: We could not send the new account email message to the user.";
 						}
-						else
+						#This is a teacher
+						else if(!empty($details['citizenship__citizentype']))
 						{
+							$this->_query_reader->run('update_teacher_status', array('user_id'=>$userId, 'status'=>'pending', 'updated_by'=>$userId));
+							
 							$code = generate_person_code($personId);
 							$result = $this->_messenger->send_email_message($userId, array('code'=>'new_teacher_first_step', 'email_from'=>SIGNUP_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'verification_code'=>$code, 'password'=>$password, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ));
 							if(!$result) $msg = "ERROR: We could not send the email message with your code.";
+						}
+						# This is a normal application
+						else
+						{
+							$result = $this->_messenger->send($userId, array('code'=>'introduce_new_user', 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME, 'password'=>$password."<br>This password will not be active until your application has been approved.<br>We will notify you by this same email when your account has been approved.", 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ), array('email'));
+							
+							if(!$result) $msg = "ERROR: We could not send the new account email message to your registered emailaddress.";
 						}
 						
 						if($result) $this->native_session->set('person_id', $personId);
@@ -362,7 +372,7 @@ class _person extends CI_Model
 		
 	
 	
-	# STUB: Update the person's subjects taught
+	# Update the person's subjects taught
 	function update_subject_taught($personId, $details)
 	{
 		$isUpdated = false;
@@ -408,7 +418,7 @@ class _person extends CI_Model
 		$results = array();
 		
 		# If the user is editing, first remove the old records
-		if($this->native_session->get('edit_step_3'))
+		if($this->native_session->get('edit_step_3') || !empty($details['userid']))
 		{
 			$result1 = $this->_query_reader->run('remove_academic_history', array('person_id'=>$personId));
 			$result2 = $this->_query_reader->run('remove_subject_data', array('parent_id'=>$personId, 'parent_type'=>'person'));
@@ -418,10 +428,11 @@ class _person extends CI_Model
 		if($this->native_session->get('education_list')){
 			foreach($this->native_session->get('education_list') AS $educationIndex=>$row)
 			{
-				$result = $this->_query_reader->run('add_academic_history', array('person_id'=>$personId, 'institution'=>$row['institutionname'], 'start_date'=>format_date($row['from__month'].' 01, '.$row['from__pastyear'], 'YYYY-MM-DD'), 'end_date'=>format_date($row['to__month'].' 01, '.$row['to__pastyear'], 'YYYY-MM-DD'), 'certificate_name'=>$row['certificatename'], 'certificate_number'=>$row['certificatenumber'], 'is_highest'=>(!empty($row['highestcertificate'])? 'Y': 'N'), 'added_by'=>'' ));
+				$result = $this->_query_reader->run('add_academic_history', array('person_id'=>$personId, 'institution'=>$row['institutionname'], 'institution_type'=>$row['institution__institutiontype'], 'start_date'=>format_date($row['from__month'].' 01, '.$row['from__pastyear'], 'YYYY-MM-DD'), 'end_date'=>format_date($row['to__month'].' 01, '.$row['to__pastyear'], 'YYYY-MM-DD'), 'certificate_name'=>$row['certificatename'], 'certificate_number'=>$row['certificatenumber'], 'is_highest'=>(!empty($row['highestcertificate'])? 'Y': 'N'), 'added_by'=>($this->native_session->get('__user_id')? $this->native_session->get('__user_id'): $this->native_session->get('user_id')) ));
 				
 				array_push($results, $result);
 			}
+			
 		}
 		
 		
@@ -462,9 +473,10 @@ class _person extends CI_Model
 	function submit_application($personId, $details)
 	{
 		$msg = "";
+		if(!is_model_loaded($this, '_approval_chain')) $this->load->model('_approval_chain');
 		
 		# 1. Mark the user status as complete - for the admin to be able to approve it
-		$result1 = $this->_query_reader->run('update_user_status', array('user_id'=>$details['user_id'], 'status'=>'completed'));
+		$result1 = $this->_query_reader->run('update_teacher_status', array('user_id'=>$details['user_id'], 'status'=>'completed', 'updated_by'=>$details['user_id']));
 		if(!$result1) $msg = "ERROR: We could not set up your user account for activation.";
 		
 		# 2. Start the teacher approval chain

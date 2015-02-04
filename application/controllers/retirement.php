@@ -18,11 +18,13 @@ class Retirement extends CI_Controller
 	}
 	
 	
-	#STUB: View retirement application list
-	function application_list()
+	# STUB: View retirement application list
+	function lists()
 	{
 		$data = filter_forwarded_data($this);
-		check_access($this, 'view_retirement_applications');
+		if(empty($data['action'])) $data['action'] = 'view';
+		$instructions['action'] = array('view'=>'view_retirement_applications', 'report'=>'view_retirements');
+		check_access($this, get_access_code($data, $instructions));
 		
 		
 		$this->load->view('page/under_construction', $data); 

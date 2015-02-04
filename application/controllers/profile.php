@@ -30,7 +30,7 @@ class Profile extends CI_Controller
 	
 	
 	
-	#STUB: Update user profile
+	# Update user profile
 	function user_data()
 	{
 		$data = filter_forwarded_data($this);
@@ -39,11 +39,20 @@ class Profile extends CI_Controller
 		{
 			if(!empty($_POST))
 			{
+				# Process the signature file if one has been uploaded
+				if(file_exists($_FILES['signature__fileurl']['tmp_name']))
+				{
+					$this->load->model('_document');
+					$upload = $this->_document->upload($_FILES['signature__fileurl'], array('type'=>'image'));
+					
+					$_POST['signature__fileurl'] = $upload['file'];
+				}
+				
 				$data['result'] = $this->_user->update($this->native_session->get('__user_id'), $this->input->post(NULL, TRUE));
 				$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Please check your email for a confirmation code to proceed.": $data['result']['msg'];
 			}
 			
-			$this->_user->populate_session($this->native_session->get('__user_id'));
+			$this->_user->populate_session($this->native_session->get('__user_id'),true);
 			$this->load->view('profile/user_data', $data); 
 		}
 		else

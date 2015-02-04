@@ -148,6 +148,7 @@ $(function() {
 					//Go to the top of the div being shown
 					scrollToAnchor('paginationdiv__'+parentDiv.attr('id')+'_list');
 					
+					
 				//Hide the next div if the list is completed
 				} else {
 					var nextBtn = parentDiv.find('.nextbtn').first();
@@ -181,6 +182,8 @@ $(function() {
 			//Restore the next div if it is hidden
 			if(!parentDiv.find('.nextbtn').first().is(":visible")) parentDiv.find('.nextbtn').first().fadeIn();
 		}
+		
+		
 	});
 	
 });

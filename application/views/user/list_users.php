@@ -49,7 +49,7 @@
       		<tr>
               <td><div class="h1 grey nowrap listheader">Users<?php if(check_access($this, 'add_new_user', 'boolean')) echo "<div class='nextdiv addcontenticon' data-url='user/add'></div>";?></div><div class="listsearchfield"><input type="text" id="usersearch__users" data-type="user" name="usersearch__users" placeholder="Search Users" class="findfield" value=""/>
 <input type='hidden' id='usersearch__displaydiv' name='usersearch__displaydiv' value='usersearch__1' />
-<input type='hidden' id='usersearch__action' name='usersearch__action' value='<?php echo base_url()."search/load_list/action/update";?>' />
+<input type='hidden' id='usersearch__action' name='usersearch__action' value='<?php echo base_url()."search/load_list/action/".(!empty($action)? $action: 'view');?>' />
 </div></td></tr>
             <tr><td>
        
@@ -67,12 +67,14 @@
 	'msg'=>(!empty($msg)? $msg: '') 
 	));?></div></div></td>
   </tr>
+  <?php if(!empty($list)){?>
   <tr>
-    <td style="padding:40px 15px 10px 15px; "><div class='centerpagination' style="margin:0px;padding:0px;"><div id="usersearch" class="paginationdiv"><div class="previousbtn" style='display:none;'>&#x25c4;</div><div class="selected">1</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__usersearch_action" id="paginationdiv__usersearch_action" type="hidden" value="<?php echo base_url()."search/load_list/type/user/action/update";?>" />
+    <td style="padding:40px 15px 10px 15px; "><div class='centerpagination' style="margin:0px;padding:0px;"><div id="usersearch" class="paginationdiv"><div class="previousbtn" style='display:none;'>&#x25c4;</div><div class="selected">1</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__usersearch_action" id="paginationdiv__usersearch_action" type="hidden" value="<?php echo base_url()."search/load_list/type/user/action/".(!empty($action)? $action: 'view');?>" />
 <input name="paginationdiv__usersearch_maxpages" id="paginationdiv__usersearch_maxpages" type="hidden" value="5" />
 <input name="paginationdiv__usersearch_noperlist" id="paginationdiv__usersearch_noperlist" type="hidden" value="<?php echo NUM_OF_ROWS_PER_PAGE;?>" />
 <input name="paginationdiv__usersearch_showdiv" id="paginationdiv__usersearch_showdiv" type="hidden" value="paginationdiv__usersearch_list" /></div></td>
   </tr>
+  <?php }?>
 </table>
 </div>
    

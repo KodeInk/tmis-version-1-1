@@ -196,17 +196,18 @@ $(function() {
 		var hasEmpty = "N";
 		var firstEmpty = "";
 		
-		$(this).find('input').each(function(){
-			if(!$(this).hasClass('optional') && $(this).attr('type') != 'button' && $(this).attr('type') != 'hidden' && $(this).attr('type') != 'submit' 
+		$(this).find('input, textarea').each(function(){
+			if($(this).parents('.ignorearea').first().length == 0 && !$(this).hasClass('optional') && $(this).attr('type') != 'button' && $(this).attr('type') != 'hidden' && $(this).attr('type') != 'submit' 
 				&& (($(this).attr('type') == 'radio' && !$("input:radio[name='"+$(this).attr('name')+"']").is(":checked")) 
 				|| ($(this).attr('type') != 'radio' && $(this).attr('type') != 'checkbox' && (
 						($(this).hasClass('email') && !isValidEmail($(this).attr('id'),''))
+						|| ($(this).hasClass('password') && !isValidPassword($(this).attr('id'),''))
 						|| $(this).val().length < 2
 				)))
 			){
 				//Keep track of the first field to be found empty so that you focus the user to that form
 				if(hasEmpty == "N") firstEmpty = $(this).attr('id');
-				if($(this).attr('type') == 'text') $(this).css('border', 'solid 3px #FFE79B');
+				if($(this).attr('type') == 'text' || $(this).is('textarea')) $(this).css('border', 'solid 3px #FFE79B');
 				hasEmpty = "Y";
 			}
 		});
@@ -276,14 +277,19 @@ $(function() {
 	// Micro form functionality - picks fields in a zone with the class, submits them to a url specified in 
 	// action field and shows the result in the specified results div.
 	// --------------------------------------------------------------------------------------------------------
-	$(document).on('click', '.microform button', function(e){
+	$(document).on('click', '.microform button.submitmicrobtn', function(e){
 		// Collect all fields to process
 		var formContainer = $(this).parents('.microform').first();
 		var inputs = formContainer.find('input, textarea');
+		var errorMessage = formContainer.find('#errormessage').first().length > 0? formContainer.find('#errormessage').first().val(): 'Enter all required fields to continue.';
+		var tempMessage = formContainer.find('#tempmessage').first().length > 0? formContainer.find('#tempmessage').first().val(): '';
 		var activate = true;
 		
 		inputs.each(function(){
-			if(!$(this).hasClass('optional') && $(this).hasClass('textfield') && $(this).val().length < 1)
+			if(!$(this).hasClass('optional') && $(this).hasClass('textfield') && (
+			($(this).hasClass('password') && !isValidPassword($(this).attr('id'),''))
+			|| ($(this).val().length < 1)
+			))
 			{
 				activate = false; 
 				return false;
@@ -300,22 +306,46 @@ $(function() {
        			url: action,
       			data: inputs.serializeArray(),
       			beforeSend: function() {
-           			//Do nothing
+           			//Show a temporary message to show that the form is being worked on
+					if(tempMessage != '') showServerSideFadingMessage(tempMessage);
+				},
+				error: function( xhr ) {
+    				showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
 				},
       	 		success: function(data) {
-		   			$("#"+resultsDiv).html(data);
-					//Clear the micro form for the next entry
-					inputs.each(function(){
-						if($(this).attr('type') != 'hidden'){
-							$(this).val('').removeAttr('checked').removeAttr('selected');
+		   			if(data.match(/error/i)) {
+						// Determine which error to show
+						//The script failed
+						if(data.indexOf('/>') > -1)
+						{//console.log(data);
+							showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
 						}
-					});
+						// Custom message from server
+						else if(data.length > 5){
+							showServerSideFadingMessage(data);
+						}
+						// No message from server
+						else
+						{
+							showServerSideFadingMessage(errorMessage);
+						}
+					}
+					else
+					{
+						//Clear the micro form for the next entry
+						inputs.each(function(){
+							if($(this).attr('type') != 'hidden'){
+								$(this).val('').removeAttr('checked').removeAttr('selected');
+							}
+						});
+						$("#"+resultsDiv).html(data);
+					}
 				}
    			});
 		}
 		else
 		{
-			showServerSideFadingMessage('Enter all required fields to continue.');
+			showServerSideFadingMessage(errorMessage);
 		}
 	});
 	
@@ -342,7 +372,7 @@ $(function() {
 		
 		// 2. Find the editing form
 		var resultsDivId = $(this).parents('.resultslisttable').first().parent('div').attr('id');
-		var editingFormDiv = $('.bodyspace').find('input[value="'+resultsDivId+'"]').first().parents('.microform').first().parent('div').attr('id');
+		var editingFormDiv = $('body').find('input[value="'+resultsDivId+'"]').first().parents('.microform').first().parent('div').attr('id');
 		var listType = editingFormDiv.split('__').pop();
 		
 		// 3. Populate the editing form with the appropriate values from the session
@@ -358,7 +388,7 @@ $(function() {
 		
 		// 2. Find the editing form
 		var resultsDivId = $(this).parents('.resultslisttable').first().parent('div').attr('id');
-		var editingFormDiv = $('.bodyspace').find('input[value="'+resultsDivId+'"]').first().parents('.microform').first().parent('div').attr('id');
+		var editingFormDiv = $('body').find('input[value="'+resultsDivId+'"]').first().parents('.microform').first().parent('div').attr('id');
 		var listType = editingFormDiv.split('__').pop();
 		
 		//Ask user to confirm if they want to delete the item
@@ -432,6 +462,50 @@ $(function() {
 	
 	
 	});
+	
+	
+	
+	
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------------------------------
+	// Handling a file upload field
+	// --------------------------------------------------------------------------------------------------------
+	$(document).on('click focus', '.filefield', function(e){
+		// Disable to prevent bogus files names
+		$(this).prop("readonly",true);
+		var fileId = $(this).attr('id');
+		
+		// 1. Find if the field's actual file field exists. Create it if it does not.
+		if(!($(this).parent().find('input[type="file"]').first().length > 0 && $(this).parent().find('input[type="file"]').first().attr('id') == fileId+'__fileurl')){
+			
+			$(this).after("<input type='file' id='"+fileId+"__fileurl' name='"+fileId+"__fileurl' class='filefieldurl' style='display:none;' value='' />");
+		}
+		$('#'+fileId+'__fileurl').click();
+	});
+	// What happens when the file is uploaded
+	$(document).on('change', '.filefieldurl', function(e){
+		var parentFieldId = $(this).attr('id').replace(/\__fileurl/g, '');
+		// Get the allowed file formats
+		var allowedFormats = $('#'+parentFieldId).data('val').split(',');
+		var uploadedFileUrl = $(this).val();
+		var uploadedFileExtension = uploadedFileUrl.split('.').pop().toLowerCase();
+		
+		// Proceed if the file in is the allowed formats
+		if(allowedFormats.indexOf(uploadedFileExtension) != -1){
+			$('#'+parentFieldId).val(uploadedFileUrl.split('/').pop());
+			
+		} else {
+			//Clear the invalid file url uploaded
+			$(this).val('');
+			$('#'+parentFieldId).val('');
+			showServerSideFadingMessage('The uploaded file format is not valid.');
+		}
+		
+	});
+	
 	
 	
 	

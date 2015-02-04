@@ -15,6 +15,7 @@ class School extends CI_Controller
 	public function __construct()
     {
         parent::__construct();
+		$this->load->model('_school');
 	}
 	
 	
@@ -41,6 +42,80 @@ class School extends CI_Controller
 	}
 	
 	
+	
+	# Add a new school
+	function add()
+	{
+		$data = filter_forwarded_data($this);
+		check_access($this, 'add_new_school');
+		# Remove any session variables if still in the session.
+		if(empty($_POST)) $this->_school->clear_session();
+
+		
+		# If user has posted the form for processing
+		if(!empty($_POST))
+		{
+			$data['result'] = $this->input->post('schoolid')? $this->_school->update($this->input->post('schoolid'), $this->input->post(NULL, TRUE)): $this->_school->add_new($this->input->post(NULL, TRUE));
+				
+			if($this->input->post('schoolid')) $data['schoolid'] = $this->input->post('schoolid');
+			$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "The school details have been saved.": $data['result']['msg'];
+			$this->_school->clear_session();
+			# Redirect to appropriate page if successful
+			$this->native_session->set('msg', $data['msg']);
+			# Go to verification page if user has permission
+			if(check_access($this, 'verify_school_data_updates', 'boolean')) $data['action'] = 'verify';
+			
+			if($data['result']['boolean'] && !$this->input->post('schoolid')) redirect(base_url().'school/lists'.(!empty($data['action']) && $data['action'] !='view'? '/action/'.$data['action']: ''));
+			else if($this->input->post('schoolid')) $data['forward'] = base_url().$this->input->post('forward');
+			
+		}
+		
+		#If editing, load the id details into the session for the first time 
+		if(!empty($data['id']) && empty($_POST)) $this->_school->populate_session($data['id']);
+		$this->load->view('school/new_school', $data); 
+	}
+	
+	
+	
+	
+	
+	# View a school list
+	function lists()
+	{
+		$data = filter_forwarded_data($this);
+		if(empty($data['action'])) $data['action'] = 'view';
+		$instructions['action'] = array('view'=>'view_school_data_changes', 'report'=>'view_schools', 'verify'=>'verify_school_data_updates');
+		check_access($this, get_access_code($data, $instructions));
+		
+		$data['list'] = $this->_school->get_list($data);
+		$this->load->view('school/list_schools', $data); 
+	}
+	
+	
+	
+	
+	#Verify the school before proceeding to the next stage
+	function verify()
+	{
+		$data = filter_forwarded_data($this);
+		if(!empty($_POST))
+		{
+			# Approve or reject a school
+			$result = $this->_school->verify($_POST);
+			
+			$actionPart = current(explode("_", $_POST['action']));
+			$actions = array('approve'=>'approved', 'reject'=>'rejected', 'archive'=>'archived', 'restore'=>'restored');
+			$actionWord = !empty($actions[$actionPart])? $actions[$actionPart]: 'made';
+			$this->native_session->set('msg', ($result['boolean']? "The school has been ".$actionWord: (!empty($result['msg'])? $result['msg']: "ERROR: The school could not be ".$actionWord) ));
+		}
+		else
+		{
+			# Get list type
+			$data['list_type'] = current(explode("_", $data['action']));
+			$data['area'] = 'verify_school';
+			$this->load->view('addons/basic_addons', $data);
+		}
+	}
 }
 
 /* End of controller file */

@@ -44,7 +44,7 @@
             <tr><td>
             
             
-            <form id="user_data" method="post" autocomplete="off" action="<?php echo base_url();?>profile/user_data" class='simplevalidator'>
+            <form id="user_data" method="post" autocomplete="off" enctype="multipart/form-data" action="<?php echo base_url();?>profile/user_data" class='simplevalidator'>
             <table border="0" cellspacing="0" cellpadding="10">
   <tr>
     <td class="label">User Name:</td>
@@ -55,8 +55,9 @@
     <td class='value'><?php echo $this->native_session->get('profile_userrole');?></td>
   </tr>
   <tr>
-    <td class="label">Current Password:</td>
-    <td><div class="viewdiv value">*********</div><div class="editdiv"><input type="password" id="currentpassword" name="currentpassword" title="Current Password" placeholder="Current Password" maxlength="100" class="textfield optional" value=""/></div></td>
+    <td class="label top">Current Password:</td>
+    <td><div class="viewdiv value">*********</div><div class="editdiv"><input type="password" id="currentpassword" name="currentpassword" title="Current Password" placeholder="Current Password" maxlength="100" class="textfield optional" value=""/>
+    <div class="editdiv smalltext">Enter the password only if you want to change it.</div></div></td>
   </tr>
   <tr>
     <td class="label editdiv">New Password:</td>
@@ -71,6 +72,13 @@
   <tr>
     <td class="label">Other Names:</td>
     <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_firstname');?></div><div class="editdiv"><input type="text" id="firstname" name="firstname" title="Other Names" class="textfield" value="<?php echo $this->native_session->get('profile_firstname');?>"/></div></td>
+  </tr>
+  <tr>
+    <td class="label top">Signature on File:</td>
+    <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_signature')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_signature')."' style='max-height:80px;' border='0' />": 'None';?></div><div class="editdiv">
+    <?php echo $this->native_session->get('profile_signature')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_signature')."' style='max-height:80px;' border='0' /><br>": '';?>
+    <input type="text" id="signature" name="signature" title="Your Signature on File" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield" <?php echo $this->native_session->get('profile_signature')? "placeholder='Select New Image'": '';?> value=""/>
+    <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF</div></div></td>
   </tr>
   <tr>
     <td class="label">Telephone:</td>

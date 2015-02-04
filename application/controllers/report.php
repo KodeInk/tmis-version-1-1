@@ -18,11 +18,11 @@ class Report extends CI_Controller
 	}
 	
 	
-	#STUB: View log data
-	function logs()
+	#STUB: View system-specific lists e.g., log data
+	function lists()
 	{
 		$data = filter_forwarded_data($this);
-		$instructions['type'] = array('user'=>'view_user_log', 'system'=>'view_system_log');
+		$instructions['action'] = array('user'=>'view_user_log', 'system'=>'view_system_log');
 		check_access($this, get_access_code($data, $instructions));
 		
 		
@@ -31,71 +31,7 @@ class Report extends CI_Controller
 	
 	
 	
-	#STUB: View users
-	function users()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_users');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
 	
-	
-	#STUB: View schools
-	function schools()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_schools');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	
-	#STUB: View teachers
-	function teachers()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_teachers');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	#STUB: View job applications
-	function job_applications()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_job_applications');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	#STUB: View jobs
-	function jobs()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_jobs');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	#STUB: View retirements
-	function retirements()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_retirements');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
 	
 	
 }

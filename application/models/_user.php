@@ -56,7 +56,7 @@ class _user extends CI_Model
 	function change_status($userId, $newStatus)
 	{
 		$result1 = !in_array($newStatus, array('archived','complete'))? $this->_messenger->send($userId, array('code'=>'notify_change_of_user_status', 'status'=>strtoupper($newStatus)), array('email')): true;
-		$result2 = $this->_query_reader->run('update_user_status', array('user_id'=>$userId, 'status'=>$newStatus));
+		$result2 = $this->_query_reader->run('update_user_status', array('user_id'=>$userId, 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id') ));
 		
 		return get_decision(array($result1,$result2), FALSE);
 	}
@@ -82,13 +82,14 @@ class _user extends CI_Model
 	}
 	
 	
-	# Update a user account
+	
+	# Update a user account 
 	function update($userId, $details)
 	{
 		$isUpdated = false;
 		$msg = "";
 		
-		#Check if the user is changing their password
+		# Check if the user is changing their password
 		if(!empty($details['currentpassword']) || !empty($details['newpassword']) || !empty($details['repeatpassword']))
 		{
 			# 1. If any of the above fields is empty, do not proceed to validate
@@ -135,23 +136,55 @@ class _user extends CI_Model
 		# User is not changing password - OR - the password change was successfull
 		if($isUpdated || (!$isUpdated && $msg == ''))
 		{
+			#Get which person id to use
+			if(!empty($details['userid']))
+			{
+				$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$details['userid']));
+				$personId = $user['person_id'];
+			}
+			else
+			{
+				$personId = $this->native_session->get('__person_id');
+			}
+			
 			# Update the person details
-			$isUpdated = $this->_query_reader->run('update_person_profile_part', array('query_part'=>" first_name='".htmlentities($details['firstname'], ENT_QUOTES)."', last_name='".htmlentities($details['lastname'], ENT_QUOTES)."' ", 'person_id'=>$this->native_session->get('__person_id') ));
+			$isUpdated = $this->_query_reader->run('update_person_profile_part', array('query_part'=>" first_name='".htmlentities($details['firstname'], ENT_QUOTES)."', last_name='".htmlentities($details['lastname'], ENT_QUOTES)."' ", 'person_id'=>$personId ));
 			if(!$isUpdated)
 			{
-				$msg = "ERROR: We could not update your name.";
+				$msg = "ERROR: We could not update the name.";
 			}
+			
 			# Add or update the contact telephone if given
 			else if(!empty($details['telephone']))
 			{
-				$queryCode = $this->native_session->get('profile_telephone')? 'update_contact_data': 'add_contact_data';
-				$isUpdated = $this->_query_reader->run($queryCode, array('details'=>$details['telephone'], 'carrier_id'=>'', 'contact_type'=>'telephone', 'parent_type'=>'person', 'parent_id'=>$this->native_session->get('__person_id') ));
+				$queryCode = (!empty($user['telephone'])) || (empty($details['userid']) && $this->native_session->get('profile_telephone'))? 'update_contact_data': 'add_contact_data';
 				
-				$msg = $isUpdated? "Your profile updates have been applied.": "ERROR: We could not update your name.";
+				$isUpdated = $this->_query_reader->run($queryCode, array('details'=>$details['telephone'], 'carrier_id'=>'', 'contact_type'=>'telephone', 'parent_type'=>'person', 'parent_id'=>$personId ));
+				
+				$msg = $isUpdated? "The updates have been applied.": "ERROR: We could not update the telephone.";
 			}
 			
-			#Notify to login again if the user's changes were successful
-			$msg = $isUpdated? $msg." Please log out and login again to start using your new changes.": $msg;
+			# A new signature file has been submitted
+			if(!empty($details['signature']))
+			{
+				if(!empty($details['signature__fileurl']))
+				{
+					$isUpdated = $this->_query_reader->run('update_person_profile_part', array('query_part'=>" signature='".$details['signature__fileurl']."' ", 'person_id'=>$personId ));
+					#Update some profile settings for the user in case they do not log out
+					if($isUpdated)
+					{
+						$this->native_session->delete('__nosignature');
+						$this->native_session->set('__signature', $details['signature__fileurl']);
+					}
+				}
+				else
+				{
+					$msg = "WARNING: The uploaded file format is not supported.";
+				}
+			}
+			
+			# Notify to login again if the user's changes were successful
+			$msg = $isUpdated? $msg.(empty($details['userid'])? " Please log out and login again to start using your new changes.": ""): $msg;
 		}
 		
 		
@@ -208,14 +241,11 @@ class _user extends CI_Model
 	}
 			
 	
-	# STUB: Update the user password
-	function update_password($userId, $newPasswordDetails)
+	# Update the user password
+	function update_password($userId, $newPassword)
 	{
-		$isUpdated = false;
-		
-		
-		
-		return $isUpdated;
+		$user = $this->_query_reader->get_row_as_array('get_user_by_id', array('user_id'=>$userId));
+		return !empty($user)? $this->_query_reader->run('update_user_password', array('user_id'=>$userId, 'new_password'=>sha1($newPassword), 'old_password'=>$user['login_password'], 'updated_by'=>$this->native_session->get('__user_id') )): false;
 	}
 	
 
@@ -251,10 +281,10 @@ class _user extends CI_Model
 	
 
 	# Populate a user session profile
-	function populate_session($userId)
+	function populate_session($userId, $isUpdatingSelf)
 	{
 		$profile = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$userId));
-		if(!empty($profile))
+		if(!empty($profile) && $isUpdatingSelf)
 		{
 			$this->native_session->set('profile_id', $profile['user_id']);
 			$this->native_session->set('profile_personid', $profile['person_id']);
@@ -262,10 +292,29 @@ class _user extends CI_Model
 			$this->native_session->set('profile_userrole', $profile['user_role']);
 			$this->native_session->set('profile_lastname', $profile['last_name']);
 			$this->native_session->set('profile_firstname', $profile['first_name']);
+			$this->native_session->set('profile_signature', $profile['signature']);
 			if(!empty($profile['telephone'])) $this->native_session->set('profile_telephone', $profile['telephone']);
 			$this->native_session->set('profile_emailaddress', $profile['email_address']);
 		}
+		#Setting the session for another user
+		else if(!empty($profile))
+		{
+			$this->native_session->set('role__roles', $profile['user_role']);
+			$this->native_session->set('lastname', $profile['last_name']);
+			$this->native_session->set('firstname', $profile['first_name']);
+			if(!empty($profile['telephone'])) $this->native_session->set('telephone', $profile['telephone']);
+			$this->native_session->set('emailaddress', $profile['email_address']);
+		}
 		
+	}
+	
+
+
+	# Clear a user session profile
+	function clear_session()
+	{
+		$fields = array('role_roles'=>'', 'lastname'=>'', 'firstname'=>'', 'telephone'=>'', 'emailaddress'=>'');
+		$this->native_session->delete_all($fields);
 	}
 	
 	

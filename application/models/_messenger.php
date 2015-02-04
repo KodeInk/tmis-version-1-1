@@ -49,27 +49,38 @@ class _messenger extends CI_Model {
 			if(!empty($user))
 			{
 				$emailaddress = $user['email_address'];
-				$messageDetails['firstname'] = !empty($messageDetails['firstname'])? $messageDetails['firstname']: $user['first_name'];
+				$messageDetails['first_name'] = !empty($messageDetails['firstname'])? $messageDetails['firstname']: $user['first_name'];
+				$messageDetails['login_link'] = !empty($messageDetails['loginlink'])? $messageDetails['loginlink']: trim(base_url(), '/');
 			}
 		}
 		
+		$messageDetails['email_from'] = !empty($messageDetails['emailfrom'])? $messageDetails['emailfrom']: $this->native_session->get('__email_address');
+		$messageDetails['from_name'] = !empty($messageDetails['fromname'])? $messageDetails['fromname']: $this->native_session->get('__last_name').' '.$this->native_session->get('__first_name');
+					
 		$emailTo = !empty($messageDetails['emailaddress'])? $messageDetails['emailaddress']: (!empty($emailaddress)? $emailaddress: "");
 		
 		if(!empty($emailTo))
 		{
 			# 2. Fetch the message template and populate the necessary details
-			$template = $this->get_template_by_code($messageDetails['code']);
-			$emailMessage = $this->populate_template($template, $messageDetails);
+			if(!empty($messageDetails['code']))
+			{
+				$template = $this->get_template_by_code($messageDetails['code']);
+				$emailMessage = $this->populate_template($template, $messageDetails);
+				$messageDetails['subject'] = $emailMessage['subject'];
+				$messageDetails['details'] = $emailMessage['details'];
+			}
+			
 			# 3. Send message
 			if(!empty($emailMessage['details']))
 			{
 				$this->email->to($emailTo);
 				$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
 				$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
+				if(!empty($messageDetails['cc'])) $this->email->cc($messageDetails['cc']);
 				if($template['copy_admin'] == 'Y') $this->email->bcc(SITE_ADMIN_MAIL);
 			
-				$this->email->subject($emailMessage['subject']);
-				$this->email->message($emailMessage['details']);
+				$this->email->subject($messageDetails['subject']);
+				$this->email->message($messageDetails['details']);
 			
 				if(isset($messageDetails['fileurl']) && trim($messageDetails['fileurl']) != '')
 				{
@@ -82,7 +93,7 @@ class _messenger extends CI_Model {
 				$isSent = $this->email->send();
 				
 				#Record messsage exchange if sent
-				if($isSent) $result = $this->_query_reader->run('record_message_exchange', array('code'=>$messageDetails['code'], 'send_format'=>'email', 'details'=>$emailMessage['details'], 'subject'=>$emailMessage['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
+				if($isSent && !empty($userId)) $result = $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'log_email', 'attachment'=>(!empty($messageDetails['fileurl'])? $messageDetails['fileurl']: ''), 'details'=>$messageDetails['details'], 'subject'=>$messageDetails['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
 			}
 		}
 		
@@ -105,21 +116,30 @@ class _messenger extends CI_Model {
 				$carrierEmailDomain = $this->_carrier->get_email_domain($user['telephone']);
 				if(!empty($carrierEmailDomain))
 				{
-					$template = $this->get_template_by_code($messageDetails['code']);
-					$smsMessage = $this->populate_template($template, $messageDetails);
-				
+					$messageDetails['email_from'] = !empty($messageDetails['emailfrom'])? $messageDetails['emailfrom']: $this->native_session->get('__email_address');
+					$messageDetails['from_name'] = !empty($messageDetails['fromname'])? $messageDetails['fromname']: $this->native_session->get('__last_name').' '.$this->native_session->get('__first_name');
+					
+					#Populate the template if given the code
+					if(!empty($messageDetails['code']))
+					{
+						$template = $this->get_template_by_code($messageDetails['code']);
+						$smsMessage = $this->populate_template($template, $messageDetails);
+						$messageDetails['subject'] = $smsMessage['subject'];
+						$messageDetails['sms'] = $smsMessage['sms'];
+					}
+					
 					$this->email->to($user['telephone'].'@'.$carrierEmailDomain);
 					$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
 					$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
-					if($template['copy_admin'] == 'Y') $this->email->bcc(SITE_ADMIN_MAIL);
+					if(!empty($template['copy_admin']) && $template['copy_admin'] == 'Y') $this->email->bcc(SITE_ADMIN_MAIL);
 			
-					$this->email->subject($smsMessage['subject']);
-					$this->email->message($smsMessage['sms']);
+					$this->email->subject($messageDetails['subject']);
+					$this->email->message($messageDetails['sms']);
 				
 					$isSent = $this->email->send();
 					
 					#Record messsage exchange if sent
-					if($isSent) $result = $this->_query_reader->run('record_message_exchange', array('code'=>$messageDetails['code'], 'send_format'=>'sms', 'details'=>$smsMessage['sms'], 'subject'=>$smsMessage['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
+					if($isSent && !empty($userId)) $result = $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'log_sms', 'details'=>$messageDetails['sms'], 'subject'=>$messageDetails['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
 				}
 			}
 		}
@@ -132,12 +152,29 @@ class _messenger extends CI_Model {
 	# Send a system message to the specified user
 	function send_system_message($userId, $messageDetails)
 	{
+		if(!empty($userId))
+		{
+			$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$userId));
+			$messageDetails['first_name'] = !empty($messageDetails['firstname'])? $messageDetails['firstname']: $user['first_name'];
+			$messageDetails['login_link'] = !empty($messageDetails['loginlink'])? $messageDetails['loginlink']: trim(base_url(), '/');
+		}
+		$messageDetails['email_from'] = !empty($messageDetails['emailfrom'])? $messageDetails['emailfrom']: $this->native_session->get('__email_address');
+		$messageDetails['from_name'] = !empty($messageDetails['fromname'])? $messageDetails['fromname']: $this->native_session->get('__last_name').' '.$this->native_session->get('__first_name');
+		
+		
 		# 1. Fetch the message template and populate the necessary details
-		$template = $this->get_template_by_code($messageDetails['code']);
-		$systemMessage = $this->populate_template($template, $messageDetails);
+		if(!empty($messageDetails['code']))
+		{
+			$template = $this->get_template_by_code($messageDetails['code']);
+			$systemMessage = $this->populate_template($template, $messageDetails);
+			$messageDetails['subject'] = $systemMessage['subject'];
+			$messageDetails['details'] = $systemMessage['details'];
+			
+			if($template['copy_admin'] == 'Y') $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'system', 'details'=>$messageDetails['details'], 'attachment'=>(!empty($messageDetails['fileurl'])? $messageDetails['fileurl']: ''), 'subject'=>$messageDetails['subject'], 'recipient_id'=>implode("','", $this->get_admin_users()), 'sender'=>$messageDetails['email_from']));
+		}
 		
 		# 2. Record the message exchange to be accessed by the recipient in their inbox
-		return $this->_query_reader->run('record_message_exchange', array('code'=>$messageDetails['code'], 'send_format'=>'system', 'details'=>$systemMessage['details'], 'subject'=>$systemMessage['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
+		return $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'system', 'details'=>$messageDetails['details'], 'attachment'=>(!empty($messageDetails['fileurl'])? $messageDetails['fileurl']: ''), 'subject'=>$messageDetails['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
 	}	
 			
 	
@@ -179,34 +216,187 @@ class _messenger extends CI_Model {
 		
 		return $template;
 	}
-					
 	
 	
-	# STUB: Archive the message so that it can no longer be viewed in the active message list
-	function archive_message($template, $values=array())
+	
+	
+	# Populate the session if the user is responding
+	function populate_session($messageId)
 	{
-		$message = "";
+		$message = $this->_query_reader->get_row_as_array('get_message_by_id', array('message_id'=>$messageId));
 		
-		
-		return $message;
+		if(!empty($message))
+		{
+			$msgSeparator = '<br><br><br><br>-------------------------------<br>Received '.date('d-M-Y h:i:sA T').'<br><br>';
+			$this->native_session->set('recipientname__users', $message['sender_name']);
+			$this->native_session->set('recipientid', $message['sender_id']);
+			$this->native_session->set('subject', (strtolower(substr($message['subject'], 0,3)) != 're:'? 'Re: ': '').$message['subject']);
+			$this->native_session->set('message', ($message['send_format'] != 'sms'? $msgSeparator: '').$message['details']);
+		}
+	}
+	
+
+
+	# Clear a message session profile
+	function clear_session()
+	{
+		$fields = array('recipientname__users'=>'', 'recipientid'=>'', 'subject'=>'', 'message'=>'');
+		$this->native_session->delete_all($fields);
 	}
 						
 	
 	
-	# STUB: Get list of messages for the given user a list parameters
-	function get_message_list($userId, $listParameters)
+	# Get list of messages for the given user a list parameters
+	function get_list($instructions)
 	{
-		$list = array();
+		$searchString = " AND send_format IN ('system','sms','email') ";
+		# If a search phrase is sent in the instructions
+		if(!empty($instructions['searchstring']))
+		{
+			$searchString .= " AND ".$instructions['searchstring'];
+		}
 		
+		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
+		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
 		
-		return $list;
+		if(!empty($instructions['action']) && $instructions['action'] == 'sent')
+		{
+			return $this->_query_reader->get_list('get_sent_message_list', array('sender_email'=>$this->native_session->get('__email_address'), 'search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" ORDER BY M.date_added DESC "));
+		}
+		else if(!empty($instructions['action']) && $instructions['action'] == 'archive')
+		{
+			return $this->_query_reader->get_list('get_message_list', array('recipient_id'=>$this->native_session->get('__user_id'), 'search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" HAVING status='archived' ORDER BY M.date_added DESC"));
+		}
+		else
+		{
+			return $this->_query_reader->get_list('get_message_list', array('recipient_id'=>$this->native_session->get('__user_id'), 'search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" HAVING status <> 'archived' ORDER BY M.date_added DESC"));
+		}
 	}
 	
 	
 
 
+	# Send a message submitted from a form on the UI
+	function send_from_form($messageType, $details) 
+	{
+		$boolean = false;
+		$msg = '';
+		
+		if(!empty($details['userid']))
+		{
+			if(strtolower(trim($details['userid'])) == 'all')
+			{
+				$users = $this->_query_reader->get_list('get_active_users');
+				$unsuccessful = array();
+				foreach($users AS $row)
+				{
+					if($row['id'] != $this->native_session->get('__user_id'))
+					{
+						if($messageType == 'email')
+						{
+							$result = $this->send_email_message($row['id'], array('subject'=>$details['subject'], 'details'=>$details['message']));
+						}
+						else if($messageType == 'sms')
+						{
+							$result = $this->send_sms_message($row['id'], array('subject'=>'NONE: From '.($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')).' at '.date('d-M-Y h:i:sA T'), 'sms'=>$details['message']));
+						}
+						else 
+						{
+							$result = $this->send_system_message($row['id'], array('subject'=>$details['subject'], 'details'=>$details['message']));
+						}
+						if(!$result) array_push($unsuccessful, $row['id']);
+					}
+				}
+				
+				$msg = "The message has been sent to all. ";
+				if(!empty($unsuccessful))
+				{
+					#Get the unsuccessful users' names
+					$userNames = $this->_query_reader->get_single_column_as_array('get_user_names_by_list', 'name', array('user_ids'=>"'".implode("','", $unsuccessful)."'", 'limit_full_text'=>' LIMIT 10'));
+					
+					$msg .= "However, an error occurred for the following: ".implode(', ', $userNames).(count($userNames) == 10? ' ..and more.': '');
+					$boolean = false;
+				}
+				else
+				{
+					$boolean = true;
+				}
+			}
+			else
+			{
+				if($messageType == 'email')
+				{
+					$boolean = $this->send_email_message($details['userid'], array('subject'=>$details['subject'], 'details'=>$details['message']));
+				}
+				else if($messageType == 'sms')
+				{
+					$boolean = $this->send_sms_message($details['userid'], array('subject'=>'NONE', 'sms'=>$details['message']));
+				}
+				else 
+				{
+					$boolean = $this->send_system_message($details['userid'], array('subject'=>$details['subject'], 'details'=>$details['message']));
+				}
+				if(!$boolean) $msg = "ERROR: We could not send the message.";
+			}
+		}
+		
+		return array('boolean'=>$boolean, 'msg'=>$msg); 
+	}
 
 
+
+
+	# Verify a message? - just keeping the function consistency
+	# This function archives and restores messages from the inbox
+	function verify($instructions)
+	{
+		$result = array('boolean'=>false, 'msg'=>'ERROR: The message instructions could not be resolved.');
+		
+		if(!empty($instructions['action']))
+		{
+			switch($instructions['action'])
+			{
+				case 'archive':
+					$result['boolean'] = $this->change_status($instructions['id'], 'archived');
+				break;
+				
+				case 'restore':
+					$result['boolean'] = $this->change_status($instructions['id'], 'read');
+				break;
+			}
+			
+			if(!empty($result['boolean'])) 
+			{
+				$result['msg'] = $result['boolean']? "The message status has been changed": "ERROR: The message status could not be changed.";
+			}
+		}
+		
+		return $result;
+	}
+					
+	
+	
+	# Change status of message
+	function change_status($exchangeId, $status)
+	{
+		return $this->_query_reader->run('add_message_status', array('message_exchange_id'=>$exchangeId, 'user_id'=>$this->native_session->get('__user_id'), 'status'=>$status));
+	}
+	
+	
+	
+	
+	# Get the details about a message given its ID
+	function message_details($messageId)
+	{
+		return $this->_query_reader->get_row_as_array('get_message_by_id', array('message_id'=>$messageId));
+	}
+	
+	
+	# Returns admin user ids
+	function get_admin_users()
+	{
+		return $this->_query_reader->get_single_column_as_array('get_users_in_group', 'user_id', array('group'=>'admin', 'condition'=>''));
+	}
 }
 
 ?>

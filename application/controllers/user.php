@@ -19,39 +19,47 @@ class User extends CI_Controller
 	}
 	
 	
-	#STUB: View user applications
-	function applications()
-	{
-		$data = filter_forwarded_data($this);
-		$instructions['action'] = array('view'=>'view_user_applications', 'verify'=>'verify_user_applications');
-		check_access($this, get_access_code($data, $instructions));
-		
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
 	
 	# Add a new user
 	function add()
 	{
 		$data = filter_forwarded_data($this);
-		check_access($this, 'add_new_user');
+		if(!(!empty($data['action']) && $data['action'] == 'view' && !empty($data['id']))) check_access($this, 'add_new_user');
+		# Remove any session variables if still in the session.
+		$this->_user->clear_session();
 		
 		# If user has posted the form for processing
 		if(!empty($_POST))
 		{
-			#Pass these details to the person object to handle with XSS filter turned on
-			$data['result'] = $this->_person->add_profile($this->input->post(NULL, TRUE));
-			$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "The user account has been created.": $data['result']['msg'];
-			if($data['result']['boolean']){
-				$this->native_session->delete_all(array('person_id'=>'', 'firstname'=>'', 'lastname'=>'', 'role__roles'=>'', 'emailaddress'=>'', 'telephone'=>''));
+			# Editing user
+			if($this->input->post('userid'))
+			{
+				$data['result'] = $this->_user->update($this->input->post('userid'), $this->input->post(NULL, TRUE));
+				
+				$data['userid'] = $this->input->post('userid');
+				$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "Your user details have been saved.": $data['result']['msg'];
+				# Redirect to appropriate page if successful
 				$this->native_session->set('msg', $data['msg']);
-				redirect(base_url().'user/update_status');
+				$data['forward'] = base_url().$this->input->post('forward');
 			}
+			# New user
+			else 
+			{
+				#Pass these details to the person object to handle with XSS filter turned on
+				$data['result'] = $this->_person->add_profile($this->input->post(NULL, TRUE));
+				$data['msg'] = $data['result']['boolean'] && empty($data['result']['msg'])? "The user account has been created.": $data['result']['msg'];
+				if($data['result']['boolean'])
+				{
+					$this->native_session->delete_all(array('person_id'=>'', 'firstname'=>'', 'lastname'=>'', 'role__roles'=>'', 'emailaddress'=>'', 'telephone'=>''));
+					$this->native_session->set('msg', $data['msg']);
+					redirect(base_url().'user/update_status');
+				}
+			}
+			
 		}
 		
+		#If editing, load the id details into the session for the first time 
+		if(!empty($data['id']) && empty($_POST)) $this->_user->populate_session($data['id'], (!empty($data['action'])? false: true));
 		$this->load->view('user/new_user', $data); 
 	}
 	
@@ -100,14 +108,33 @@ class User extends CI_Controller
 	}
 	
 	
-	#STUB: Change other users' passwords
+	# Change other users' passwords
 	function change_password()
 	{
 		$data = filter_forwarded_data($this);
 		check_access($this, 'change_other_user_passwords');
 		
-		
-		$this->load->view('page/under_construction', $data); 
+		if(!empty($_POST))
+		{
+			$check = array_key_contains('userpassword_', $_POST);
+			if($check['boolean'])
+			{
+				$result = $this->_user->update_password($data['id'], $this->input->post($check['key']));
+				$data['msg'] = $result? 'User password updated': 'ERROR: User password not updated.';
+			}
+			else
+			{
+				$data['msg'] = 'ERROR: User not resolved.';
+			}
+			$data['area'] = 'basic_msg';
+			$this->load->view('addons/basic_addons', $data);
+		}
+		else
+		{
+			$data['action'] = 'changepassword';
+			$data['list'] = $this->_user->get_list(array('action'=>'changepassword'));
+			$this->load->view('user/list_users', $data); 
+		}
 	}
 	
 	
@@ -134,6 +161,20 @@ class User extends CI_Controller
 		}
 	}
 	
+	
+	
+	
+	
+	# View a user list
+	function lists()
+	{
+		$data = filter_forwarded_data($this);
+		$instructions['action'] = array('report'=>'view_users');
+		check_access($this, get_access_code($data, $instructions));
+		
+		$data['list'] = $this->_user->get_list(array('action'=>'report'));
+		$this->load->view('user/list_users', $data);  
+	}
 	
 }
 

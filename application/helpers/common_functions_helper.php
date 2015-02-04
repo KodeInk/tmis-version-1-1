@@ -104,148 +104,6 @@ function clean_form_data($formData)
 
 
 
-
-
-
-#Function to validate the passed form based on the entered data
-function validate_form($formType, $formData, $requiredFields=array())
-{
-	$emptyFields = array();
-	$boolResult = TRUE;
-			
-	foreach($requiredFields AS $required)
-	{
-		if(strpos($required, '*') !== FALSE){
-			#This is a checkbox group
-			if(strpos($required, 'CHECKBOXES') !== FALSE)
-			{
-				$fieldStr = explode('*', $required);
-				if(empty($formData[$fieldStr[0]])){
-					array_push($emptyFields, $fieldStr[0]);
-				}
-			}
-			#This is a required row
-			else if(strpos($required, 'ROW') !== FALSE)
-			{
-				$rowStr = explode('*', $required);
-				$fieldArray = explode('<>', $rowStr[1]);
-				$decision = FALSE;
-						
-				$rowcounter = 0;
-				#Take one row field and use that to check the rest
-				foreach($formData[$fieldArray[0]] AS $colField)
-				{
-					$rowDecision = TRUE;
-					foreach($fieldArray AS $rowField){
-						if(empty($formData[$rowField][$rowcounter])){
-							$rowDecision = FALSE;
-						}
-					}
-							
-					if($rowDecision && !empty($colField)){
-						$decision = TRUE;
-						break;
-					}
-							
-					$rowcounter++;
-				}
-						
-				if(!$decision){
-					array_push($emptyFields, $fieldArray);
-				}
-			}
-			#This is a required radio with other options
-			else if(strpos($required, 'RADIO') !== FALSE)
-			{
-				$rowStr = explode('*', $required);
-						
-				#The radio is not checked
-				if(empty($formData[$rowStr[0]])){
-					array_push($emptyFields, $rowStr[0]);
-				}
-				#if the radio is checked, check the other required fields
-				else
-				{
-					if($formData[$rowStr[0]] == 'Y'){
-						$fieldArray = explode('<>', $rowStr[1]);
-						#Remove first RADIO field item which is not needed
-						array_shift($fieldArray);
-							
-						foreach($fieldArray AS $radioField)
-						{
-							if(empty($formData[$radioField])){
-								array_push($emptyFields, $radioField);
-							}
-						}
-					}
-				}
-			}
-			#This is ensuring that the fields specified are the same
-			else if(strpos($required, 'SAME') !== FALSE)
-			{
-				$rowStr = explode('*', $required);
-				$fieldArray = explode('<>', $rowStr[1]);
-				
-				if($formData[$rowStr[0]] != $formData[$fieldArray[1]]){
-					array_push($emptyFields, $rowStr[0]);
-				}
-			}
-			#This is ensuring that the email is the correct format
-			else if(strpos($required, 'EMAILFORMAT') !== FALSE)
-			{
-				$rowStr = explode('*', $required);
-				
-				if(!is_valid_email($formData[$rowStr[0]]))
-				{
-					array_push($emptyFields, $rowStr[0]);
-				}
-			}
-			#This is ensuring that the password is the correct format
-			else if(strpos($required, 'PASSWORD') !== FALSE)
-			{
-				$rowStr = explode('*', $required);
-				
-				if(!is_valid_password($formData[$rowStr[0]]))
-				{
-					array_push($emptyFields, $rowStr[0]);
-				}
-			}
-			#This is ensuring that the first field is less than the next field
-			else if(strpos($required, 'LESSTHAN') !== FALSE)
-			{
-				$rowStr = explode('*', $required);
-				$fieldArray = explode('<>', $rowStr[1]);
-				
-				if(!($formData[$rowStr[0]] < $formData[$fieldArray[1]] || $formData[$rowStr[0]] == '' || $formData[$fieldArray[1]] == '')){
-					array_push($emptyFields, $rowStr[0]);
-				}
-			}
-		}
-				
-		#Is a plain text field or other value field
-		else
-		{
-			if(!(!empty($formData[$required]) || $formData[$required] == '0')){
-				array_push($emptyFields, $required);
-			}
-		}
-	}
-		
-	
-	
-	if(empty($emptyFields)){
-		$boolResult = TRUE;
-	}else{
-		$boolResult = FALSE;
-	}
-	
-	return array('bool'=>$boolResult, 'requiredfields'=>$emptyFields);
-		
-}
-
-
-
-
 #Checks if a password is valid
 function is_valid_password($password, $validationSettings=array())
 {
@@ -782,18 +640,45 @@ function remove_string_special_characters($string, $allowSpaces=FALSE)
 
 
 # Format the date according to instructions given
-function format_date($dateString, $instruction)
+function format_date($dateString, $instruction="YYYY-MM-DD H:I:S", $default="&nbsp;")
 {
 	$date = $dateString;
-	switch($instruction)
+	# Proceed if the date is not empty
+	if(!(empty($dateString) || $dateString == '0000-00-00 00:00:00' || $dateString == '0000-00-00'))
 	{
-		case "YYYY-MM-DD":
-			$date = date("Y-m-d", strtotime($dateString));
-		break;
-		
+		switch($instruction)
+		{
+			case "YYYY-MM-DD":
+				$date = date("Y-m-d", strtotime($dateString));
+			break;
+			
+			case "YYYY-MM-DD H:I:S":
+				$date = date("Y-m-d H:i:s", strtotime($dateString));
+			break;
+			
+			case "Y-m-d":
+				$date = date("Y-m-d", strtotime($dateString));
+			break;
+			
+			case "d-M-Y h:i:s":
+			case "d-M-Y h:i:sa T":
+			case "d-M-Y":
+				$date = date($instruction, strtotime($dateString));
+			break;
+		}
 	}
+	else
+	{
+		$date = $default; 
+	}
+	
 	return $date;
 }
+
+
+
+
+
 
 
 #Function to provide the difference of two dates in a desired format
@@ -908,34 +793,6 @@ function format_number($number, $maxCharLength=100, $decimalPlaces=2, $singleCha
 	else return number_format($number,(is_float($number)? $decimalPlaces: 0), '.', ($hasCommas? ',': ''));
 }
 
-
-
-
-
-#Generate the pagination table
-function pagination($itemCount, $noPerPage=5, $currentPage=1, $tableId='', $extraStyling='', $pageLimit=0, $scrollToAnchor='')
-{
-       $pageCount = ceil($itemCount/$noPerPage);
-       $paginationIdParts = explode('__', $tableId);
-	   
-	   $tableHtml = "<table id='".$tableId."' border='0' cellspacing='0' ".(!empty($scrollToAnchor)? " data-rel='".$scrollToAnchor."' ": '')." cellpadding='0' class='paginationtable' style='".$extraStyling."'>
-  					<tr>
-    					<td id='".$paginationIdParts[0]."__first'>&#x25c4;</td>";
-		for($i=1; $i<($pageCount+1); $i++)
-		{
-			
-			$tableHtml .= "<td ".($currentPage == $i? " class='selectedpagination'": "").">".$i."</td>";
-			#Do not exceed the page limit
-			if(!empty($pageLimit) && $i >= $pageLimit)
-			{
-				break;
-			}
-		}
-	   $tableHtml .= "<td id='".$paginationIdParts[0]."__last'>&#x25ba;</td>
-  </tr></table>";
-	   
-       return $tableHtml;
-}
 
 
 
@@ -1215,9 +1072,9 @@ function get_user_dashboard($obj, $userId)
 	else
 	{
 		# 2. Get the user group
-		if($obj->native_session->get('permission_group'))
+		if($obj->native_session->get('__permission_group'))
 		{
-			$groupId = $obj->native_session->get('permission_group');
+			$groupId = $obj->native_session->get('__permission_group');
 		}
 		else
 		{
@@ -1226,28 +1083,28 @@ function get_user_dashboard($obj, $userId)
 		}
 	
 		# 3. Get the group default page
-		if($obj->native_session->get('group_default_page'))
+		if($obj->native_session->get('__group_default_page'))
 		{
-			$page = $obj->native_session->get('group_default_page');
+			$page = $obj->native_session->get('__group_default_page');
 		}
-		else if($obj->native_session->get('permissions'))
+		else if($obj->native_session->get('__permissions'))
 		{
 			#Go to the group default page if allowed
 			$default = $obj->_query_reader->get_row_as_array('get_group_default_permission', array('group_id'=>$groupId));
-			if(!empty($default['code']) && in_array($default['code'], $obj->native_session->get('permissions')))
+			if(!empty($default['code']) && in_array($default['code'], $obj->native_session->get('__permissions')))
 			{
 				$page = $default['page'];
 			}
 			# 4. If the user is not allowed to view default page, go to the first allowed permission
 			else 
 			{
-				$permissions = $obj->native_session->get('permissions');
+				$permissions = $obj->native_session->get('__permissions');
 				$permission = $obj->_query_reader->get_row_as_array('get_permission_by_code', array('code'=>$permissions[0]));
 				$page = !empty($permission['url'])? $permission['url']: "";
 			}
 			
 			# Set this so that you do not have to fetch the default page from the DB again - for this user's session
-			if(!empty($page)) $obj->native_session->set('group_default_page', $page);
+			if(!empty($page)) $obj->native_session->set('__group_default_page', $page);
 		}
 		
 		# 5. If none, logout the user and notify
@@ -1280,7 +1137,7 @@ function check_access($obj, $accessCode, $return='msg')
 {
 	# 1. Are the user's permissions set and they have the requested permission?
 	# then, return appropriate response
-	if($obj->native_session->get('permissions') && in_array($accessCode, $obj->native_session->get('permissions')))
+	if($obj->native_session->get('__permissions') && in_array($accessCode, $obj->native_session->get('__permissions')))
 	{
 		if($return == 'boolean')
 		{
@@ -1288,7 +1145,7 @@ function check_access($obj, $accessCode, $return='msg')
 		}
 		else
 		{
-			$obj->native_session->set('selected_permission', $accessCode);
+			$obj->native_session->set('__selected_permission', $accessCode);
 		}
 	}
 	else
@@ -1350,5 +1207,73 @@ function get_access_code($data, $instructions)
 	
 	return $code;
 }
+
+
+
+#Check if a model is loaded 
+function is_model_loaded($obj, $modelName) 
+{
+	return in_array($modelName, $obj->_ci_models, TRUE);
+}
+
+
+
+#Process the other field for data
+function process_other_field($data)
+{
+	if(!empty($data['other']))
+	{
+		$level1Parts = explode('|', $data['other']);
+		foreach($level1Parts AS $part)
+		{
+			if(!empty($part))
+			{
+				$level2Parts = explode('=', $part);
+				$data[$level2Parts[0]] = restore_bad_chars($level2Parts[1]);
+			}
+		}
+	}
+	
+	return $data;
+}
+
+
+
+
+# Force file download
+function force_download($folder, $file)
+{
+	if(file_exists(UPLOAD_DIRECTORY.$folder."/".$file))
+	{
+		if(strtolower(strrchr($file,".")) == '.pdf')
+		{
+			header('Content-disposition: attachment; filename="'.$file.'"');
+			header('Content-type: application/pdf');
+			readfile(UPLOAD_DIRECTORY.$folder."/".$file);
+		}
+		if(strtolower(strrchr($file,".")) == '.zip')
+		{
+			header('Expires: 0');
+			header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+			header('Pragma: public');
+			header('Content-Description: File Transfer');
+			header('Content-Disposition: attachment; filename="'.strtotime('now').str_replace('.','',get_ip_address()).'.zip"');
+			header('Content-Transfer-Encoding: binary');
+			header('Vary: Accept-Encoding');
+			header('Content-Encoding: gzip');
+			header('Keep-Alive: timeout=5, max=100');
+			header('Connection: Keep-Alive');
+			header('Transfer-Encoding: chunked');
+			header('Content-Type: application/octet-stream');
+			apache_setenv('no-gzip', '1');
+
+		}
+		else
+		{
+			redirect(base_url()."assets/uploads/".$folder."/".$file);
+		}
+	}
+}
+
 
 ?>

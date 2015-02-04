@@ -1527,7 +1527,38 @@ function isValidEmail(fieldname, msg) {
 	return true;
 }
  
+
+// Check if this is a valid password
+function isValidPassword(fieldname, msg) {
+	if (!validatePassword(document.getElementById(fieldname).value, false)) {
+		if(msg != '')
+		{
+			alert(msg);
+		}
+		return false;
+	}
+	return true;
+}
  
+
+// Validate a password string
+function validatePassword(password,showMsg){
+	errors = [];
+	if (password.length < 8) {
+   		errors.push("Your password must be at least 8 characters");
+	}
+	if (password.search(/[a-z]/i) < 0) {
+    	errors.push("Your password must contain at least one letter."); 
+	}
+	if (password.search(/[0-9]/) < 0) {
+    	errors.push("Your password must contain at least one digit."); 
+	}
+	if (errors.length > 0) {
+    	if(showMsg) alert(errors.join("\n"));
+    	return false;
+	}
+	return true;
+}
 
 
 //Function to append a value to a hidden field
@@ -1811,6 +1842,7 @@ function showFadingMessage(){
 //Function to show a fading message from the server side script
 function showServerSideFadingMessage(msg)
 {
+	$(".pagemessage").hide('fast');
 	showFieldValue('systemmessage', msg);
 	showFadingMessage();
 }
@@ -2217,7 +2249,7 @@ $(function(){
 	var headerHeight = $('body table tr').eq(0).height() + $('body table tr').eq(1).height() + $('body table tr').eq(2).height();
 	var footerHeight = $('body table tr:last').height();
 	// The 30 at the end removes the top and bottom padding height
-	$('.bodyspace').css('height', (windowHeight - headerHeight - footerHeight)+"px");
+	$('.bodyspace').css('height', (windowHeight - headerHeight+90)+"px");
 	
 	//If the menu container is on the page
 	if($('#menucontainer').length > 0){
@@ -2239,6 +2271,12 @@ $(function() {
 		yearRange: "-100:+0",
 		dateFormat: 'dd-M-yy'
 	});
+	$( ".datefield.history" ).datepicker({
+		changeMonth: true,
+		changeYear: true,
+		yearRange: "-200:+0",
+		dateFormat: 'dd-M-yy'
+	});
 	
 	$( ".datefield" ).datepicker({
 		changeMonth: true,
@@ -2247,6 +2285,15 @@ $(function() {
 	});
 	}
 });
+
+function setDatePicker()
+{
+	$( ".datefield.clickactivated" ).datepicker({
+		changeMonth: true,
+		changeYear: true,
+		dateFormat: 'dd-M-yy'
+	});
+}
 
 
 

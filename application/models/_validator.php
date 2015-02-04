@@ -37,6 +37,7 @@ class _validator extends CI_Model
 			$this->native_session->set('__last_name', $user['last_name']);
 			$this->native_session->set('__gender', $user['gender']);
 			$this->native_session->set('__date_of_birth', $user['date_of_birth']);
+			$this->native_session->set('__signature', $user['signature']);
 		}
 		
 		return array('boolean'=>$boolean, 'user_id'=>$userId);

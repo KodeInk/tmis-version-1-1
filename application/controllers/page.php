@@ -135,6 +135,26 @@ class Page extends CI_Controller
 	{
 		$data = filter_forwarded_data($this);
 		
+		# User has posted a message
+		if(!empty($_POST))
+		{
+			$passed = process_fields($this, $this->input->post(NULL, TRUE), array('yourname','emailaddress', 'reason__contactreason', 'message'));
+			$data['msg'] = !empty($passed['msg'])? $passed['msg']: "";
+			
+			# All required fields are included? Then send the message to the admin
+			if($passed['boolean'])
+			{
+				$details = $passed['data'];
+				$data['result'] = $this->_messenger->send('', array('code'=>'contact_us_message', 'emailfrom'=>$details['emailaddress'], 'telephone'=>(!empty($details['telephone'])? $details['telephone']:''), 'fromname'=>$details['yourname'], 'cc'=>$details['emailaddress'], 'subject'=>$details['reason__contactreason'], 'details'=>$details['message'], 'emailaddress'=>HELP_EMAIL, 'login_link'=>base_url(), 'sent_time'=>date('d-M-Y h:i:sa T', strtotime('now')) ));
+				
+				$data['msg'] = $data['result']? "Your message has been sent. We shall respond as soon as possible.": "ERROR: There was a problem sending your message";
+			}
+			else
+			{
+				$data['msg'] = "WARNING: There is a problem with the data you submitted.";
+			}
+		}
+		
 		$this->load->view('page/contact_us', $data);
 	}
 	
@@ -208,6 +228,22 @@ class Page extends CI_Controller
 		$data['msg'] = "data added";
 		$data['area'] = "basic_msg";
 		$this->load->view('addons/basic_addons', $data);
+	}
+	
+	
+	
+	# Download a document
+	function download()
+	{
+		$data = filter_forwarded_data($this);
+		if(!empty($data['folder']) && !empty($data['file'])) force_download($data['folder'],$data['file']);
+	}
+	
+	
+	
+	function test()
+	{
+		$this->load->view('page/letter');
 	}
 	
 	

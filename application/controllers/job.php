@@ -97,6 +97,21 @@ class Job extends CI_Controller
 		$this->load->view('page/under_construction', $data); 
 	}
 	
+		
+	
+	
+	
+	
+	# View a job list
+	function lists()
+	{
+		$data = filter_forwarded_data($this);
+		$instructions['action'] = array('report'=>'view_job_applications');
+		check_access($this, get_access_code($data, $instructions));
+		
+		
+		$this->load->view('page/under_construction', $data); 
+	}
 }
 
 /* End of controller file */

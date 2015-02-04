@@ -36,7 +36,7 @@ class _vacancy extends CI_Model
 			 {
 				 # Notify approving parties
 				 $result = $this->_approval_chain->add_chain($vacancyId, 'vacancy', '1', 'approved');
-				 $msg = $result['boolean']? "The approving parties have been notified.": $result['msg'];
+				 $msg = $result['boolean']? "The data has been saved and the approving parties have been notified.": $result['msg'];
 				 $this->native_session->delete_all($details);
 			 }
 		}

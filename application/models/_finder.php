@@ -48,6 +48,74 @@ class _finder extends CI_Model
 					}
 					$list = $this->_vacancy->get_list($data);
 				break;
+				
+				
+				case 'permission':
+					$this->load->model('_permission');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						# Default search fields
+						if(!empty($data['action']) && $data['action'] == 'grouplist') $default = array('notes');
+						else if(!empty($data['action']) && $data['action'] == 'userlist') $default = array('P.first_name', 'P.last_name');
+						else $default = array('display');
+						
+						$searchBy = !empty($data['searchby'])? $data['searchby']: $default;
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_permission->get_list($data);
+				break;
+				
+				
+				case 'message':
+					$this->load->model('_messenger');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.first_name', 'P.last_name', 'M.subject');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_messenger->get_list($data);
+				break;
+				
+				
+				case 'school':
+					$this->load->model('_school');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('S.name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_school->get_list($data);
+				break;
+				
+				
+				case 'census':
+					$this->load->model('_census');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.first_name', 'P.last_name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_census->get_list($data);
+				break;
+				
+				
+				case 'teacher':
+					$this->load->model('_teacher');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.first_name', 'P.last_name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_teacher->get_list($data);
+				break;
+				
+				
+				
 			}
 		}
 		$data['list'] = $list;

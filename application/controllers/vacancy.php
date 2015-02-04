@@ -139,7 +139,7 @@ class Vacancy extends CI_Controller
 	function lists()
 	{
 		$data = filter_forwarded_data($this);
-		$instructions['action'] = array('publish'=>'publish_job_notices', 'verify'=>'verify_job_notices', 'archive'=>'archive_job_notices');
+		$instructions['action'] = array('publish'=>'publish_job_notices', 'verify'=>'verify_job_notices', 'archive'=>'archive_job_notices', 'report'=>'view_jobs');
 		check_access($this, get_access_code($data, $instructions));
 		
 		$data['list'] = $this->_vacancy->get_list($data);
