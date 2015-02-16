@@ -18,50 +18,37 @@ $msg = empty($msg)? get_session_msg($this): $msg; ?>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.callout.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script>
-
+<?php echo minify_js('teacher-new_teacher', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.callout.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js'));?>
 <script type="text/javascript">
 <?php echo !empty($id) && !empty($result['boolean']) && $result['boolean']?"window.top.location.href = '".$forwardUrl."';": "";?>
-
-/*window.onbeforeunload = function() {
-    return 'Are you sure you want to navigate away from this page?';
-};*/
 </script>
 </head>
 
 <body style="margin:0px;">
 <?php 
 # Do not show the header, menu and footer when editing
-if(empty($id)) {?>
+if(empty($id) || !empty($editing_teacher)) {?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <?php $this->load->view("addons/secure_header");?>
   <tr>
-    <td valign="top" colspan="2" class="bodyspace" style="padding-top:0px;">
+    <td valign="top" colspan="2" style="padding-top:0px;padding-left:15px;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td id="menucontainer"><?php $this->load->view("addons/menu");?></td>
-        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+        <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 <?php }?>		
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
-      		<tr><td class="h1 grey"><?php echo !empty($id)? (!empty($action) && $action=='view'? 'View':'Edit'): 'New';?> Teacher</td></tr>
+      		<tr><td class="h1 grey"><?php echo $this->native_session->get('is_teacher_updating')? 'My Teacher Profile': (!empty($id)? (!empty($action) && $action=='view'? 'View':'Edit'): 'New').' Teacher';?></td></tr>
             <?php echo !empty($msg)?"<tr><td>".format_notice($this,$msg)."</td></tr>": "";?>
             <tr><td>
             
             
-<form id="teacher_data" method="post" autocomplete="off" action="<?php echo base_url().'teacher/add'.(!empty($id)? '/id/'.$id: '');?>" class='simplevalidator'>
+<form id="teacher_data" method="post" autocomplete="off" action="<?php echo base_url().(!empty($editing_teacher)? 'profile/teacher_data': 'teacher/add'.(!empty($id)? '/id/'.$id: ''));?>" class='simplevalidator'>
 <table border="0" cellspacing="0" cellpadding="0" width="100%">
   <tr><td class="greybg h3" style="padding:5px; padding-left:10px;">Personal Information</td></tr>
   
@@ -71,63 +58,68 @@ if(empty($id)) {?>
     <td><?php if(!empty($preview)){ 
 		echo "<span class='value'>".$this->native_session->get('lastname')."</span>";
 	} else {?><input type="text" id="lastname" name="lastname" title="Surname" class="textfield" value="<?php echo ($this->native_session->get('lastname')? $this->native_session->get('lastname'): '');?>"/><?php }?></td>
+    <td rowspan="8" style="vertical-align:top; padding:10px; text-align:right;"><?php 
+	if(!empty($preview)){
+		echo $this->native_session->get('photo')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('photo')."' style='max-height:110px;' border='0' /><br>": '';
+	} else { echo "&nbsp;";}
+	?></td>
   </tr>
   <tr>
     <td class="label">Other Names:</td>
     <td><?php if(!empty($preview)){ 
 		echo "<span class='value'>".$this->native_session->get('firstname')."</span>";
 	} else {?><input type="text" id="firstname" name="firstname" title="Other Names" class="textfield" value="<?php echo ($this->native_session->get('firstname')? $this->native_session->get('firstname'): '');?>"/><?php }?></td>
-  </tr>
+    </tr>
   <tr>
     <td class="label">Telephone:</td>
     <td><?php if(!empty($preview)){ 
 		echo "<span class='value'>".$this->native_session->get('telephone')."</span>";
 	} else {?><input type="text" id="telephone" name="telephone" title="Telephone" placeholder="Optional" maxlength="10" class="textfield numbersonly optional" value="<?php echo ($this->native_session->get('telephone')? $this->native_session->get('telephone'): '');?>"/><?php }?></td>
-  </tr>
+    </tr>
   <tr>
     <td class="label">Email Address:</td>
     <td><?php if(!empty($preview) || !empty($id)){ 
 		echo "<span class='value'>".$this->native_session->get('emailaddress')."</span>";
 		} else {?>
-         <input type="text" id="emailaddress" name="emailaddress" title="Email Address" class="textfield email" value="<?php echo $this->native_session->get('emailaddress');?>"/>
-         <?php }?></td>
-  </tr>
+      <input type="text" id="emailaddress" name="emailaddress" title="Email Address" class="textfield email" value="<?php echo $this->native_session->get('emailaddress');?>"/>
+      <?php }?></td>
+    </tr>
   <tr>
     <td class="label">Gender:</td>
     <td><?php if(!empty($preview)){ 
 		echo "<span class='value'>".ucfirst($this->native_session->get('gender'))."</span>";
 	} else {?>
-    <div class="nextdiv"><input type="radio" name="gender" id="gender_female" value="female" <?php echo ($this->native_session->get('gender') && $this->native_session->get('gender')=='female'? 'checked': '');?>>
-       <label for="gender_female">Female</label></div>
-       <div class="nextdiv"><input type="radio" name="gender" id="gender_male" value="male" <?php echo ($this->native_session->get('gender') && $this->native_session->get('gender')=='male'? 'checked': '');?>>
-       <label for="gender_male">Male</label></div>
+      <div class="nextdiv"><input type="radio" name="gender" id="gender_female" value="female" <?php echo ($this->native_session->get('gender') && $this->native_session->get('gender')=='female'? 'checked': '');?>>
+        <label for="gender_female">Female</label></div>
+      <div class="nextdiv"><input type="radio" name="gender" id="gender_male" value="male" <?php echo ($this->native_session->get('gender') && $this->native_session->get('gender')=='male'? 'checked': '');?>>
+        <label for="gender_male">Male</label></div>
       <?php }?></td>
-  </tr>
+    </tr>
   <tr>
     <td class="label">Marital Status:</td>
     <td><?php if(!empty($preview)){ 
 		echo "<span class='value'>".ucfirst($this->native_session->get('marital'))."</span>";
 	} else {?>
-    <div class="nextdiv"><input type="radio" name="marital" id="marital_married" value="married" <?php echo ($this->native_session->get('marital') && $this->native_session->get('marital')=='married'? 'checked': '');?>>
-       <label for="marital_married">Married</label></div>
-       <div class="nextdiv"><input type="radio" name="marital" id="marital_single" value="single" <?php echo ($this->native_session->get('marital') && $this->native_session->get('marital')=='single'? 'checked': '');?>>
-       <label for="marital_single">Single</label></div>
-       <?php }?></td>
-  </tr>
+      <div class="nextdiv"><input type="radio" name="marital" id="marital_married" value="married" <?php echo ($this->native_session->get('marital') && $this->native_session->get('marital')=='married'? 'checked': '');?>>
+        <label for="marital_married">Married</label></div>
+      <div class="nextdiv"><input type="radio" name="marital" id="marital_single" value="single" <?php echo ($this->native_session->get('marital') && $this->native_session->get('marital')=='single'? 'checked': '');?>>
+        <label for="marital_single">Single</label></div>
+      <?php }?></td>
+    </tr>
   <tr>
     <td class="label">Birth Day:</td>
     <td><?php if(!empty($preview)){ 
-		echo "<span class='value'>".($this->native_session->get('birthday')? date('d-M-Y', strtotime($this->native_session->get('birthday'))): '&nbsp;')."</span>";
+		echo "<span class='value'>".($this->native_session->get('birthday') && $this->native_session->get('birthday') != '0000-00-00'? date('d-M-Y', strtotime($this->native_session->get('birthday'))): '&nbsp;')."</span>";
 	} else {?>
-    <input type="text" id="birthday" name="birthday" title="Birth Day" class="textfield datefield birthday" value="<?php echo format_date($this->native_session->get('birthday'), 'd-M-Y');?>" readonly/>
-    <?php }?></td>
-  </tr>
+      <input type="text" id="birthday" name="birthday" title="Birth Day" class="textfield datefield birthday" value="<?php echo format_date($this->native_session->get('birthday'), 'd-M-Y');?>" readonly/>
+      <?php }?></td>
+    </tr>
   <tr>
     <td class="label">Birth Place:</td>
     <td><?php if(!empty($preview)){ 
 		echo "<span class='value'>".$this->native_session->get('birthplace__addressline')." ".$this->native_session->get('birthplace__county')." <br>".$this->native_session->get('birthplace__district').", ".$this->native_session->get('birthplace__country')."</span>";
 	} else {?><input type="text" id="birthplace" name="birthplace" title="Birth Place" class="textfield placefield physical" value="<?php echo ($this->native_session->get('birthplace__addressline')? $this->native_session->get('birthplace__addressline'): '');?>" readonly/><?php }?></td>
-  </tr>
+    </tr>
 </table></td></tr>
     
      
@@ -217,10 +209,10 @@ if(empty($id)) {?>
 <tr><td>
      <table width="100%" border="0" cellspacing="0" cellpadding="0" class='buttonnav'>
      <tr>
-     <td><?php if(empty($id)) {?><button type="button" name="canceladd" id="canceladd" class="greybtn" onclick="location.href='<?php echo base_url().'teacher/cancel/action/view';?>'">CANCEL</button><?php }?></td>
+     <td><?php if(empty($id) && empty($editing_teacher)) {?><button type="button" name="canceladd" id="canceladd" class="greybtn" onclick="location.href='<?php echo base_url().'teacher/cancel/action/view';?>'">CANCEL</button><?php }?></td>
      <td class='spacefiller'>&nbsp;</td>
      <?php if(!empty($preview)){?>
-     <td><button type="button" name="edit" id="edit" class="btn" onclick="location.href='<?php echo base_url().'teacher/add/edit/Y'.(!empty($id)? '/id/'.$id: '');?>'">EDIT</button></td>
+     <td><button type="button" name="edit" id="edit" class="btn" onclick="location.href='<?php echo base_url().(!empty($editing_teacher)? 'profile/teacher_data/edit/Y': 'teacher/add/edit/Y'.(!empty($id)? '/id/'.$id: ''));?>'">EDIT</button></td>
      <td><?php echo !empty($id)? "<input type='hidden' id='userid' name='userid' value='".$id."'/>": ''; ?><button type="submit" name="save" id="save" value="save" class="btn">SUBMIT</button></td>
      <?php } else { ?>
      <td>&nbsp;</td>
@@ -237,7 +229,7 @@ if(empty($id)) {?>
  
  <?php 
 # Do not show the header and footer when editing
-if(empty($id)) {?>       
+if(empty($id) || !empty($editing_teacher)) {?>       
         </td>
       </tr>
      </table>

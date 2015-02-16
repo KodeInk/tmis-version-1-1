@@ -8,7 +8,6 @@
 <link rel="icon" href="<?php echo base_url();?>favicon.ico" type="image/x-icon">
 
 <title><?php echo SITE_TITLE;?>: Welcome</title>
-
 <!-- Stylesheets -->
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/jquery-ui.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.css"/>
@@ -18,21 +17,8 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.shadowbox.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.pagination.css"/>
-
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.callout.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script>  
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.list.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.shadowbox.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.pagination.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.search.js"></script>
-
-
+<?php echo minify_js('home', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.callout.js', 'tmis.fileform.js', 'tmis.responsive.js', 'tmis.list.js', 'tmis.shadowbox.js', 'tmis.pagination.js', 'tmis.search.js'));?>
 </head>
 
 <body style="margin:0px;">
@@ -42,10 +28,11 @@
     <td valign="top" class="leftcolumn"><table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td><div id="mobilebuttons_details"></div>
-    <div id="mobilebuttons"><button type="button" name="step1btnbig" id="step1btnbig" class="bigbtn">REGISTER</button><br><br>
+    <div id="mobilebuttons"><button type="button" name="backtostep1" id="backtostep1" class="bigbtn">REGISTER</button><br><br>
 <button type="button" name="loginbtnbig" id="loginbtnbig" class="biggreybtn">LOGIN</button></div>
-    <div class="h1 blue nowrap listheader">Job Notices</div><div class="listsearchfield"><input type="text" id="jobsearch__jobs" name="jobsearch__jobs" placeholder="Search Jobs" class="findfield" value=""/>
+    <div class="h1 blue nowrap listheader">Job Notices</div><div class="listsearchfield"><input type="text" id="jobsearch__jobs" name="jobsearch__jobs" data-type="job" placeholder="Search Jobs" class="findfield" value=""/>
 <input type='hidden' id='jobsearch__displaydiv' name='jobsearch__displaydiv' value='jobsearch__1' />
+<input type='hidden' id='jobsearch__action' name='jobsearch__action' value='<?php echo base_url()."search/load_list/action/view";?>' />
 </div></td>
     </tr>
   <tr>
@@ -54,44 +41,22 @@
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td><div id="paginationdiv__jobsearch_list">
-    <div id="jobsearch__1">
-    <table border="0" cellspacing="0" cellpadding="0" class="listtable">
-<?php 
-if(!empty($list))
-{
-	foreach($list AS $row)
-	{
-		echo "<tr class='listrow'>
-    <td>
-	<table border='0' cellspacing='0' cellpadding='0' width='100%'>
-	<tr><td>
-	<div class='rowcontent'><div class='nextdiv header'>".$row['topic']."</div>
-	<br><div class='nextdiv value'>ROLE: ".$row['role_name']."</div><div class='nextdiv value'>AT: ".$row['institution_name']."</div>
-	<br>
-".$row['summary']."</div>
-    <div class='leftnote'>Respond By: ".date('d-M-Y', strtotime($row['end_date']))."</div>
-	<div class='rightnote'><a href='".base_url()."vacancy/details/id/".$row['id']."' class='shadowbox closable'>details</a></div>
-	</td></tr>
-	</table>
-	</td>
-  </tr>";
-	}  
-}
-else
-{
-	echo "<tr><td>".format_notice($this,'WARNING: There are no items in this list.')."</td></tr>";
-}
-?>
-
-  
-    </table>
+    <div id="jobsearch__1"><?php $this->load->view('job/list', array(
+	'listid'=>'jobsearch',
+	'list'=>(!empty($list)? $list: array()), 
+	'action'=>(!empty($action)? $action: ''), 
+	'msg'=>(!empty($msg)? $msg: '') 
+	));?>
     </div></div></td>
   </tr>
+  <?php if(!empty($list)){?>
   <tr>
-    <td style="padding:15px;"><div class='centerpagination' style="margin:0px;padding:0px;"><div id="jobsearch" class="paginationdiv"><div class="previousbtn" style='display:none;'>&#x25c4;</div><div class="selected">1</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__jobsearch_action" id="paginationdiv__jobsearch_action" type="hidden" value="<?php echo base_url()."search/load_list/t/jobs";?>" />
+    <td style="padding:40px 15px 10px 15px; "><div class='centerpagination' style="margin:0px;padding:0px;"><div id="jobsearch" class="paginationdiv"><div class="previousbtn" style='display:none;'>&#x25c4;</div><div class="selected">1</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__jobsearch_action" id="paginationdiv__jobsearch_action" type="hidden" value="<?php echo base_url()."search/load_list/type/job/action/".(!empty($action)? $action: 'view');?>" />
 <input name="paginationdiv__jobsearch_maxpages" id="paginationdiv__jobsearch_maxpages" type="hidden" value="5" />
+<input name="paginationdiv__jobsearch_noperlist" id="paginationdiv__jobsearch_noperlist" type="hidden" value="<?php echo NUM_OF_ROWS_PER_PAGE;?>" />
 <input name="paginationdiv__jobsearch_showdiv" id="paginationdiv__jobsearch_showdiv" type="hidden" value="paginationdiv__jobsearch_list" /></div></td>
   </tr>
+  <?php }?>
 </table>
 </div>
 
@@ -152,7 +117,7 @@ else
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td align="right" style="padding-top:20px;"><button type="submit" name="step1" id="step1" class="btn next">NEXT</button></td>
+    <td align="right" style="padding-top:20px;"><button type="submit" name="step1" id="step1" value="step1" class="btn next">NEXT</button></td>
   </tr>
 </table>
         </form>

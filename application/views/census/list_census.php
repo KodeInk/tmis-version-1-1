@@ -16,38 +16,27 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.shadowbox.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.pagination.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.list.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.shadowbox.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.pagination.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.search.js"></script>
+<?php echo minify_js('census-list_census', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js', 'tmis.list.js', 'tmis.shadowbox.js', 'tmis.pagination.js', 'tmis.search.js'));?>
 </head>
 
 <body style="margin:0px;">
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <?php $this->load->view("addons/secure_header");?>
   <tr>
-    <td valign="top" colspan="2" class="bodyspace" style="padding-top:0px;">
+    <td valign="top" colspan="2" style="padding-top:0px;padding-left:15px;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td id="menucontainer"><?php $this->load->view("addons/menu");?></td>
-        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+        <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 		<table width="100%" border="0" cellspacing="0" cellpadding="0">
       		<tr>
-              <td><div class="h1 grey nowrap listheader">Census<?php if(check_access($this, 'submit_teacher_census_data', 'boolean')) echo "<div class='nextdiv addcontenticon' data-url='census/add'></div>";?></div><div class="listsearchfield"><input type="text" id="censussearch__census" data-type="census" name="censussearch__census" placeholder="Search Census" class="findfield" value=""/>
+              <td><div class="h1 grey nowrap listheader">Census<?php if(check_access($this, 'submit_teacher_census_data', 'boolean')) echo "<div class='nextdiv addcontenticon' data-url='census/add' title='Click to add'></div>";?></div><div class="listsearchfield"><input type="text" id="censussearch__census" data-type="census" name="censussearch__census" placeholder="Search Census" class="findfield" value=""/>
 <input type='hidden' id='censussearch__displaydiv' name='censussearch__displaydiv' value='censussearch__1' />
 <input type='hidden' id='censussearch__action' name='censussearch__action' value='<?php echo base_url()."search/load_list/action/".(!empty($action)? $action: 'view');?>' />
 </div></td></tr>

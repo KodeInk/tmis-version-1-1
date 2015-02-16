@@ -15,18 +15,10 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.callout.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-
+<?php echo minify_js('register-step_four', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.callout.js', 'tmis.fileform.js', 'tmis.responsive.js'));?>
 </head>
 
 <body style="margin:0px;">

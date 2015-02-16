@@ -18,18 +18,11 @@ if($this->native_session->get('__user_id')) $forwardUrl = !empty($forward)? $for
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script>
+<?php echo minify_js('application-new_application', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js'));?>
 
 <script type="text/javascript">
 <?php echo !empty($id) && !empty($result['boolean']) && $result['boolean']?"window.top.location.href = '".$forwardUrl."';": "";?>
@@ -41,13 +34,14 @@ if($this->native_session->get('__user_id')) $forwardUrl = !empty($forward)? $for
 # Do not show the header, menu and footer when editing
 if(empty($id)) {?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
-  <?php $this->load->view("addons/".($this->native_session->get('__user_id')? 'secure_header': 'public_header'));?>
+  <?php $this->load->view("addons/".($this->native_session->get('__user_id')? 'secure_header': 'public_header'), array('page'=>'new_account'));?>
   <tr>
-    <td valign="top" colspan="2" class="bodyspace" style="padding-top:0px;">
+    <td valign="top" colspan="2" style="padding-top:0px;padding-left:15px;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
-        <td id="menucontainer"><?php if($this->native_session->get('__user_id')) $this->load->view("addons/menu");?></td>
-        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+        <?php echo $this->native_session->get('__user_id')? "<td id='menucontainer'>".$this->load->view("addons/menu")."</td>": "<td>&nbsp;</td>";?>
+        
+        <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 <?php }?>		
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -57,7 +51,7 @@ if(empty($id)) {?>
             
             
             <form id="user_data" method="post" autocomplete="off" action="<?php echo base_url().'account/apply'.(!empty($id)? '/id/'.$id: '');?>" class='simplevalidator'>
-            <table border="0" cellspacing="0" cellpadding="10">
+            <table border="0" cellspacing="0" cellpadding="10" <?php if(!$this->native_session->get('__user_id')) echo "align='center'";?>>
   
   <tr>
     <td class="label">Role:</td>
@@ -112,7 +106,7 @@ if(empty($id)) {?>
      </table>
     </td>
   </tr>
-  <?php $this->load->view("addons/secure_footer");?>
+  <?php $this->load->view("addons/".($this->native_session->get('__user_id')? "secure_footer": "public_footer"), array('page'=>'new_account'));?>
 </table>
 <?php } else {echo "<input type='hidden' id='layerid' name='layerid' value='' />";}?>
 </body>

@@ -98,7 +98,8 @@ class _teacher extends CI_Model
 		$results = array();
 		$user = $this->_query_reader->get_row_as_array('get_user_by_id', array('user_id'=>$details['userid']));
 		
-		$result = $this->_query_reader->run('update_person_data', array('person_id'=>$user['person_id'], 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname'), 'gender'=>$this->native_session->get('gender'), 'date_of_birth'=>format_date($this->native_session->get('birthday'), 'YYYY-MM-DD') )); 
+		$result = $this->_query_reader->run('update_person_data', array('person_id'=>$user['person_id'], 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname'), 'gender'=>$this->native_session->get('gender'), 'marital_status'=>($this->native_session->get('marital')? $this->native_session->get('marital'): 'unknown'), 'citizenship_country'=>$this->native_session->get('citizenship__country'), 'citizenship_type'=>$this->native_session->get('citizenship__citizentype'), 'date_of_birth'=>format_date($this->native_session->get('birthday'), 'YYYY-MM-DD') ));  
+		
 		array_push($results, $result);
 		
 		if(!empty($details['telephone'])) 
@@ -115,13 +116,16 @@ class _teacher extends CI_Model
 		# Save permanent address
 		if($this->native_session->get('permanentaddress__addressline'))
 		{
-			$result = $this->_query_reader->run('update_address_data', array('parent_id'=>$user['person_id'], 'address_type'=>$this->native_session->get('permanentaddress__addresstype'), 'importance'=>'permanent', 'details'=>$this->native_session->get('permanentaddress__addressline'), 'district'=>$this->native_session->get('permanentaddress__district'), 'country'=>$this->native_session->get('permanentaddress__country'), 'county'=>($this->native_session->get('permanentaddress__county')? $this->native_session->get('permanentaddress__county'): "") ));
+			$result = $this->_query_reader->run('update_address_data', array('parent_id'=>$user['person_id'], 'parent_type'=>'person', 'address_type'=>$this->native_session->get('permanentaddress__addresstype'), 'importance'=>'permanent', 'details'=>$this->native_session->get('permanentaddress__addressline'), 'district'=>$this->native_session->get('permanentaddress__district'), 'country'=>$this->native_session->get('permanentaddress__country'), 'county'=>($this->native_session->get('permanentaddress__county')? $this->native_session->get('permanentaddress__county'): "") ));
 		}
 		# Save contact address
 		if($this->native_session->get('contactaddress__addressline'))
 		{
-			$result = $this->_query_reader->run('update_address_data', array('parent_id'=>$user['person_id'], 'address_type'=>$this->native_session->get('contactaddress__addresstype'), 'importance'=>'permanent', 'details'=>$this->native_session->get('contactaddress__addressline'), 'district'=>$this->native_session->get('contactaddress__district'), 'country'=>$this->native_session->get('contactaddress__country'), 'county'=>($this->native_session->get('contactaddress__county')? $this->native_session->get('contactaddress__county'): "") ));
+			$result = $this->_query_reader->run('update_address_data', array('parent_id'=>$user['person_id'], 'parent_type'=>'person', 'address_type'=>$this->native_session->get('contactaddress__addresstype'), 'importance'=>'contact', 'details'=>$this->native_session->get('contactaddress__addressline'), 'district'=>$this->native_session->get('contactaddress__district'), 'country'=>$this->native_session->get('contactaddress__country'), 'county'=>($this->native_session->get('contactaddress__county')? $this->native_session->get('contactaddress__county'): "") ));
 		}
+		
+		
+		$this->add_another_id($user['person_id'], array('id_type'=>'teacher_id', 'id_value'=>$this->native_session->get('teacherid')));
 		
 		return array('boolean'=>(!empty($result)? $result: false), 'msg'=>$msg, 'id'=>(!empty($userId)? $userId: ''), 'person_id'=>$user['person_id']);
 	}
@@ -181,9 +185,10 @@ class _teacher extends CI_Model
 	function populate_session($teacherId)
 	{
 		$teacher = $this->_query_reader->get_row_as_array('get_teacher_profile', array('teacher_id'=>$teacherId));
+		
 		if(!empty($teacher))
 		{
-			$this->native_session->set('userid',$teacherId);
+			$this->native_session->set('user_id',$teacherId);
 			$this->native_session->set('lastname',$teacher['last_name']);
 			$this->native_session->set('firstname',$teacher['first_name']);
 			$this->native_session->set('telephone',$teacher['telephone']);
@@ -191,12 +196,14 @@ class _teacher extends CI_Model
 			$this->native_session->set('gender',$teacher['gender']);
 			$this->native_session->set('marital',$teacher['marital_status']);
 			$this->native_session->set('birthday',$teacher['date_of_birth']);
+			$this->native_session->set('photo',$teacher['photo']);
 			$this->native_session->set('birthplace__addressline', $teacher['birthplace__addressline']);
 			$this->native_session->set('birthplace__county',$teacher['birthplace__county']);
 			$this->native_session->set('birthplace__district',$teacher['birthplace__district']);
 			$this->native_session->set('birthplace__country',$teacher['birthplace__country']);
 			$this->native_session->set('birthplace__addresstype',$teacher['birthplace__addresstype']);
 			$this->native_session->set('teacherid',$teacher['teacher_id']);
+			$this->native_session->set('person_id',$teacher['person_id']);
 			$this->native_session->set('permanentaddress',$teacher['permanentaddress__addressline']);
 			$this->native_session->set('permanentaddress__addressline',$teacher['permanentaddress__addressline']);
 			$this->native_session->set('permanentaddress__county',$teacher['permanentaddress__county']);
@@ -211,7 +218,7 @@ class _teacher extends CI_Model
 			$this->native_session->set('contactaddress__addresstype',$teacher['contactaddress__addresstype']);
 			$this->native_session->set('citizenship__country',$teacher['citizenship__country']);
 			$this->native_session->set('citizenship__citizentype',$teacher['citizenship__type']);
-			
+			$this->native_session->set('verificationcode', generate_person_code($teacher['person_id']));
 			#Get teacher education
 			$education = $this->_query_reader->get_list('get_teacher_education', array('person_id'=>$teacher['person_id']));
 			$this->native_session->set('education_list',$education);
@@ -290,7 +297,7 @@ class _teacher extends CI_Model
 				break;
 				
 				case 'reject_fromcompleted':
-					$result = $this->_approval_chain->add_chain($instructions['id'], 'registration', '2', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') ); 
+					#$result = $this->_approval_chain->add_chain($instructions['id'], 'registration', '2', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') ); 
 					$this->change_status($instructions['id'], 'pending');
 				break;
 				
@@ -305,7 +312,7 @@ class _teacher extends CI_Model
 				break;
 				
 				case 'reject_fromapproved':
-					$result = $this->_approval_chain->add_chain($instructions['id'], 'registration', '3', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') );
+					#$result = $this->_approval_chain->add_chain($instructions['id'], 'registration', '3', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') );
 					$this->change_status($instructions['id'], 'completed');
 				break;
 				

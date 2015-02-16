@@ -679,6 +679,21 @@ function showHideOnFieldCondition(hideLayers, showLayers, fieldId)
 
 
 
+//Function to hide layers based on a condition that a field has a given value
+function showHideOnFieldValueCondition(hideLayers, showLayers, fieldId, fieldValue)
+{
+	if($('#'+fieldId).val() == fieldValue)
+	{
+		showLayerSet(showLayers);
+	}
+	else
+	{
+		hideLayerSet(hideLayers);
+	}
+}
+
+
+
 //Function to hide layers based on a condition that the fields are filled in
 function showHideOnChecked(layerSet, fieldId)
 {
@@ -1153,9 +1168,19 @@ function canWeShowActions(checkList)
 //Function to check all boxes in a list
 function selectAll(actionOnObj,listFieldId)
 {
-	var fieldList = $('#'+listFieldId).val();
-	var fieldListArray = fieldList.split('|');
+	// This is just one field
+	if(listFieldId.charAt(0) == "*")
+	{
+		var fieldListArray = Array(listFieldId.substr(1,listFieldId.length));
+	}
+	else
+	{
+		var fieldList = $('#'+listFieldId).val();
+		var fieldListArray = fieldList.split('|');
+	}
 	
+	
+	//Then carry out the actions on the list
 	if(actionOnObj.checked)
 	{
 		for(var i=0; i<fieldListArray.length; i++)
@@ -2262,15 +2287,44 @@ $(function(){
 
 
 
+
+// --------------------------------------------------------------------------------------------------------
+// Handling buttons with click otions
+// --------------------------------------------------------------------------------------------------------
+$(function(){
+	$(document).on('click', '.btn, .greybtn', function(){
+		// If it is a link proceed with the action
+		if($(this).data('rel') && $(this).data('rel').indexOf('://') > 0){
+			//Is this a button in a popup - iframe?
+			if($(this).hasClass('frompop')){
+				window.top.location.href = $(this).data('rel');
+			}
+			// Simply redirect
+			else
+			{
+				location.href = $(this).data('rel');
+			}
+		}
+	});
+	
+});
+
+
+
+
+
+
 // Initialize the calendars on the page
 $(function() {
 	if($('.datefield').length > 0){
+	
 	$( ".datefield.birthday" ).datepicker({
 		changeMonth: true,
 		changeYear: true,
 		yearRange: "-100:+0",
 		dateFormat: 'dd-M-yy'
 	});
+	
 	$( ".datefield.history" ).datepicker({
 		changeMonth: true,
 		changeYear: true,
@@ -2278,11 +2332,22 @@ $(function() {
 		dateFormat: 'dd-M-yy'
 	});
 	
+		// This will require including the timepicker-addon js file
+		if($('.datefield.showtime').length > 0){
+			$('.datefield.showtime').datetimepicker({
+				changeMonth: true,
+				changeYear: true,
+				dateFormat: 'dd-M-yy',
+				timeFormat: "hh:mm tt"
+			});
+		}
+	
 	$( ".datefield" ).datepicker({
 		changeMonth: true,
 		changeYear: true,
 		dateFormat: 'dd-M-yy'
 	});
+	
 	}
 });
 

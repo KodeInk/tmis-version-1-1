@@ -24,12 +24,12 @@ if(!empty($list))
 	if(!empty($action) && $action == 'update')
 	{
 		if($row['status'] == 'completed'){
-			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm'></div>
-			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow'></div>
-			<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
+			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm' title='Click to approve'></div>
+			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>
+			<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm' title='Click to archive'></div>";
 		}
 		else if($row['status'] == 'archived'){
-			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm'></div>";
+			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm' title='Click to restore'></div>";
 		}
 	}
 	

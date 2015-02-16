@@ -3,7 +3,7 @@
 
 // Handle clicking on list buttons
 $(function(){
-	$(document).on('click', '.addcontenticon', function(e){
+	$(document).on('click', '.addcontenticon, .downloadcontenticon', function(e){
 		window.location.href = getBaseURL()+$(this).data('url');
 	});
 });
@@ -13,9 +13,10 @@ $(function(){
 
 //Handles list actions 
 $(function() {
-	$(document).on('click', '.approverow, .rejectrow, .publishrow, .archiverow, .restorerow, .blockrow', function(e){
+	$(document).on('click', '.approverow, .rejectrow, .publishrow, .archiverow, .restorerow, .blockrow, .saverow', function(e){
+		
 		// Find all action siblings and remove the active class
-		$(this).parents('.listtable').first().find('.approverow, .rejectrow, .publishrow, .archiverow, .restorerow, .blockrow').each(function(){
+		$(this).parents('.listtable').first().find('.approverow, .rejectrow, .publishrow, .archiverow, .restorerow, .blockrow, .saverow').each(function(){
 			$(this).removeClass('active');
 		});
 		
@@ -24,7 +25,7 @@ $(function() {
 		
 		if($(this).hasClass('confirm'))
 		{
-			if(window.confirm("Are you sure you want to "+rowValues[0]+" this "+listType+"?")) {
+			if(window.confirm("Are you sure you want to "+rowValues[0].split('_')[0]+" this "+listType+"?")) {
 				// Post this for processing archive or restore
 				var fieldsToPost = { id: rowValues[1], listtype: listType, action: rowValues[0] };
 				
@@ -39,7 +40,8 @@ $(function() {
   						console.log(xhr.responseText);
 					},
       	 			success: function(data) {
-		   				updateFieldLayer(document.URL,'','','','');
+		   				//console.log(data);
+						updateFieldLayer(document.URL,'','','','');
 					}
    				});
 			}

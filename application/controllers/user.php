@@ -176,6 +176,21 @@ class User extends CI_Controller
 		$this->load->view('user/list_users', $data);  
 	}
 	
+	
+	
+	# Download the list
+	function download()
+	{
+		check_access($this, 'view_users');
+		
+		$data['list'] = array();
+		$list = $this->_user->get_list(array('action'=>'download', 'pagecount'=>DOWNLOAD_LIMIT));
+		foreach($list AS $row) array_push($data['list'], array('Name'=>$row['display'], 'Permission'=>$row['user_role'], 'Email Address'=>$row['email_address'], 'Telephone'=>$row['telephone'], 'Status'=>strtoupper($row['status']), 'Date Added'=>date('d-M-Y', strtotime($row['date_added'])) ));
+		
+		$data['area'] = 'download_csv';
+		$this->load->view('page/download', $data); 
+	}
+	
 }
 
 /* End of controller file */

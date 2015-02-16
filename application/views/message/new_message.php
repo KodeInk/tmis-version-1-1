@@ -18,21 +18,12 @@ $forwardUrl = !empty($forward)? $forward: get_user_dashboard($this, $this->nativ
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/trumbowyg.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/trumbowyg.js"></script> 
-
+<?php echo minify_js('message-new_message', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js', 'trumbowyg.js'));?>
 <script type="text/javascript">
 <?php echo !empty($id) && !empty($result['boolean']) && $result['boolean']?"window.top.location.href = '".$forwardUrl."';": "";?>
 </script>
@@ -45,11 +36,11 @@ if(empty($id) || (!empty($id) && !(!empty($action) && $action=='view'))) {?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <?php $this->load->view("addons/secure_header");?>
   <tr>
-    <td valign="top" colspan="2" class="bodyspace" style="padding-top:0px;">
+    <td valign="top" colspan="2" style="padding-top:0px;padding-left:15px;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td id="menucontainer"><?php $this->load->view("addons/menu");?></td>
-        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+        <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 <?php }?>		
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -64,7 +55,25 @@ if(empty($id) || (!empty($id) && !(!empty($action) && $action=='view'))) {?>
     <td class="label">Recipient:</td>
     <td style="padding-right:42px;"><?php if(!empty($id)){
 		echo "<div class='value'>".$this->native_session->get('recipientname__users')."</div>";
-		} else {?><table><tr><td><input type="text" id="recipientname__users" name="recipientname__users" title="Select or Search for User" placeholder="Select or Search for User" class="textfield selectfield searchable" value="<?php echo $this->native_session->get('recipientname__users');?>" /></td><td><input type='checkbox' id='selectall' name='selectall' value='All' onClick="passFormValue('selectall', 'recipientname__users', 'checkbox');passFormValue('selectall', 'userid', 'checkbox');"/><label for='selectall'/>Send to all</label><input type='text' class="textfield" id='userid' name='userid' value='<?php echo $this->native_session->get('recipientid');?>' style="display:none;" /></td></tr></table><?php }?></td>
+		} else {
+			# A non-admin user
+			if($this->native_session->get('__permission_group') != '4'){
+				if($this->native_session->get('recipientname__users')) {
+					echo $this->native_session->get('recipientname__users')." <input type='hidden' id='recipientname__users' name='recipientname__users' value='".$this->native_session->get('recipientname__users')."' /> <input type='hidden' id='userid' name='userid' value='".$this->native_session->get('recipientid')."' />";
+					
+				} else {
+					echo "Website Administrator <input type='hidden' id='recipientname__users' name='recipientname__users' value='_all_admins_' /> <input type='hidden' id='userid' name='userid' value='_all_admins_' />";
+				}
+			
+			# An admin user
+			} else {
+				?><table>
+               	 	<tr><td><input type="text" id="recipientname__users" name="recipientname__users" title="Select or Search for User" placeholder="Select or Search for User" class="textfield selectfield searchable" value="<?php echo $this->native_session->get('recipientname__users');?>" /></td>
+                	<td><input type='checkbox' id='selectall' name='selectall' value='All' onClick="passFormValue('selectall', 'recipientname__users', 'checkbox');passFormValue('selectall', 'userid', 'checkbox');"/><label for='selectall'/>Send to all</label><input type='text' class="textfield" id='userid' name='userid' value='<?php echo $this->native_session->get('recipientid');?>' style="display:none;" /></td></tr>
+                </table>
+			<?php 
+			}
+		}?></td>
   </tr>
   <?php if(!(!empty($action) && $action=='send_new_sms')){?>
   <tr>

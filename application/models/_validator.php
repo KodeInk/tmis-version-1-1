@@ -35,9 +35,13 @@ class _validator extends CI_Model
 			$this->native_session->set('__default_permission', $user['default_permission_code']);
 			$this->native_session->set('__first_name', $user['first_name']);
 			$this->native_session->set('__last_name', $user['last_name']);
+			$this->native_session->set('__full_name', $user['last_name'].' '.$user['first_name']);
 			$this->native_session->set('__gender', $user['gender']);
 			$this->native_session->set('__date_of_birth', $user['date_of_birth']);
 			$this->native_session->set('__signature', $user['signature']);
+			$this->native_session->set('__teacher_status', $user['teacher_status']);
+			$this->native_session->set('__posting', $user['user_posting']);
+			if(!empty($user['photo'])) $this->native_session->set('__photo', $user['photo']);
 		}
 		
 		return array('boolean'=>$boolean, 'user_id'=>$userId);
@@ -103,6 +107,18 @@ class _validator extends CI_Model
 		return $isValid;
 	}
 
+
+
+	# Validate a document 
+	function is_valid_document($details)
+	{
+		if(!empty($details['documenttype']) && !empty($details['trackingnumber']))
+		{
+			$document = $this->_query_reader->get_row_as_array('validate_system_document', array('document_type'=>$details['documenttype'], 'tracking_number'=>trim($details['trackingnumber']) )); 
+		}
+		
+		return !empty($document)? true: false;
+	}
 
 }
 

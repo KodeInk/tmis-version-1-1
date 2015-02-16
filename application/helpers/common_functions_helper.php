@@ -1139,14 +1139,8 @@ function check_access($obj, $accessCode, $return='msg')
 	# then, return appropriate response
 	if($obj->native_session->get('__permissions') && in_array($accessCode, $obj->native_session->get('__permissions')))
 	{
-		if($return == 'boolean')
-		{
-			return true;
-		}
-		else
-		{
-			$obj->native_session->set('__selected_permission', $accessCode);
-		}
+		$obj->native_session->set('__selected_permission', $accessCode);
+		if($return == 'boolean') return true;
 	}
 	else
 	{
@@ -1213,7 +1207,7 @@ function get_access_code($data, $instructions)
 #Check if a model is loaded 
 function is_model_loaded($obj, $modelName) 
 {
-	return in_array($modelName, $obj->_ci_models, TRUE);
+	return in_array($modelName, $obj->ci_models, TRUE);
 }
 
 
@@ -1229,7 +1223,7 @@ function process_other_field($data)
 			if(!empty($part))
 			{
 				$level2Parts = explode('=', $part);
-				$data[$level2Parts[0]] = restore_bad_chars($level2Parts[1]);
+				if(count($level2Parts) > 1) $data[$level2Parts[0]] = restore_bad_chars($level2Parts[1]);
 			}
 		}
 	}
@@ -1273,6 +1267,81 @@ function force_download($folder, $file)
 			redirect(base_url()."assets/uploads/".$folder."/".$file);
 		}
 	}
+}
+
+
+
+
+# Send download headers
+function send_download_headers($filename) 
+{
+    # disable caching
+    $now = gmdate("D, d M Y H:i:s");
+    header("Expires: Tue, 03 Jul 2001 06:00:00 GMT");
+    header("Cache-Control: max-age=0, no-cache, must-revalidate, proxy-revalidate");
+    header("Last-Modified: {$now} GMT");
+
+    # force download  
+    header("Content-Type: application/force-download");
+    header("Content-Type: application/octet-stream");
+    header("Content-Type: application/download");
+
+    # disposition / encoding on response body
+    header("Content-Disposition: attachment;filename={$filename}");
+    header("Content-Transfer-Encoding: binary");
+}
+
+
+
+# Convert an array to csv
+function array2csv(array &$array)
+{
+   if(count($array) == 0) 
+   {
+     return null;
+   }
+   ob_start();
+   $df = fopen("php://output", 'w');
+   fputcsv($df, array_keys(reset($array)));
+   
+   foreach($array AS $row) 
+   {
+      fputcsv($df, $row);
+   }
+   fclose($df);
+   return ob_get_clean();
+}
+
+
+
+
+# Minify a list of files
+function minify_js($page, $files) 
+{
+	$string = "";
+	# Minify and show the minified version
+	if(MINIFY)
+	{
+		$fileLocation = HOME_URL.'assets/js/';
+		# If the file exists, just return the file, else create the minified version
+		if(!file_exists($fileLocation.'__'.$page.'.min.js'))
+		{
+			require_once(HOME_URL.'external_libraries/jsmin/JSMin.php');
+			foreach($files AS $file)
+			{
+				$min = JSMin::minify(file_get_contents($fileLocation.$file));
+  				file_put_contents($fileLocation.'__'.$page.'.min.js', $min, FILE_APPEND);
+			}
+		}
+		$string = "<script type='text/javascript' src='".base_url()."assets/js/__".$page.".min.js'></script>"; 
+	}
+	# List the files out one by one
+	else
+	{
+		foreach($files AS $file) $string .= "<script type='text/javascript' src='".base_url()."assets/js/".$file."'></script>";
+	}
+	
+	return $string;
 }
 
 

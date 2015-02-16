@@ -26,6 +26,13 @@ class Cron extends CI_Controller
 	}
 	
 	
+	# Update the message cache
+	function update_message_cache()
+	{
+		# DISABLE IF IN DEV TO SEE IMMEDIATE CHANGES IN YOUR MESSAGES
+		if(ENABLE_MESSAGE_CACHE) $this->_messenger->load_messages_into_cache();
+	}
+	
 	
 	
 	# Fetch and run all system jobs

@@ -21,11 +21,11 @@ if(!empty($list))
    			 <td width='1%' style='padding:0px; padding-top:5px; vertical-align:top;'>";
 		if(!empty($action) && $action == 'archive')
 		{
-			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm'></div>";
+			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm' title='Click to restore'></div>";
 		}
 		else if (!empty($action) && $action == 'inbox')
 		{
-			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
+			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm' title='Click to archive'></div>";
 		}
 	
 	echo "</td> 

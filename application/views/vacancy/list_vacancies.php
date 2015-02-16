@@ -23,31 +23,21 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.pagination.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.list.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.shadowbox.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.pagination.js"></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.search.js"></script>
+<?php echo minify_js('vacancy-list_vacancies', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js', 'tmis.list.js', 'tmis.shadowbox.js', 'tmis.pagination.js', 'tmis.search.js'));?>
 </head>
 
 <body style="margin:0px;">
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <?php $this->load->view("addons/secure_header");?>
   <tr>
-    <td valign="top" colspan="2" class="bodyspace" style="padding-top:0px;">
+    <td valign="top" colspan="2" style="padding-top:0px;padding-left:15px;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td id="menucontainer"><?php $this->load->view("addons/menu");?></td>
-        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+        <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 		<table width="100%" border="0" cellspacing="0" cellpadding="0">
       		<tr>
-              <td><div class="h1 grey nowrap listheader">Job Notices<?php if(check_access($this, 'add_new_job', 'boolean')) echo "<div class='nextdiv addcontenticon' data-url='vacancy/add'></div>";?></div><div class="listsearchfield"><input type="text" id="vacancysearch__jobs" data-type="vacancy" name="vacancysearch__jobs" placeholder="Search Jobs" class="findfield" value=""/>
+              <td><div class="h1 grey nowrap listheader">Job Notices<?php if(check_access($this, 'add_new_job', 'boolean')) echo "<div class='nextdiv addcontenticon' data-url='vacancy/add' title='Click to add'></div>";?><?php if(check_access($this, 'view_jobs', 'boolean') && !empty($list)) echo "<div class='nextdiv downloadcontenticon' style='margin-left:5px;' data-url='vacancy/download' title='Click to download'></div>";?></div><div class="listsearchfield"><input type="text" id="vacancysearch__jobs" data-type="vacancy" name="vacancysearch__jobs" placeholder="Search Jobs" class="findfield" value=""/>
 <input type='hidden' id='vacancysearch__displaydiv' name='vacancysearch__displaydiv' value='vacancysearch__1' />
 <input type='hidden' id='vacancysearch__action' name='vacancysearch__action' value='<?php echo base_url()."search/load_list/action/".(!empty($action)? $action: 'view');?>' />
 </div></td></tr>

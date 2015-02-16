@@ -30,19 +30,19 @@ if(!empty($list))
 	if(!empty($action) && $action == 'update')
 	{
 		if($row['status'] == 'completed'){
-			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm'></div>
-			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow'></div>
-			<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
+			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm' title='Click to approve'></div>
+			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>
+			<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm' title='Click to archive'></div>";
 		}
 		else if($row['status'] == 'active'){
-			echo "<div data-val='block__".$row['id']."' ".$listType." class='blockrow confirm'></div>
-			<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
+			echo "<div data-val='block__".$row['id']."' ".$listType." class='blockrow confirm' title='Click to block'></div>
+			<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm' title='Click to archive'></div>";
 		}
 		else if($row['status'] == 'archived'){
-			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm'></div>";
+			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm' title='Click to restore'></div>";
 		}
 		else if($row['status'] == 'blocked'){
-			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm'></div>";
+			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm' title='Click to approve'></div>";
 		}
 	}
 	
@@ -79,7 +79,7 @@ if(!empty($list))
 	<td>".$row['email_address']."</td>
 	<td>".$row['telephone']."</td>
 	<td>".$row['status']."</td>
-	<td>".format_date($row['last_updated'],'d-M-Y h:i:sa T').
+	<td>".format_date($row['last_updated'],'d-M-Y h:ia T').
 	"<br><div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."/action/view' class='shadowbox closable'>details</a></div>".
 	
 	((check_access($this, 'add_new_user', 'boolean') && !empty($action) && $action == 'update')? "<div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."/action/edit/actionurl/".$action."' class='shadowbox'>edit</a></div>": "")

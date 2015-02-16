@@ -13,9 +13,9 @@
 
 # Get a list of options 
 # Allowed return values: [div, option]
-function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
+function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=array())
 {
-	$optionString = "";
+	$optionString = '';
 	
 	switch($list_type)
 	{
@@ -44,6 +44,24 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 			foreach($countries AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
+			}
+		break;
+		
+		
+		case "county":
+			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
+			$searchQuery = !empty($searchString)? " C.name LIKE '".$searchString."%' OR C.name LIKE '% ".$searchString."%' ": " 1=1 ";
+			$orderBy = " C.name ASC";
+			
+			# Get the district field if given
+			$district = array_key_contains('-district-', $more);
+			
+			$users = $obj->_query_reader->get_list('get_county_list_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			foreach($users AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."'";
+				$optionString .= $district['boolean']? " onclick=\"universalUpdate('".$more[$district['key']]."', '".$row['district_name']."')\"": "";
+				$optionString .= " >".$row['display']."</div>";
 			}
 		break;
 		
@@ -93,7 +111,7 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 		
 		
 		case "jobroles":
-			$roles = $obj->_query_reader->get_list('get_permission_groups', array('system_only'=>"'N'"));
+			$roles = $obj->_query_reader->get_list('get_duties');
 			foreach($roles AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
@@ -107,6 +125,19 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 			{
 				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
 			}
+		break;
+		
+		
+		case "schooljobs":
+			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
+			$searchQuery = !empty($searchString)? " V.topic LIKE '".$searchString."%' OR V.topic LIKE '% ".$searchString."%'": " 1=1 ";
+			
+			$jobs = $obj->_query_reader->get_list('get_school_jobs', array('user_id'=>$obj->native_session->get('__user_id'), 'search_query'=>$searchQuery));
+			foreach($jobs AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."'onclick=\"universalUpdate('vacancyid', '".$row['id']."')\">".$row['display']."</div>";
+			}
+			
 		break;
 		
 		
@@ -137,7 +168,19 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 			$searchQuery = !empty($searchString)? " P.first_name LIKE '".$searchString."%' OR P.first_name LIKE '% ".$searchString."%' OR P.last_name LIKE '".$searchString."%' AND U.status='active' ": " U.status='active' ";
 			$orderBy = " ORDER BY P.last_name ASC";
 			
-			$users = $obj->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchQuery." AND U.permission_group_id='2' ", 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			if($obj->native_session->get('__permission_group') && $obj->native_session->get('__permission_group') == '3')
+			{
+				if($obj->native_session->get('__posting'))
+				{
+					$users = $obj->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchQuery." AND PS.institution_id='".$obj->native_session->get('__posting')."'  AND U.permission_group_id='2' ", 'order_by'=>$orderBy, 'limit_text'=>'100'));
+				}
+				else $users = array();
+			}
+			else
+			{
+				$users = $obj->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchQuery." AND U.permission_group_id='2' ", 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			}
+			
 			foreach($users AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."' onclick=\"universalUpdate('teacherid', '".$row['id']."')\">".$row['display']."</div>";
@@ -165,23 +208,74 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="")
 		
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		default:
-			$optionString = ($return == 'div')? "<div data-value=''>No options available</div>": "<option value=''>No options available</option>";
+		case "interviewresults":
+			$results = array('Failed','Inconclusive','Passed','Awarded');
+			foreach($results AS $row)
+			{
+				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
 		break;
+		
+		
+		case "shortlists":
+			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
+			$searchQuery = !empty($searchString)? " vacancy_id='".$more['jobid']."' AND shortlist_name LIKE '".$searchString."%' ": " vacancy_id='".$more['jobid']."' ";
+			$orderBy = " ORDER BY shortlist_name ASC";
+			
+			$shortlists = $obj->_query_reader->get_list('get_shortlist_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			foreach($shortlists AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."'>".$row['display']."</div>";
+			}
+		break;
+		
+		
+		case "schools":
+			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
+			$searchQuery = !empty($searchString)? " INS.name LIKE '".$searchString."%' OR INS.name LIKE '% ".$searchString."%' ": " 1=1 ";
+			$orderBy = " ORDER BY I.name ASC";
+			
+			$schools = $obj->_query_reader->get_list('get_institution_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			foreach($schools AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."' onclick=\"universalUpdate('schoolid', '".$row['id']."')\">".$row['display']."</div>";
+			}
+		break;
+		
+		
+		
+		case "leavetypes":
+			$reasons = array('Study Leave', 'Normal Leave', 'Marternity Leave', 'Other Leave');
+			foreach($reasons AS $row)
+			{
+				$optionString .= "<div data-value='".$row."'>".$row."</div>";
+			}
+		break;
+		
+		
+		
+		case "documenttypes":
+			$reasons[0] = array('type'=>'confirmation_letter', 'display'=>'Job Confirmation Letter');
+			$reasons[1] = array('type'=>'transfer_letter', 'display'=>'Job Transfer Letter');
+			$reasons[2] = array('type'=>'transfer_pca', 'display'=>'Job Transfer PCA');
+			$reasons[3] = array('type'=>'verification_letter', 'display'=>'Leave Confirmation Letter');
+			$reasons[4] = array('type'=>'retirement_letter', 'display'=>'Retirement Confirmation Letter');
+			$reasons[5] = array('type'=>'registration_certificate', 'display'=>'Teacher Registration Certificate');
+			
+			foreach($reasons AS $row)
+			{
+				$optionString .= "<div data-value='".$row['display']."' onclick=\"universalUpdate('documenttype', '".$row['type']."')\">".$row['display']."</div>";
+			}
+		break;
+		
+		
+		
+		
+		
+		
 	}
 	
-	return $optionString;
+	return !empty($optionString)? $optionString: (($return == 'div')? "<div data-value=''>No options available</div>": "<option value=''>No options available</option>");
 }
 
 	

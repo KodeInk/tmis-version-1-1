@@ -14,16 +14,10 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-
+<?php echo minify_js('page-about_us', array('jquery-2.1.1.min.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.responsive.js'));?>
 </head>
 
 <body style="margin:0px;">
@@ -36,16 +30,18 @@
       <td class="h1 grey">About TMIS</td>
      </tr>
      <tr>
-      <td><div class="picturediv"><img src="<?php echo base_url();?>assets/images/minister_of_education.jpg" alt="Minister of Education Uganda" border="0"><br><span class="name">Ms. Jessica Alupo</span><br><span class="caption">Minister of Education and Sports</span></div>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+      <td><div class="picturediv"><img src="<?php echo base_url();?>assets/images/minister_of_education.jpg" alt="Minister of Education Uganda" border="0"><br><span class="name">Ms. Jessica Alupo</span><br><span class="caption">Minister of Education and Sports</span></div>The Teacher Management Information System (TMIS) is a system aimed at streamlining the delivery of government services to teachers and other members of the teaching profession in Uganda. The TMIS is a simple user-friendly approach to supporting a harmonized and timely access to teacher information at all administrative levels of the Ministry of Education and associated agencies at national, district and education institution levels. Its main objective is to solve the problem of disjointed teacher records accross the various sections of government and the education ministry. 
+<br>Development of this system was sponsored by The United Nations Educational, Scientific and Cultural Organization (UNESCO); a specialized agency of the United Nations and commissioned in 2014 by the Education Ministry - headed by the Minister of Education and Sports, Ms. Jessica Alupo.
 <br><br>
-It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
+The Ugandan Ministry of Education and Sports (MoES) has outlined in various Government policy documents goals that include increasing access and retention, reducing inequalities, improving relevance and quality of education in Uganda. According to the Teacher Issues in Sub-Sahara Africa (TISSA) report, Uganda faces challenges in the quantity and quality of teachers at all levels. The study also revealed that Uganda lacks reliable data on teachers with most of the administrative data being manually generated. To address these concerns, the UNESCO in collaboration with the MoES is implementing the CapEFA programme for teachers with the TMIS system being one of the components. 
 <br><br>
-Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
+The implementation of TMIS module is also an aspect of strengthening the Education Management Information System (EMIS) and broadening teacher data needs across several sections of the ministry. TMIS is to provide accurate information on demand for teachers at primary and secondary level. Therefore, the Ministry will be able to make accurate predictions and plans for training and recruitment of needed teaching resources. This will ensure that pre-service and in-service training needs are evidence-based by removing the guesswork and reliance on outdated census data. 
 <br><br>
-The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.
+In addition, it is helping to speed up document processing and improving performance of the education officers in doing their job by enabling faster issuance of certificates and case followup. The Teacher Instructor Education and Training (TIET) section of the ministry is using information from the teachers to perform in-service training and planning hence improving the quality of teachers in Ugandan schools by ensuring that there are sufficient opportunities for upgrading pedagogical skills.
 <br><br>
-There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
-      <div style="padding:20px;text-align:center;"><button type="button" name="step1btnbig" id="step1btnbig" class="bigbtn">REGISTER</button></div>
+As old systems are being phased out, all teachers will be required to register with the TMIS system to receive service as well as follow up on their current and future service requests from the ministry. If the reader is a teacher or a member of the education community in Uganda, they are encouraged to start their registration process now by clicking on the REGISTER button below.
+<br><br>
+      <div style="padding:20px;text-align:center;"><button type="button" name="backtostep1" id="backtostep1" class="bigbtn">REGISTER</button></div>
       </td>
      </tr>
      </table>

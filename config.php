@@ -41,7 +41,7 @@
 		
 	define('SITE_SLOGAN', "");
 
-	define('SYS_TIMEZONE', "UTC");
+	define('SYS_TIMEZONE', "Africa/Nairobi");
 	
 	define('NUM_OF_ROWS_PER_PAGE', "10");
 	
@@ -59,7 +59,7 @@
 	
 	define('MAXIMUM_FILE_NAME_LENGTH', 100);
 	
-	define("MINIFY_JS", false);
+	define("MINIFY", FALSE);
 	
 	define('PORT_HTTP', '80');
   
@@ -69,7 +69,7 @@
 
  	define('ENABLE_PROFILER', FALSE); #See perfomance stats based on set benchmarks
 
-	
+	define('DOWNLOAD_LIMIT', 10000); #Max number of rows that can be downloaded
 	
 	
 	
@@ -113,8 +113,35 @@
 	define('ENABLE_QUERY_CACHE', FALSE); 
  	
  	define('QUERY_FILE', HOME_URL.'application/helpers/queries_list_helper.php'); 
+	
+	
+	
+
+
+/*
+ *---------------------------------------------------------------
+ * MESSAGE CACHE SETTINGS
+ *---------------------------------------------------------------
+ */
  	
+	define('ENABLE_MESSAGE_CACHE', FALSE); 
  	
+ 	define('MESSAGE_FILE', HOME_URL.'application/helpers/message_list_helper.php');  	
+	
+	
+
+
+/*
+ *---------------------------------------------------------------
+ * SMS GLOBAL CREDENTIALS
+ *---------------------------------------------------------------
+ */
+ 	
+	define('SMS_GLOBAL_USERNAME', 'sms-global-api-user'); 
+ 	
+ 	define('SMS_GLOBAL_PASSWORD', 'sms-global-api-pass'); 
+ 	
+ 	define('SMS_GLOBAL_VERIFIED_SENDER', 'verified-phone-number-with-country-code'); 
  
  
  

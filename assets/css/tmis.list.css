@@ -122,6 +122,17 @@
 	background: url(../../assets/images/block_yellow.png) no-repeat center center;
 }
 
+.saverow, .activesaverow {
+	background: url(../../assets/images/save_grey.png) no-repeat center center;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.saverow:hover, .saverow.active, .activesaverow {
+	background: url(../../assets/images/save_yellow.png) no-repeat center center;
+}
+
 .publishicon {
 	background: url(../../assets/images/publish_yellow.png) no-repeat center center;
 	width: 30px;

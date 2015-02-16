@@ -33,7 +33,7 @@ if(!empty($list))
 			echo "<tr class='listrow' ".($i%2 == 1? "style='background-color:#F0F0F0;'": "").">
 				<td>";
 				if($row['is_removable'] == 'Y' && $action=='updategroups'){
-					echo "<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow'></div>";
+					echo "<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>";
 				} else { 
 					echo "&nbsp;";
 				}

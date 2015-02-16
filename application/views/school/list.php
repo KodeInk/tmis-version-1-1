@@ -24,14 +24,14 @@ if(!empty($list))
 	if(!empty($action) && $action == 'verify')
 	{
 		if($row['status'] == 'pending'){
-			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm'></div>
-			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow'></div>";
+			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm' title='Click to approve'></div>
+			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>";
 		}
 		else if($row['status'] == 'active'){
-			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
+			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm' title='Click to archive'></div>";
 		}
 		else if($row['status'] == 'inactive'){
-			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm'></div>";
+			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm' title='Click to restore'></div>";
 		}
 	}
 	
@@ -41,7 +41,7 @@ if(!empty($list))
 	<td>".$row['email_address']."</td>
 	<td>".$row['telephone']."</td>
 	<td>".format_date($row['date_registered'],'d-M-Y')."</td>
-	<td>".format_date($row['last_updated'],'d-M-Y h:i:sa T').
+	<td>".format_date($row['last_updated'],'d-M-Y h:ia T').
 	
 	((check_access($this, 'add_new_school', 'boolean') && !empty($action) && $action == 'verify')? "<div class='rightnote'><a href='".base_url()."school/add/id/".$row['id']."/action/verify' class='shadowbox'>edit</a></div>": "")
 	

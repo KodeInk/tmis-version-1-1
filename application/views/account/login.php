@@ -15,16 +15,10 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-
+<?php echo minify_js('account-login', array('jquery-2.1.1.min.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.responsive.js'));?>
 </head>
 
 <body style="margin:0px;">
@@ -51,7 +45,7 @@
     <td colspan="2"><button type="button" class="greybtn" id="submitlogin" name="submitlogin" style="width:325px;">SUBMIT</button></td>
   </tr>
   <tr>
-    <td colspan="2"><a href="javascript:;">Forgot Username or Password?</a> &nbsp;|&nbsp; <a href="<?php echo base_url().'account/apply';?>">Apply for Account</a></td>
+    <td colspan="2"><a href="<?php echo base_url().'account/forgot';?>">Forgot Username or Password?</a> &nbsp;|&nbsp; <a href="<?php echo base_url().'account/apply';?>">Apply for Account</a></td>
   </tr>
       </table>
       </form></div></td>

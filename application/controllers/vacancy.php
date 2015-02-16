@@ -165,6 +165,25 @@ class Vacancy extends CI_Controller
 		$this->load->view('vacancy/details', $data); 
 	}
 	
+	
+	
+	
+	# Download the list
+	function download()
+	{
+		check_access($this, 'view_jobs');
+		
+		$data['list'] = array();
+		$list = $this->_vacancy->get_list(array('action'=>'download', 'pagecount'=>DOWNLOAD_LIMIT));
+		foreach($list AS $row) array_push($data['list'], array('School'=>$row['institution_name'], 'Role'=>$row['role_name'], 'Job Title'=>$row['topic'], 'Publish Start'=>date('d-M-Y', strtotime($row['start_date'])), 'Publish End'=>date('d-M-Y', strtotime($row['end_date'])), 'Summary'=>$row['summary'] ));
+		
+		$data['area'] = 'download_csv';
+		$this->load->view('page/download', $data); 
+	}
+	
+	
+	
+	
 }
 
 /* End of controller file */

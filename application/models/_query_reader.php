@@ -89,7 +89,7 @@ class _query_reader extends CI_Model
 	
 	
 	#Load queries into the cache file
-	private function load_queries_into_cache()
+	public function load_queries_into_cache()
 	{
 		$queries = $this->db->query("SELECT * FROM query")->result_array();
 		
@@ -97,11 +97,13 @@ class _query_reader extends CI_Model
 		file_put_contents(QUERY_FILE, "<?php ".PHP_EOL."global \$sysQuery;".PHP_EOL); 
 		foreach($queries AS $query)
 		{
-			$queryString = "\$sysQuery['".$query['querycode']."'] = \"".str_replace('"', '\"', $query['query'])."\";".PHP_EOL;  
+			$queryString = "\$sysQuery['".$query['code']."'] = \"".str_replace('"', '\"', $query['details'])."\";".PHP_EOL;  
 			file_put_contents(QUERY_FILE, $queryString, FILE_APPEND);
 		}
 		
 		file_put_contents(QUERY_FILE, PHP_EOL.PHP_EOL." function get_sys_query(\$code) { ".PHP_EOL."global \$sysQuery; ".PHP_EOL."return !empty(\$sysQuery[\$code])? \$sysQuery[\$code]: '';".PHP_EOL." }".PHP_EOL, FILE_APPEND); 
+		
+		echo "QUERY CACHE FILE HAS BEEN UPDATED [".date('F d, Y H:i:sA T')."]";
 	}
 	
 			

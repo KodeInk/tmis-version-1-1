@@ -10,24 +10,38 @@
 class _interview extends CI_Model
 {
 	
-	# STUB: Add a new interview
-	function add_new($interviewDetails)
+	# Add a new interview
+	function add_new($applicationId, $details)
 	{
-		$isAdded = false;
+		$result1 = $this->_query_reader->run('add_interview', array('application_id'=>$applicationId, 'interviewer_id'=>$details['userid'], 'planned_date'=>date('Y-m-d H:i:s', strtotime($details['interviewdate'])), 'notes'=>htmlentities($details['notes'], ENT_QUOTES), 'added_by'=>$this->native_session->get('__user_id')));
+		
+		if($result1)
+		{
+			$application = $this->_query_reader->get_row_as_array('get_simple_application_details', array('application_id'=>$applicationId));
+			
+			$result2 = $this->_messenger->send($application['user_id'], array('code'=>'notice_of_set_interview', 'applicant'=>$this->native_session->get('applicant'), 'submission_date'=>date('d-M-Y h:i:sa T', strtotime($this->native_session->get('submission_date'))), 'institution_name'=>$this->native_session->get('institution_name'), 'interview_notes'=>htmlentities($details['notes'], ENT_QUOTES), 'planned_date'=>$details['interviewdate'], 'interviewer'=>$details['interviewer__users'] ));
+		} 
+		else $result2 = false;
 		
 		
-		return $isAdded;
+		return get_decision(array($result1, $result2), FALSE);
 	}
 		
 		
 		
-	# STUB: Add a new note
-	function add_note($interviewId, $note)
+	# Add a new note
+	function add_note($itemId, $note, $noteType='normal')
 	{
-		$isAdded = false;
-		
-		
-		return $isAdded;
+		# A recommendation
+		if($noteType =='recommendation')
+		{
+			return $this->_query_reader->run('add_recommendation', array('change_application_id'=>$itemId, 'application_type'=>'job', 'recommended_by'=>$this->native_session->get('__user_id'), 'notes'=>htmlentities($note, ENT_QUOTES), 'added_by'=>$this->native_session->get('__user_id') ));
+		}
+		# A normal note
+		else if($noteType =='normal')
+		{
+			return $this->_query_reader->run('add_note', array('parent_id'=>$itemId, 'parent_type'=>'interview', 'added_by'=>$this->native_session->get('__user_id'), 'details'=>htmlentities($note, ENT_QUOTES) ));
+		}
 	}	
 		
 		
@@ -43,35 +57,55 @@ class _interview extends CI_Model
 		
 		
 		
-	# STUB: Add interview schedule
-	function add_schedule($interviewId, $scheduleDetails)
+	# Get the list of applicants in a shortlist
+	function get_shortlist($vacancyId, $shortlistName)
 	{
-		$isAdded = false;
-		
-		
-		return $isAdded;
+		return $this->_query_reader->get_list('get_shortlist_details', array('vacancy_id'=>$vacancyId, 'shortlist_name'=>$shortlistName));
 	}		
 		
 		
 		
-	# STUB: Update interview schedule
-	function update_schedule($interviewId, $scheduleDetails)
+	# Set the interview result
+	function set_result($interviewId, $details)
 	{
-		$isUpdated = false;
+		# 1. Update the interview details with the result
+		$result1 = $this->_query_reader->run('update_interview_data', array('interview_id'=>$interviewId, 'updated_by'=>$this->native_session->get('__user_id'), 'interview_date'=>date('Y-m-d H:i:s', strtotime($details['interviewdate'])), 'interview_duration'=>$details['duration'], 'result'=>strtolower($details['result__interviewresults']))); 
 		
 		
-		return $isUpdated;
-	}		
+		# 2. If shortlist is given then update the shortlist record to include the candidate
+		if(strtolower($details['result__interviewresults']) == 'passed' && !empty($details['shortlist__shortlists']))
+		{
+			$result2 = $this->_query_reader->run('add_user_to_shortlist', array('shortlist_name'=>$details['shortlist__shortlists'], 'added_by'=>$this->native_session->get('__user_id'), 'vacancy_id'=>$details['jobid'], 'applicant_id'=>$this->native_session->get('applicant_id') ));
+		}
+		# If the job has been awarded, notify moes/cao user to post the teacher
+		else if(strtolower($details['result__interviewresults']) == 'awarded')
+		{
+			#Save a temporary posting for the approvers to review before approving
+			$result2 = $this->_query_reader->run('add_posting_data', array('postee_id'=>$this->native_session->get('applicant_id'),'notes'=>(!empty($details['notes'])? htmlentities($details['notes'], ENT_QUOTES): 'NONE'), 'final_interview_id'=>$interviewId, 'vacancy_id'=>$details['jobid'], 'status'=>'saved', 'added_by'=>$this->native_session->get('__user_id')));
+			
+			if($result2)
+			{
+				$approvers = $this->_messenger->get_users_in_role(array('moes','cao'), $this->native_session->get('applicant_id'));
+			
+				$result = $this->_messenger->send($approvers, array('code'=>'request_teacher_posting', 'applicant_name'=>$this->native_session->get('applicant'), 'job_name'=>$this->native_session->get('job'), 'action_date'=>date('d-M-Y h:ia T', strtotime('now')), 'made_by'=>$this->native_session->get('__full_name')));
+			}
+			
+		}
+		else $result2 = true;
 		
 		
+		# 3. Record a note if any is given
+		if(!empty($details['notes']))
+		{
+			$result3 = $this->_query_reader->run('add_note', array('parent_id'=>$interviewId, 'parent_type'=>'interview', 'added_by'=>$this->native_session->get('__user_id'), 'details'=>htmlentities("-- The Candidate ".strtoupper($this->native_session->get('applicant'))." has ".strtoupper($details['result__interviewresults'])." because: --<br><br>".$details['notes'], ENT_QUOTES) )); 
+		}
+		else $result3 = true;
 		
-	# STUB: Set result
-	function set_result($interviewId, $result)
-	{
-		$isSet = false;
+		# 4. Notify the candidate about the result
+		if($result1 && $result2 && $result3) $result4 = $this->_messenger->send($this->native_session->get('applicant_id'), array('code'=>'notify_interview_status_change', 'interview_result'=>strtoupper($details['result__interviewresults']), 'action_date'=>date('d-M-Y h:ia T'), 'made_by'=>$this->native_session->get('__full_name'), 'applicant_name'=>$this->native_session->get('applicant'), 'job_name'=>$this->native_session->get('job'), 'interview_date'=>date('d-M-Y h:ia T', strtotime($details['interviewdate'])), 'interview_notes'=>(!empty($details['notes'])? $details['notes']: 'NONE') ));
+		else $result4 = false;
 		
-		
-		return $isSet;
+		return get_decision(array($result1, $result2, $result3, $result4), FALSE);
 	}	
 		
 		
@@ -84,9 +118,170 @@ class _interview extends CI_Model
 		
 		return $isUpdated;
 	}	
+	
+		
+	
+	# Get list of interviews
+	function get_list($instructions=array())
+	{
+		$searchString = " 1=1 ";
+		$queryCode = 'get_interview_vacancies';
+		$orderBy = ' I2.last_updated DESC ';
+		
+		if(!empty($instructions['action']) && $instructions['action'] == 'shortlist')
+		{
+			$queryCode = 'get_interview_shortlists';
+			$orderBy = ' V.topic ASC ';
+			# Narrow the items viewed for the teacher to their items only
+			if($this->native_session->get('__permission_group') == '2') $searchString .= " AND S.applicant_id='".$this->native_session->get('__user_id')."' ";
+		}
+		else if(!empty($instructions['action']) && in_array($instructions['action'], array('setdate', 'recommend', 'recommendations')) )
+		{
+			$queryCode = 'get_job_applications';
+			$orderBy = ' A.date_added DESC ';
+			# Narrow the items viewed for the teacher to their items only
+			if($this->native_session->get('__permission_group') == '2') $searchString .= " AND A.user_id='".$this->native_session->get('__user_id')."' ";
+			
+		}
+		else
+		{
+			# Narrow the items viewed for the teacher to their items only
+			if($this->native_session->get('__permission_group') == '2') $searchString .= " AND A.user_id='".$this->native_session->get('__user_id')."' ";
+		}
+		
+		#Filter out un-needed results by status (I2 = interview table alias)
+		if(!empty($instructions['action']) && $instructions['action'] == 'addresult')
+		{
+			$searchString .= " AND I2.result <> 'awarded' ";
+		}
+		if(!empty($instructions['action']) && $instructions['action'] == 'cancel')
+		{
+			$searchString .= " AND I2.result = 'pending' ";
+		}
+		
+		
+		# Narrow the items viewed for the manager to their school(s) only
+		if($this->native_session->get('__permission_group') == '3')
+		{
+			$searchString .= " AND I.id IN ('".implode("','", $this->get_postings($this->native_session->get('__user_id')))."') ";
+		}
+		
+		
+		
+		# If a search phrase is sent in the instructions
+		if(!empty($instructions['searchstring']))
+		{
+			$searchString .= " AND ".$instructions['searchstring'];
+		}
+		
+		# Instructions
+		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
+		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
+		
+		return $this->_query_reader->get_list($queryCode,array('search_query'=>$searchString, 'viewed_by'=>$this->native_session->get('__user_id'), 'limit_text'=>$start.','.($count+1), 'order_by'=>$orderBy));
+	}
 
+	
+	
+		
+	
 
-
+	# Populate a school session profile
+	function populate_session($itemId, $itemType='interview')
+	{
+		if($itemType == 'application')
+		{
+			$item = $this->_query_reader->get_row_as_array('get_job_applications', array('search_query'=>" A.id='".$itemId."' ", 'limit_text'=>'1', 'viewed_by'=>$this->native_session->get('__user_id'), 'order_by'=>' A.date_added DESC '));
+		
+			$this->native_session->set('applicant', $item['applicant_name']);
+			$this->native_session->set('submission_date', $item['submission_date']);
+			$this->native_session->set('institution_name', $item['institution_name']);
+		}
+		
+		else if($itemType == 'interview')
+		{
+			$item = $this->_query_reader->get_row_as_array('get_interview_vacancies', array('search_query'=>" I2.id='".$itemId."' ", 'limit_text'=>'1', 'order_by'=>' I2.date_added DESC '));
+		
+			$this->native_session->set('job', $item['job']);
+			$this->native_session->set('job_id', $item['job_id']);
+			$this->native_session->set('applicant', $item['applicant']);
+			$this->native_session->set('applicant_id', $item['applicant_id']);
+			$this->native_session->set('interviewer', $item['interviewer']);
+			$this->native_session->set('interview_date', $item['interview_date']);
+		}
+	}
+	
+	
+	
+	# Get the recommendations for an application
+	function get_recommendations($applicationId)
+	{
+		return $this->_query_reader->get_list('get_application_recommendations', array('application_id'=>$applicationId, 'application_type'=>'job'));
+	}
+	
+	
+	
+	# Get the notes on an interview
+	function get_notes($interviewId)
+	{
+		return $this->_query_reader->get_list('get_item_notes', array('item_id'=>$interviewId, 'item_type'=>'interview'));
+	}
+	
+	
+	#Get the postings of a user given their ID
+	function get_postings($userId)
+	{
+		return $this->_query_reader->get_single_column_as_array('get_user_posting', 'institution_id', array('user_id'=>$userId));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	# Verify an interview
+	function verify($instructions)
+	{
+		$result = array('boolean'=>false, 'msg'=>'ERROR: The interview instructions could not be resolved.');
+		
+		if(!empty($instructions['action']))
+		{
+			switch($instructions['action'])
+			{
+				case 'reject':
+					$result['boolean'] = $this->cancel($instructions['id'],(!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): 'NONE'));
+				break;
+			}
+			
+			if(!empty($result['boolean'])) 
+			{
+				$result['msg'] = $result['boolean']? "The interview has been cancelled.": "ERROR: The interview could not be cancelled.";
+			}
+		}
+		
+		return $result;
+	}
+	
+	
+	
+	
+	# Cancel an interview
+	function cancel($interviewId, $reason)
+	{
+		$item = $this->_query_reader->get_row_as_array('get_interview_vacancies', array('search_query'=>" I2.id='".$itemId."' ", 'limit_text'=>'1', 'order_by'=>' I2.date_added DESC '));
+		
+		# 1. Notify the applicant
+		$result1 = $this->_messenger->send($item['applicant_id'], array('code'=>'notify_interview_cancellation', 'applicant_name'=>$item['applicant'], 'interviewer_name'=>$item['interviewer'], 'job_name'=>$item['job'], 'interview_date'=>date('d-M-Y h:ia T', strtotime($item['interview_date'])), 'action_date'=>date('d-M-Y h:ia T', strtotime('now')), 'reason'=>$reason));
+		
+		# 2. Delete the interview details from the database
+		if($result1) $result2 = $this->_query_reader->run('remove_interview_details', array('interview_id'=>$interviewId));
+		else $result2 = false;
+		
+		return get_decision(array($result1, $result2), FALSE);
+	}
+	
 }
 
 

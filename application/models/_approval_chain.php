@@ -29,10 +29,17 @@ class _approval_chain extends CI_Model
 		}
 		
 		# The next approvers
-		$approvers = $this->get_next_approver((!empty($originatorId)? $originatorId: $thisUserId), $chainType, $step);
+		if(empty($originatorId) || (!empty($chain) && $chain['max_steps'] != $step)) 
+			$approvers = $this->get_next_approver((!empty($originatorId)? $originatorId: $thisUserId), $chainType, $step);
+		else if(!empty($chain) && $chain['max_steps'] == $step) $approvers = 'COMPLETE';
 		
-		# 1. b) Add the approval chain
-		if(!empty($approvers)) $chainId = $this->_query_reader->add_data('add_approval_chain', array('chain_type'=>$chainType, 'step_number'=>$step, 'subject_id'=>$subjectId, 'originator_id'=>$originatorId, 'actual_approver'=>$thisUserId, 'status'=>$status, 'approver_id'=>implode(',',$approvers), 'comment'=>$comment )); 
+		# 1. b) Add the approval chain if there are approvers
+		if(!empty($approvers)) 
+		{
+			$approverString = ($approvers == 'COMPLETE')? '': implode(',',$approvers);
+			
+			$chainId = $this->_query_reader->add_data('add_approval_chain', array('chain_type'=>$chainType, 'step_number'=>$step, 'subject_id'=>$subjectId, 'originator_id'=>$originatorId, 'actual_approver'=>$thisUserId, 'status'=>$status, 'approver_id'=>$approverString, 'comment'=>$comment )); 
+		}
 		
 		# 2. Perform action
 		if(!empty($chainId)) 
@@ -43,7 +50,7 @@ class _approval_chain extends CI_Model
 		
 		# 3. Determine what message to send
 		if(empty($approvers)) $msg = "ERROR: No approvers could be found for the next stage.";
-		else if(empty($chainId)) $msg = "ERROR: The chain could not be committed.";
+		else if(empty($chainId) && $status == 'approved') $msg = "ERROR: The chain could not be committed.";
 		else if(!empty($result) && !$result) $msg = "ERROR: The approval actions could not be executed.";
 		
 		return array('boolean'=>(!empty($result) && $result? true: false), 'msg'=>$msg);
@@ -86,7 +93,7 @@ class _approval_chain extends CI_Model
 					break;
 					
 					case 'issue_confirmation_letter':
-						$result = $this->issue_confirmation_letter($chain);
+						$result = $this->issue_confirmation_letter($chain, $otherDetails);
 					break;
 					
 					case 'issue_file_number':
@@ -98,11 +105,11 @@ class _approval_chain extends CI_Model
 					break;
 					
 					case 'issue_transfer_letter':
-						$result = $this->issue_transfer_letter($chain);
+						$result = $this->issue_transfer_letter($chain, $otherDetails);
 					break;
 					
 					case 'submit_transfer_pca':
-						$result = $this->submit_transfer_pca($chain);
+						$result = $this->submit_transfer_pca($chain, $otherDetails);
 					break;
 					
 					case 'confirm_transfer':
@@ -110,11 +117,11 @@ class _approval_chain extends CI_Model
 					break;
 					
 					case 'send_verification_letter':
-						$result = $this->send_verification_letter($chain);
+						$result = $this->send_verification_letter($chain, $otherDetails);
 					break;
 					
 					case 'confirm_retirement':
-						$result = $this->confirm_retirement($chain);
+						$result = $this->confirm_retirement($chain, $otherDetails);
 					break;
 					
 					case 'apply_data_secrecy':
@@ -123,6 +130,10 @@ class _approval_chain extends CI_Model
 					
 					case 'activate_data_records':
 						$result = $this->activate_data_records($chain);
+					break;
+					
+					case 'change_teacher_posting':
+						$result = $this->change_teacher_posting($chain);
 					break;
 					
 					default:
@@ -142,7 +153,7 @@ class _approval_chain extends CI_Model
 	function notify_next_chain_party($chain)
 	{
 		$results = array();
-		$approvers = explode(",", $chain['approver_id']);
+		$approvers = array_unique(explode(",", $chain['approver_id']));
 		
 		foreach($approvers AS $approverId)
 		{
@@ -163,9 +174,9 @@ class _approval_chain extends CI_Model
 	
 	
 	# Get previous parties in the approval chain
-	function get_previous_parties($subjectId)
+	function get_previous_parties($chain)
 	{
-		return $this->_query_reader->get_single_column_as_array('get_parties_in_chain', 'actual_approver', array('subject_id'=>$subjectId));
+		return $this->_query_reader->get_single_column_as_array('get_parties_in_chain', 'actual_approver', array('subject_id'=>$chain['subject_id'], 'chain_type'=>$chain['chain_type']));
 	}
 	
 	
@@ -176,7 +187,7 @@ class _approval_chain extends CI_Model
 	{
 		$results = array();
 		# 1. Get first originator and previous approvers
-		$parties = $this->get_previous_parties($chain['subject_id']);
+		$parties = $this->get_previous_parties($chain);
 		
 		# 2. Notify all parties 
 		foreach($parties AS $approverId)
@@ -201,13 +212,12 @@ class _approval_chain extends CI_Model
 	function send_document($chain, $documentType, $requiredModes=array('system'), $otherDetails=array())
 	{
 		$this->load->model('_document');
-		$originator = $this->_query_reader->get_row_as_array('get_originator_of_chain', array('subject_id'=>$chain['subject_id']));
+		$originator = $this->_query_reader->get_row_as_array('get_originator_of_chain', array('subject_id'=>$chain['subject_id'], 'chain_type'=>$chain['chain_type']));
 		
 		if(!empty($originator['originator']))
 		{
 			# Generate a PDF of the confirmation letter and send it to the confirmed teacher.
-			$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$chain['subject_id']));
-			$details = $user;
+			$details = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$originator['originator']));
 			if(!empty($otherDetails)) $details = array_merge($details, $otherDetails);
 			
 			#Generate the letter PDF
@@ -216,10 +226,13 @@ class _approval_chain extends CI_Model
 			# Send the document to the user's email and originator of the approval process if they are different in their system
 			if(!empty($letterUrl))
 			{
-				$result = $this->_messenger->send($chain['subject_id'], array('code'=>'send_'.$documentType, 'fileurl'=>$letterUrl, 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME), $requiredModes);
+				$result = $this->_messenger->send($originator['originator'], array('code'=>'send_'.$documentType, 'fileurl'=>UPLOAD_DIRECTORY.'documents/'.$letterUrl, 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME), $requiredModes);
 				
-				# Copy the originator if they are different
-				if($chain['subject_id'] != $originator['originator']) $this->_messenger->send($originator['originator'], array('code'=>'send_'.$documentType, 'fileurl'=>$letterUrl, 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME), $requiredModes);
+				# Record the document for future tracking
+				if($result) $this->_query_reader->run('add_system_document', array('url'=>$letterUrl, 'document_type'=>$documentType, 'tracking_number'=>$details['tracking_number'], 'description'=>ucwords(str_replace('_', ' ', $documentType)), 'parent_id'=>$details['person_id'], 'parent_type'=>'person' ));
+				
+				# Copy the actual approver if they are different
+				if(!empty($chain['actual_approver']) && $chain['actual_approver'] != $originator['originator']) $this->_messenger->send($chain['actual_approver'], array('code'=>'send_'.$documentType, 'fileurl'=>UPLOAD_DIRECTORY.'documents/'.$letterUrl, 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME), $requiredModes);
 				
 				return $result;
 			}
@@ -234,13 +247,15 @@ class _approval_chain extends CI_Model
 	# Issue a file number to the user as part of the approval process
 	function issue_file_number($chain)
 	{
-		$originator = $this->_query_reader->get_row_as_array('get_originator_of_chain', array('subject_id'=>$chain['subject_id']));
+		$originator = $this->_query_reader->get_row_as_array('get_originator_of_chain', array('subject_id'=>$chain['subject_id'], 'chain_type'=>$chain['chain_type']));
 		
 		$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$originator['originator']));
 		$fileNumber = 'TM'.strtotime('now').(strtoupper(substr($user['first_name'], -1).substr($user['last_name'], -1)));
 		
 		#Record the file number on the teacher's person profile
-		$result = $this->_query_reader->run('update_person_profile_part', array('person_id'=>$user['person_id'], 'query_part'=>" file_number='".$fileNumber."' "));
+		$result1 = $this->_query_reader->run('update_person_profile_part', array('person_id'=>$user['person_id'], 'query_part'=>" file_number='".$fileNumber."' "));
+		# Make this a bonafide teacher
+		$result2 = $this->_query_reader->run('update_user_permission_group', array('permission_group'=>'Teacher', 'updated_by'=>$this->native_session->get('__user_id'), 'user_id'=>$originator['originator']));
 		
 		return $this->_messenger->send($originator['originator'], array('code'=>'issue_file_number', 'first_name'=>$user['first_name'], 'file_number'=>$fileNumber, 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME));
 	}
@@ -248,10 +263,39 @@ class _approval_chain extends CI_Model
 	
 	
 	# Issue confirmation letter as part of the approval process
-	function issue_confirmation_letter($chain)
+	function issue_confirmation_letter($chain, $otherDetails)
 	{
-		return $this->send_document($chain, 'confirmation_letter');
+		$originator = $this->_query_reader->get_row_as_array('get_originator_of_chain', array('subject_id'=>$chain['subject_id'], 'chain_type'=>$chain['chain_type']));
+		$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$originator['originator']));
+		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
+		$job = $this->_query_reader->get_row_as_array('get_teacher_jobs', array('user_id'=>$originator['originator'], 'search_condition'=>" AND P.id='".$chain['subject_id']."' "));
+		
+		$actionDetails['date_today'] = date('jS F Y', strtotime('now'));
+		$actionDetails['asset_folder'] = BASE_URL."assets/";
+		$actionDetails['document_size'] = 'A4';
+		$actionDetails['document_orientation'] = 'portrait';
+		$actionDetails['teacher_name'] = ucfirst($user['last_name'].' '.$user['first_name']);
+		$actionDetails['new_position'] = $job['job'];
+		$actionDetails['school_name'] = $job['school'];
+		$actionDetails['school_address'] = $job['addressline'].' '.$job['county'].' '.$job['district'].', '.$job['country'];
+		$actionDetails['tracking_number'] = $this->generate_tracking_number('confirmation');
+		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
+		$actionDetails['minute_number'] = $otherDetails['minutenumber'];
+		$actionDetails['approver_signature'] = $approver['signature'];
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		
+		return $this->send_document($chain, 'confirmation_letter', array('system'), $actionDetails);
 	}
+	
+	
+	
+	# Generate a tracking number for a letter
+	function generate_tracking_number($letterType)
+	{
+		$letterCodes = array('confirmation'=>'51', 'pca'=>'52', 'transfer'=>'53', 'leave'=>'54', 'retirement'=>'55');
+		return $letterCodes[$letterType].strtotime('now');
+	}
+	
 	
 	
 	
@@ -268,6 +312,7 @@ class _approval_chain extends CI_Model
 		$actionDetails['teacher_grade'] = strtoupper($otherDetails['grade__grades']);
 		$actionDetails['effective_date'] = date('d-M-Y', strtotime($otherDetails['effectivedate']));
 		$actionDetails['certificate_number'] = $this->generate_certificate_number($chain['subject_id'], $otherDetails['grade__grades']);
+		$actionDetails['tracking_number'] = $actionDetails['certificate_number'];
 		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
 		$actionDetails['signature_url'] = $approver['signature'];
 		
@@ -290,33 +335,104 @@ class _approval_chain extends CI_Model
 	
 	
 	# Issue transfer letter as part of the approval process
-	function issue_transfer_letter($chain)
+	function issue_transfer_letter($chain, $otherDetails)
 	{
-		return $this->send_document($chain, 'transfer_letter');
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$currentPosting = $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
+		
+		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
+		
+		$actionDetails['date_today'] = date('jS F Y', strtotime('now'));
+		$actionDetails['asset_folder'] = BASE_URL."assets/";
+		$actionDetails['document_size'] = 'A4';
+		$actionDetails['document_orientation'] = 'portrait';
+		$actionDetails['teacher_name'] = ucfirst($currentPosting['teacher_name']);
+		$actionDetails['file_number'] = $currentPosting['file_number'];
+		$actionDetails['old_position'] = $transfer['old_job'];
+		$actionDetails['new_position'] = $currentPosting['job'];
+		$actionDetails['school_name'] = $transfer['desired_school_name'];
+		$actionDetails['school_address'] = $transfer['addressline'].' '.$transfer['county'].' '.$transfer['district'].', '.$transfer['country'];
+		$actionDetails['tracking_number'] = $this->generate_tracking_number('transfer');
+		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
+		$actionDetails['minute_number'] = $otherDetails['minutenumber'];
+		$actionDetails['approver_signature'] = $approver['signature'];
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		
+		return $this->send_document($chain, 'transfer_letter', array('system'), $actionDetails);
 	}
 	
 	
 	# Submit transfer PCA as part of the approval process
-	function submit_transfer_pca($chain)
+	function submit_transfer_pca($chain, $otherDetails)
 	{
 		return $this->send_document($chain, 'transfer_pca');
 	}
 	
 	
 	# Send verification letter as part of the approval process
-	function send_verification_letter($chain)
+	function send_verification_letter($chain, $otherDetails)
 	{
-		return $this->send_document($chain, 'verification_letter');
+		$leave = $this->_query_reader->get_row_as_array('get_leave_list_data', array('search_query'=>" L.id='".$chain['subject_id']."' ", 'order_by'=>' L.last_updated DESC ', 'limit_text'=>'1'));
+		
+		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
+		
+		$actionDetails['date_today'] = date('jS F Y', strtotime('now'));
+		$actionDetails['asset_folder'] = BASE_URL."assets/";
+		$actionDetails['document_size'] = 'A4';
+		$actionDetails['document_orientation'] = 'portrait';
+		$actionDetails['teacher_name'] = ucfirst($leave['teacher_name']);
+		$actionDetails['job_position'] = $leave['job'];
+		$actionDetails['school_name'] = $leave['school_name'];
+		$actionDetails['school_address'] = $leave['addressline'].' '.$leave['county'].' '.$leave['district'].', '.$leave['country'];
+		$actionDetails['tracking_number'] = $this->generate_tracking_number('leave');
+		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
+		$actionDetails['leave_type'] = strtoupper($otherDetails['leavetype']);
+		$actionDetails['leavesmall_type'] = strtolower($otherDetails['leavetype']);
+		$actionDetails['minute_number'] = $otherDetails['minutenumber'];
+		$actionDetails['start_date'] = date('d/m/Y', strtotime($otherDetails['startdate']));
+		$actionDetails['end_date'] = date('d/m/Y', strtotime($otherDetails['enddate']));
+		$actionDetails['leave_reason'] = $otherDetails['leavereason'];
+		$actionDetails['approver_signature'] = $approver['signature'];
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		
+		return $this->send_document($chain, 'verification_letter', array('system'), $actionDetails);
 	}
 	
 	
 	# Confirm retirement as part of the approval process
-	function confirm_retirement($chain)
+	function confirm_retirement($chain, $otherDetails)
 	{
-		# 1. Update status of the person's user accounts to inactive
-		$result = $this->_query_reader->run('deactivate_user_profile', array('user_id'=>$chain['subject_id']));
-		# 2. Send retirement letter
-		return $result && $this->send_document($chain, 'retirement_letter', array('email'));
+		$retirement = $this->_query_reader->get_row_as_array('get_retirement_list_data', array('search_query'=>" R.retiree_id='".$chain['subject_id']."' ", 'order_by'=>' R.last_updated DESC ', 'limit_text'=>'1'));
+		
+		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
+		
+		$actionDetails['date_today'] = date('jS F Y', strtotime('now'));
+		$actionDetails['asset_folder'] = BASE_URL."assets/";
+		$actionDetails['document_size'] = 'A4';
+		$actionDetails['document_orientation'] = 'portrait';
+		$actionDetails['teacher_name'] = strtoupper($retirement['teacher_name']);
+		$actionDetails['job_position'] = strtoupper($retirement['job']);
+		$actionDetails['file_number'] = $retirement['file_number'];
+		$actionDetails['tracking_number'] = $this->generate_tracking_number('retirement');
+		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
+		$actionDetails['retirement_details'] = $otherDetails['reason'];
+		$actionDetails['approver_signature'] = $approver['signature'];
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		
+		# 1. Send retirement letter
+		$result1 = $this->send_document($chain, 'retirement_letter', array('email'), $actionDetails);
+		# 2. Update status of the person's user accounts to inactive
+		$result2 = $result1? $this->_query_reader->run('deactivate_user_profile', array('user_id'=>$retirement['retiree_id'])): false;
+		
+		return get_decision(array($result1, $result2));
+	}
+	
+	
+	# Confirm transfer as part of the approval process
+	function confirm_transfer($chain, $otherDetails=array())
+	{
+		$currentPosting = $this->get_current_posting_from_chain($chain);
+		return !empty($currentPosting['id'])? $this->_query_reader->run('change_posting_field', array('posting_id'=>$currentPosting['id'], 'field_name'=>'status', 'field_value'=>'verified', 'updated_by'=>$this->native_session->get('__user_id') )): false;
 	}
 	
 	
@@ -342,7 +458,14 @@ class _approval_chain extends CI_Model
 			break;
 			
 			case 'school':
-				$result = $this->_query_reader->run('activate_school_data', array('updated_by'=>$this->native_session->get('__user_id'), 'id_list'=>"'".implode("','", explode(',', $scope[1]))."'" ));
+				$idList = "'".implode("','", explode(',', $scope[1]))."'";
+				$result = $this->_query_reader->run('activate_school_data', array('updated_by'=>$this->native_session->get('__user_id'), 'id_list'=>$idList ));
+				
+				if($result) 
+				{
+					$schools = $this->_query_reader->get_list('get_schools_with_ids', array('id_list'=>$idList));
+					foreach($schools AS $school) $this->_query_reader->run('add_approved_school_data', array('institution_name'=>$school['name'], 'start_date'=>$school['date_registered'], 'added_by'=>$this->native_session->get('__user_id') ));
+				}
 			break;
 			
 			case 'census':
@@ -361,11 +484,11 @@ class _approval_chain extends CI_Model
 	{
 		$approvers = array();
 		# 1. Get the chain settings
-		$chainSetttings = $this->_query_reader->get_row_as_array('get_approval_chain_setting', array('chain_type'=>$chainType, 'step_number'=>$stepNumber));
+		$chainSetttings = $this->_query_reader->get_row_as_array('get_approval_chain_setting', array('chain_type'=>$chainType, 'step_number'=>($stepNumber+1) ));
 		
 		# 2. Get the scope details of the originator to properly obtain the next approver scope
 		$originator = $this->_query_reader->get_row_as_array('get_originator_scope', array('originator_id'=>$originatorId));
-		
+	
 		# 3. Now extract the approvers list
 		if(!empty($chainSetttings['approvers']))
 		{
@@ -412,7 +535,37 @@ class _approval_chain extends CI_Model
 
 
 
-
+	# Change the posting of the teacher to a new school
+	# This fucntion is called when effecting a transfer
+	function change_teacher_posting($chain)
+	{
+		# 1. End the previous teacher assignment
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$currentPosting = $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
+		
+		if(!empty($currentPosting)) 
+			$result1 = $this->_query_reader->run('terminate_teacher_posting', array('posting_id'=>$currentPosting['id'], 'updated_by'=>$this->native_session->get('__user_id') ));
+		else $result1 = false;
+		
+		# 2. Create a new teacher posting for the new assignment
+		if($result1)
+			$result2 = $this->_query_reader->run('add_plain_posting', array('postee_id'=>$transfer['teacher_id'], 'institution_id'=>$transfer['new_school_id'], 'notes'=>'-- TRANSFERRED FROM: '.$currentPosting['institution_name'].' ('.$currentPosting['job'].') --', 'role_id'=>$currentPosting['role_id'], 'final_interview_id'=>$currentPosting['final_interview_id'], 'status'=>'pending', 'added_by'=>$this->native_session->get('__user_id') ));
+		else $result2 = false;
+		
+		return get_decision(array($result1, $result2));
+	}
+	
+	
+	
+	# Get current posting from chain
+	function get_current_posting_from_chain($chain)
+	{
+		# 1. Get the transfer details
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		
+		# 2. Get the current assignment from the transfer details on the teacher
+		return $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
+	}
 
 }
 

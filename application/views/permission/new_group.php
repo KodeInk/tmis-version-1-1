@@ -18,19 +18,11 @@ $forwardUrl = !empty($forward)? $forward: get_user_dashboard($this, $this->nativ
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script>
-
+<?php echo minify_js('permission-new_group', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js'));?>
 <script type="text/javascript">
 <?php echo !empty($id) && !empty($result['boolean']) && $result['boolean']?"window.top.location.href = '".$forwardUrl."';": "";?>
 </script>
@@ -43,11 +35,11 @@ if(empty($id)) {?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <?php $this->load->view("addons/secure_header");?>
   <tr>
-    <td valign="top" colspan="2" class="bodyspace" style="padding-top:0px;">
+    <td valign="top" colspan="2" style="padding-top:0px;padding-left:15px;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td id="menucontainer"><?php $this->load->view("addons/menu");?></td>
-        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+        <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 <?php }?>		
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -80,7 +72,7 @@ if(empty($id)) {?>
 					
 				<td><input type='checkbox' name='permission[]' id='permission_".$permission['id']."' value='".$permission['id']."' ".($this->native_session->get('permission') && in_array($permission['id'], $this->native_session->get('permission'))? ' checked': '')."><label for='permission_".$permission['id']."' style='white-space: nowrap;'>".$permission['permission']."</label></td>
 					
-				<td><input type='radio' name='default' id='default_".$permission['id']."' value='".$permission['id']."' ".($this->native_session->get('default') && $this->native_session->get('default') == $permission['id']? ' checked': '')."><label for='default_".$permission['id']."'>Default</label></td></tr>";
+				<td><input type='radio' onclick=\"selectAll(this,'*permission_".$permission['id']."')\" name='default' id='default_".$permission['id']."' value='".$permission['id']."' ".($this->native_session->get('default') && $this->native_session->get('default') == $permission['id']? ' checked': '')."><label for='default_".$permission['id']."'>Default</label></td></tr>";
 			}
 		} else{
 			echo "<tr><td>".format_notice($this,'ERROR: There are no permissions to show.')."</td></tr>";
@@ -103,7 +95,8 @@ if(empty($id)) {?>
   <?php if(!(!empty($action) && $action=='view')) {?>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SAVE</button><?php 
+    <td><button type="submit" name="save" id="save" class="btn">SAVE</button>
+	<input type='hidden' id='errormessage' name='errormessage' value='Enter all required fields to continue including selecting a default permission.' /><?php 
 	echo !empty($id)? "<input type='hidden' id='groupid' name='groupid' value='".$id."' />": "";
 	echo "<input type='hidden' id='forward' name='forward' value='permission/update_group' />";
 	?></td>

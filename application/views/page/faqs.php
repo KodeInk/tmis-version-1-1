@@ -14,16 +14,10 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-
+<?php echo minify_js('page-faqs', array('jquery-2.1.1.min.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js', 'tmis.responsive.js'));?>
 </head>
 
 <body style="margin:0px;">
@@ -38,19 +32,22 @@
      <tr>
       <td style="padding-top:10px;">
 <span class="h3">What is TMIS?</span><br>
-Minister of Education and Sports</span></div>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+The Teacher Management Information System (TMIS) is a simple user-friendly solution to supporting a harmonized and timely access to teacher information at all administrative levels of the Ministry of Education and associated agencies; at national, district and education institution levels. Its main objective is to solve the problem of dis-jointed teacher records accross the various sections of government and the education ministry. By enabling teachers to take control of their records and increasing transparency in the ministry's provision of services, it is speeding up service delivery, improving the ministry's efficiency and the relationship of the teaching professionals with government.
 <br><br>
 <span class="h3">Why do I need to register with TMIS?</span><br>
-It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
+If you are a teacher, your record will need to be in the system to be matched across the various organizations in the ministry. Registering on TMIS provides you with the benefit of a faster service for your requests such as issuance of certificates, requesting transfers, leave application and many more. It is a service that will be indispensible for a teacher's interaction with the ministry and you are therefore encouraged to register earlier so that your application is approved sooner.
 <br><br>
 <span class="h3">Who owns TMIS?</span><br>
-Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
+TMIS is owned by the Ugandan Ministry of Education and Sports (MoES). It has full control over your access and service provision as detailed in the <a href='<?php echo base_url();?>page/terms_of_use'>terms of use</a>. TMIS was developed with the support of The United Nations Educational, Scientific and Cultural Organization (UNESCO); a specialized agency of the United Nations.
 <br><br>
 <span class="h3">How do I get TMIS access?</span><br>
-The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.
+To get access to the services of TMIS, you have to be a teacher in a government sponsored school or a professional in the education ministry of Uganda. Teachers register on the system through a 4-stage form that begins at the home page. Other non-teacher education professionals are encouraged to apply for approval using the <a href='<?php echo base_url();?>account/apply'>signup link</a> on our website.
 <br><br>
 <span class="h3">I am stuck. Where can I find help?</span><br>
-There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.
+If you are stuck and can not complete a process on the website, you are encouraged to send our admin team a message using our <a href='<?php echo base_url();?>page/contact_us'>contact us form</a> any time of day. Inquiries will be handled depending on urgency and first-come-first-served basis. Our admin team determines the urgency of the matter or inquiry. You are advised to send only relevant messages and be patient for a response. Additional inquiries on the same matter do not speed up our response to you.
+
+<br><br>
+We thank you for using the Teacher Management Information System (TMIS) to improve our service delivery.
       
       </td>
      </tr>

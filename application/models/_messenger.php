@@ -16,6 +16,8 @@ class _messenger extends CI_Model {
     {
         parent::__construct();
 		$this->load->library('email');
+		#Use the message cache if its enabled
+		$this->load->helper('message_list');
     }
 	
 	
@@ -24,9 +26,33 @@ class _messenger extends CI_Model {
 	# $required - makes sure that the sending formats required were successful, although the other formats are still attempted
 	function send($userId, $message, $required=array('system'))
 	{
-		$results['email'] = $this->send_email_message($userId, $message);
-		$results['sms'] = $this->send_sms_message($userId, $message);
-		$results['system'] = $this->send_system_message($userId, $message);
+		# Sending email
+		if(is_array($userId)) 
+		{
+			$resultArray = array();
+			foreach($userId AS $id) array_push($resultArray, $this->send_email_message($id, $message));
+			$results['email'] = get_decision($resultArray);
+		}
+		else $results['email'] = $this->send_email_message($userId, $message);
+		
+		# Sending SMS
+		if(is_array($userId)) 
+		{
+			$resultArray = array();
+			foreach($userId AS $id) array_push($resultArray, $this->send_sms_message($id, $message));
+			$results['sms'] = get_decision($resultArray);
+		}
+		else $results['sms'] = $this->send_sms_message($userId, $message);
+		
+		# Sending System
+		if(is_array($userId)) 
+		{
+			$resultArray = array();
+			foreach($userId AS $id) array_push($resultArray, $this->send_system_message($id, $message));
+			$results['system'] = get_decision($resultArray);
+		}
+		else $results['system'] = $this->send_system_message($userId, $message);
+		
 		
 		#If the sending format required passed then return the result as successful even if the others may have failed
 		$considered = array();
@@ -50,12 +76,12 @@ class _messenger extends CI_Model {
 			{
 				$emailaddress = $user['email_address'];
 				$messageDetails['first_name'] = !empty($messageDetails['firstname'])? $messageDetails['firstname']: $user['first_name'];
-				$messageDetails['login_link'] = !empty($messageDetails['loginlink'])? $messageDetails['loginlink']: trim(base_url(), '/');
+				$messageDetails['login_link'] = trim((!empty($messageDetails['loginlink'])? $messageDetails['loginlink']: base_url()), '/'); 
 			}
 		}
 		
-		$messageDetails['email_from'] = !empty($messageDetails['emailfrom'])? $messageDetails['emailfrom']: $this->native_session->get('__email_address');
-		$messageDetails['from_name'] = !empty($messageDetails['fromname'])? $messageDetails['fromname']: $this->native_session->get('__last_name').' '.$this->native_session->get('__first_name');
+		$messageDetails['email_from'] = !empty($messageDetails['emailfrom'])? $messageDetails['emailfrom']: NOREPLY_EMAIL;
+		$messageDetails['from_name'] = !empty($messageDetails['fromname'])? $messageDetails['fromname']: SITE_GENERAL_NAME;
 					
 		$emailTo = !empty($messageDetails['emailaddress'])? $messageDetails['emailaddress']: (!empty($emailaddress)? $emailaddress: "");
 		
@@ -71,13 +97,14 @@ class _messenger extends CI_Model {
 			}
 			
 			# 3. Send message
-			if(!empty($emailMessage['details']))
+			if(!empty($messageDetails['details']))
 			{
 				$this->email->to($emailTo);
 				$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
 				$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
 				if(!empty($messageDetails['cc'])) $this->email->cc($messageDetails['cc']);
-				if($template['copy_admin'] == 'Y') $this->email->bcc(SITE_ADMIN_MAIL);
+				# Copy admin if he is not the sender
+				if((!empty($template['copy_admin']) && $template['copy_admin'] == 'Y') && $messageDetails['email_from'] != SITE_ADMIN_MAIL) $this->email->bcc(SITE_ADMIN_MAIL);
 			
 				$this->email->subject($messageDetails['subject']);
 				$this->email->message($messageDetails['details']);
@@ -91,6 +118,7 @@ class _messenger extends CI_Model {
 				# echo $this->email->print_debugger();
 		
 				$isSent = $this->email->send();
+				$this->email->clear(TRUE);
 				
 				#Record messsage exchange if sent
 				if($isSent && !empty($userId)) $result = $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'log_email', 'attachment'=>(!empty($messageDetails['fileurl'])? $messageDetails['fileurl']: ''), 'details'=>$messageDetails['details'], 'subject'=>$messageDetails['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
@@ -111,23 +139,23 @@ class _messenger extends CI_Model {
 			$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$userId));
 			if(!empty($user['telephone']))
 			{
-				$this->load->model('_carrier');
+				$messageDetails['email_from'] = !empty($messageDetails['emailfrom'])? $messageDetails['emailfrom']: NOREPLY_EMAIL;
+				$messageDetails['from_name'] = !empty($messageDetails['fromname'])? $messageDetails['fromname']: SITE_GENERAL_NAME;
+					
+				#Populate the template if given the code
+				if(!empty($messageDetails['code']))
+				{
+					$template = $this->get_template_by_code($messageDetails['code']);
+					$smsMessage = $this->populate_template($template, $messageDetails);
+					$messageDetails['subject'] = $smsMessage['subject'];
+					$messageDetails['sms'] = $smsMessage['sms'];
+				}
 				
+				#Attempt sending by SMS and then by API
+				$this->load->model('_carrier');
 				$carrierEmailDomain = $this->_carrier->get_email_domain($user['telephone']);
 				if(!empty($carrierEmailDomain))
 				{
-					$messageDetails['email_from'] = !empty($messageDetails['emailfrom'])? $messageDetails['emailfrom']: $this->native_session->get('__email_address');
-					$messageDetails['from_name'] = !empty($messageDetails['fromname'])? $messageDetails['fromname']: $this->native_session->get('__last_name').' '.$this->native_session->get('__first_name');
-					
-					#Populate the template if given the code
-					if(!empty($messageDetails['code']))
-					{
-						$template = $this->get_template_by_code($messageDetails['code']);
-						$smsMessage = $this->populate_template($template, $messageDetails);
-						$messageDetails['subject'] = $smsMessage['subject'];
-						$messageDetails['sms'] = $smsMessage['sms'];
-					}
-					
 					$this->email->to($user['telephone'].'@'.$carrierEmailDomain);
 					$this->email->from($messageDetails['email_from'], $messageDetails['from_name']);
 					$this->email->reply_to($messageDetails['email_from'], $messageDetails['from_name']);
@@ -137,10 +165,26 @@ class _messenger extends CI_Model {
 					$this->email->message($messageDetails['sms']);
 				
 					$isSent = $this->email->send();
+					$this->email->clear(TRUE);
 					
 					#Record messsage exchange if sent
 					if($isSent && !empty($userId)) $result = $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'log_sms', 'details'=>$messageDetails['sms'], 'subject'=>$messageDetails['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
 				}
+			}
+			
+			#Else use the SMS-Global gateway to send the SMS
+			if(!$isSent && !empty($user['telephone']) && !empty($messageDetails['sms']))
+			{
+				$this->load->library('Sms_global', array('user'=>SMS_GLOBAL_USERNAME, 'pass'=>SMS_GLOBAL_PASSWORD, 'from'=>SMS_GLOBAL_VERIFIED_SENDER)); 
+				
+				$this->sms_global->to(preg_replace('/^0/', '256', $user['telephone']));
+				$this->sms_global->from(SMS_GLOBAL_VERIFIED_SENDER);
+				$this->sms_global->message($messageDetails['sms']);
+				$this->sms_global->send();
+				# only use this to output the message details on screen for debugging
+				#$this->sms_global->print_debugger(); 
+				
+				$isSent = !empty($this->sms_global->get_sms_id())? true: false; 
 			}
 		}
 		
@@ -170,19 +214,21 @@ class _messenger extends CI_Model {
 			$messageDetails['subject'] = $systemMessage['subject'];
 			$messageDetails['details'] = $systemMessage['details'];
 			
-			if($template['copy_admin'] == 'Y') $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'system', 'details'=>$messageDetails['details'], 'attachment'=>(!empty($messageDetails['fileurl'])? $messageDetails['fileurl']: ''), 'subject'=>$messageDetails['subject'], 'recipient_id'=>implode("','", $this->get_admin_users()), 'sender'=>$messageDetails['email_from']));
+			if($template['copy_admin'] == 'Y') $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'system', 'details'=>$messageDetails['details'], 'attachment'=>(!empty($messageDetails['fileurl'])?  substr(strrchr($messageDetails['fileurl'], "/"),1): ''), 'subject'=>$messageDetails['subject'], 'recipient_id'=>implode("','", $this->get_admin_users()), 'sender'=>$messageDetails['email_from']));
 		}
 		
 		# 2. Record the message exchange to be accessed by the recipient in their inbox
-		return $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'system', 'details'=>$messageDetails['details'], 'attachment'=>(!empty($messageDetails['fileurl'])? $messageDetails['fileurl']: ''), 'subject'=>$messageDetails['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
+		return $this->_query_reader->run('record_message_exchange', array('code'=>(!empty($messageDetails['code'])? $messageDetails['code']: 'user_defined_message'), 'send_format'=>'system', 'details'=>$messageDetails['details'], 'attachment'=>(!empty($messageDetails['fileurl'])? substr(strrchr($messageDetails['fileurl'], "/"),1): ''), 'subject'=>$messageDetails['subject'], 'recipient_id'=>$userId, 'sender'=>$messageDetails['email_from']));
 	}	
 			
-	
+
 	
 	# Get a template of the message given its code
 	function get_template_by_code($code)
 	{
-		return $this->_query_reader->get_row_as_array('get_message_template', array('message_type'=>$code));
+		$cachedMessage = ENABLE_MESSAGE_CACHE? get_sys_message($code):'';
+		
+		return (!empty($cachedMessage) && ENABLE_MESSAGE_CACHE)? $cachedMessage: $this->_query_reader->get_row_as_array('get_message_template', array('message_type'=>$code));
 	}	
 				
 	
@@ -284,10 +330,12 @@ class _messenger extends CI_Model {
 		
 		if(!empty($details['userid']))
 		{
-			if(strtolower(trim($details['userid'])) == 'all')
+			# Send to more than one user
+			if(strtolower(trim($details['userid'])) == 'all' || $details['userid'] == '_all_admins_')
 			{
-				$users = $this->_query_reader->get_list('get_active_users');
+				$users = ($details['userid'] == '_all_admins_')? $this->get_admin_users('list'): $this->_query_reader->get_list('get_active_users');
 				$unsuccessful = array();
+				
 				foreach($users AS $row)
 				{
 					if($row['id'] != $this->native_session->get('__user_id'))
@@ -393,10 +441,77 @@ class _messenger extends CI_Model {
 	
 	
 	# Returns admin user ids
-	function get_admin_users()
+	function get_admin_users($return='array')
 	{
-		return $this->_query_reader->get_single_column_as_array('get_users_in_group', 'user_id', array('group'=>'admin', 'condition'=>''));
+		if($return == 'list')
+			return $this->_query_reader->get_list('get_users_in_group', array('group'=>'admin', 'condition'=>''));
+		else 
+			return $this->_query_reader->get_single_column_as_array('get_users_in_group', 'user_id', array('group'=>'admin', 'condition'=>''));
 	}
+	
+	# Returns users in the specified permission groups
+	function get_users_in_role($groups, $thisUserId='')
+	{
+		$userIds = array();
+		
+		# 1. Go through the user groups picking the users in the groups by ids
+		foreach($groups AS $group)
+		{
+			# 2. If the group is CAO, then pick only CAO users in the user's county/district if the user has no county
+			if($group == 'cao')
+			{
+				$userIds = array_merge($userIds, $this->_query_reader->get_single_column_as_array('get_caos_for_user', 'user_id', array('teacher_id'=>$thisUserId)) );
+			}
+			# 3. If the group is Manager, the pick only the Manager users at the user's school
+			else if($group == 'manager')
+			{
+				$userIds = array_merge($userIds, $this->_query_reader->get_single_column_as_array('get_managers_for_user', 'user_id', array('teacher_id'=>$thisUserId)) );
+			}
+			else
+			{
+				$userIds = array_merge($userIds, $this->_query_reader->get_single_column_as_array('get_users_in_group', 'user_id', array('group'=>$group, 'condition'=>'')) );
+			}
+		}
+		
+		return $userIds;
+	}
+	
+	
+	
+	
+	# Get part of an address for a user
+	function get_address_part($userId, $addressPart, $addressType='contact')
+	{
+		$address = $this->_query_reader->get_row_as_array('get_user_address', array('user_id'=>$userId, 'address_type'=>$addressType));
+		return !empty($address[$addressPart])? $address[$addressPart]: '';
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	#Load queries into the message file
+	public function load_messages_into_cache()
+	{
+		$messages = $this->db->query("SELECT * FROM message")->result_array();
+		
+		#Now load the queries into the file
+		file_put_contents(MESSAGE_FILE, "<?php ".PHP_EOL."global \$sysMessage;".PHP_EOL); 
+		foreach($messages AS $message)
+		{
+			$messageString = "\$sysMessage['".$message['message_type']."'] = array('subject'=>\"".str_replace('"', '\"', $message['subject'])."\", 'details'=>\"".str_replace('"', '\"', $message['details'])."\", 'sms'=>\"".str_replace('"', '\"', $message['sms'])."\", 'copy_admin'=>'".$message['copy_admin']."');".PHP_EOL;  
+			file_put_contents(MESSAGE_FILE, $messageString, FILE_APPEND);
+		}
+		
+		file_put_contents(MESSAGE_FILE, PHP_EOL.PHP_EOL." function get_sys_message(\$code) { ".PHP_EOL."global \$sysMessage; ".PHP_EOL."return !empty(\$sysMessage[\$code])? \$sysMessage[\$code]: '';".PHP_EOL." }".PHP_EOL, FILE_APPEND); 
+		
+		echo "MESSAGE CACHE FILE HAS BEEN UPDATED [".date('F d, Y H:i:sA T')."]";
+	}
+	
+	
 }
 
 ?>

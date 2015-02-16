@@ -15,13 +15,7 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-ui.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-
-
+<?php echo minify_js('vacancy-details', array('jquery-2.1.1.min.js', 'jquery-ui.js', 'jquery.form.js', 'tmis.js', 'tmis.fileform.js'));?>
 </head>
 
 <body style="margin:0px;">
@@ -37,11 +31,22 @@ if(!empty($details))
 	<tr><td>".str_replace("href=", " target='_blank' href=", html_entity_decode($details['details'], ENT_QUOTES))."</td></tr>
 	<tr><td style='padding-top:20px;'><div class='leftnote h3 value'>Respond By: ".date('d-M-Y', strtotime($details['end_date']))."</div></td></tr>";
 	
-	if(!$this->native_session->get('__user_id')){
-		echo "<tr><td style='padding-top:20px;text-align:center;'><input type='button' id='applyforjob' name='applyforjob' class='btn' style='width:200px;' value='APPLY' /></td></tr>";
+	# Show the apply button
+	if(check_access($this, 'apply_for_job', 'boolean') || !$this->native_session->get('__user_id'))
+	{
+		echo "<tr><td style='padding-top:20px;text-align:center;'><div id='apply_btn_div'><input type='button' id='applyforjob' name='applyforjob' style='width:200px;' value='APPLY' ";
+	
+		if($this->native_session->get('__user_id')){
+			echo " class='btn frompop' data-rel='".base_url()."job/apply/action/confirm/id/".$details['id']."' ";
+		} else {
+			echo " class='btn' onclick=\"updateFieldLayer('".base_url()."job/apply/id/".$details['id']."','','apply_btn_div','application_option_div','')\" ";
+		}
+	
+		echo " /></div><div id='application_option_div' style='display:none;'></div></td></tr>";
 	}
 }	
 ?>
 </table>
+<input type="hidden" id="layerid" name="layerid" value="" />
 </body>
 </html>

@@ -52,7 +52,7 @@ $(function() {
 			//In cases where you are coming back to the page from another page
 			if($('#'+fieldId+'__div').html() == ''){
 				$('#'+fieldId+'__div').width($('#'+fieldId).outerWidth());//Set its width to be the same as that of the field
-				updateFieldLayer(getBaseURL()+"page/get_custom_drop_list/type/"+listType,'','',fieldId+'__div','');
+				updateFieldLayer(getBaseURL()+"page/get_custom_drop_list/type/"+listType+addSelectVariables($('#'+fieldId)),'','',fieldId+'__div','');
 			} 
 			//In cases where you are just showing the same page div that you have just loaded
 			else 
@@ -64,7 +64,7 @@ $(function() {
 		{
 			$('#'+fieldId).after("<div id='"+fieldId+"__div' class='selectfielddiv'></div><input type='hidden' id='"+fieldId+"__hidden' name='"+fieldId+"__hidden' value=''>");//Add the field div and value hidden field
 			$('#'+fieldId+'__div').width($('#'+fieldId).outerWidth());//Set its width to be the same as that of the field
-			updateFieldLayer(getBaseURL()+"page/get_custom_drop_list/type/"+listType,'','',fieldId+'__div','');
+			updateFieldLayer(getBaseURL()+"page/get_custom_drop_list/type/"+listType+addSelectVariables($('#'+fieldId)),'','',fieldId+'__div','');
 		}
 		
 		//Reposition the drop down either above or below field based on its location
@@ -135,7 +135,7 @@ $(function() {
 		var listType = fieldId.split('__').pop();
 		var searchValue = ($(this).val() != ''? '/search_by/'+replaceBadChars($(this).val()): '');
 		
-		updateFieldLayer(getBaseURL()+"page/get_custom_drop_list/type/"+listType+searchValue,'','',fieldId+'__div','');
+		updateFieldLayer(getBaseURL()+"page/get_custom_drop_list/type/"+listType+searchValue+addSelectVariables($(this)),'','',fieldId+'__div','');
 	});
 	
 	
@@ -214,7 +214,10 @@ $(function() {
 		
 		//Now take the appropriate action
 		if(hasEmpty == "Y"){
-			showServerSideFadingMessage('Enter all required fields to continue.');
+			//use custom message if provided
+			var msg = $('#'+formId).find('#errormessage').first().length? $('#'+formId).find('#errormessage').first().val(): 'Enter all required fields to continue.';
+			
+			showServerSideFadingMessage(msg);
 			$('#'+firstEmpty).focus();
 		} else {
 			return true;
@@ -310,10 +313,13 @@ $(function() {
 					if(tempMessage != '') showServerSideFadingMessage(tempMessage);
 				},
 				error: function( xhr ) {
-    				showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
+    				console.log(xhr);
+					showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
 				},
       	 		success: function(data) {
 		   			if(data.match(/error/i)) {
+						console.log(data);
+					
 						// Determine which error to show
 						//The script failed
 						if(data.indexOf('/>') > -1)
@@ -338,7 +344,8 @@ $(function() {
 								$(this).val('').removeAttr('checked').removeAttr('selected');
 							}
 						});
-						$("#"+resultsDiv).html(data);
+						
+						$("#"+resultsDiv).html(data).fadeIn('fast');
 					}
 				}
    			});
@@ -520,6 +527,33 @@ $(function() {
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+// Get custom additional fields to be passed with a select field
+function addSelectVariables(selectObj)
+{
+	var addnValues = "";
+	
+	if(selectObj.data('val')){
+		var fields = selectObj.data('val').split('|');
+		for(var i=0; i<fields.length; i++){
+			addnValues += '/'+fields[i]+'/'+replaceBadChars($('#'+fields[i]).val());
+		}
+	}
+	
+	return addnValues;
+}
+	
+	
+	
+	
 
 
 
@@ -539,20 +573,24 @@ function postFormFromLayer(formId)
            	//Do nothing
 		},
       	 success: function(data) {
-		   	$("#"+fieldId+'__resultsdiv').html(data);
+			$("#"+fieldId+'__resultsdiv').html(data);
 		}
    	});
-	$('#'+fieldId+'__resultsdiv').hide('fast');
 	
-	//Now show what needs to be shown to the user in their field
-	var fields = $("#"+fieldId+'__response_fields').val().split('|');
-	var response = "";
-	$.each(fields, function( index, value ){
-		response += ($('#'+value).length && $('#'+value).val().length > 0)? (index > 0? ", ": "")+$('#'+value).val(): "";
-	});
+	if(!$('#'+fieldId+'__ignorepostprocessing').length)
+	{
+		$('#'+fieldId+'__resultsdiv').hide('fast');
 	
-	$('#'+fieldId).val(response);
-	$('#'+fieldId+'__div').fadeOut('fast');	
+		//Now show what needs to be shown to the user in their field
+		var fields = $("#"+fieldId+'__response_fields').val().split('|');
+		var response = "";
+		$.each(fields, function( index, value ){
+			response += ($('#'+value).length && $('#'+value).val().length > 0)? (index > 0? ", ": "")+$('#'+value).val(): "";
+		});
+	
+		$('#'+fieldId).val(response);
+		$('#'+fieldId+'__div').fadeOut('fast');	
+	}
 }
 
 

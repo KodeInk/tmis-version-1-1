@@ -24,18 +24,19 @@ if(!empty($list))
 	if(!empty($action) && $action == 'verify')
 	{
 		if($row['status'] == 'pending'){
-			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm'></div>
-			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow'></div>";
+			echo "<div data-val='approve__".$row['id']."' ".$listType." class='approverow confirm' title='Click to approve'></div>
+			<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>";
 		}
 		else if($row['status'] == 'active'){
-			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
+			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm' title='Click to archive'></div>";
 		}
 		else if($row['status'] == 'inactive'){
-			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm'></div>";
+			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm' title='Click to restore'></div>";
 		}
 	}
 	
-	echo "</td> <td>".$row['teacher_name']."</td> 
+	echo "</td> 
+	<td><a href='".base_url()."teacher/add/id/".$row['teacher_id']."/action/view' class='shadowbox closable'>".$row['teacher_name']."</a></td> 
 	<td>".format_date($row['start_date'],'d-M-Y').' to '.format_date($row['end_date'],'d-M-Y')."</td>
 	<td>".$row['weekly_workload_average']."</td>
 	<td><a href='".base_url()."census/sub_lists/id/".$row['id']."/type/training' class='shadowbox closable'>Training</a></td>

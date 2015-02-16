@@ -59,7 +59,7 @@ class _vacancy extends CI_Model
 		if($passed['boolean'])
 		{
 			$details = $passed['data'];
-			$isUpdated = $this->_query_reader->run('update_vacancy_data', array('topic'=>$details['headline'], 'summary'=>$details['summary'], 'details'=>$details['details'], 'start_date'=>format_date($details['publishstart'], 'YYYY-MM-DD'), 'end_date'=>format_date($details['publishend'], 'YYYY-MM-DD'), 'vacancy_id'=>$vacancyId ));
+			$isUpdated = $this->_query_reader->run('update_vacancy_data', array('topic'=>$details['headline'], 'summary'=>$details['summary'], 'details'=>$details['details'], 'start_date'=>format_date($details['publishstart'], 'YYYY-MM-DD'), 'end_date'=>format_date($details['publishend'], 'YYYY-MM-DD'), 'vacancy_id'=>$vacancyId, 'updated_by'=>$this->native_session->get('__user_id') ));
 			
 			if($isUpdated) $this->native_session->delete_all($details);
 		}
@@ -67,34 +67,13 @@ class _vacancy extends CI_Model
 		return array('boolean'=>$isUpdated, 'msg'=>$msg, 'id'=>$vacancyId);
 	}	
 		
-		
 	
-	# Archive a vacancy
-	function archive($vacancyId)
+	# Change the status of the vacancy
+	function change_status($vacancyId, $newStatus)
 	{
-		$result = $this->_query_reader->run('update_vacancy_status', array('vacancy_id'=>$vacancyId, 'status'=>'archived'));
-		return array('boolean'=>$result);
-	}	
-	
-		
-		
-	
-	# Restore an archived vacancy
-	function restore($vacancyId)
-	{
-		$result = $this->_query_reader->run('update_vacancy_status', array('vacancy_id'=>$vacancyId, 'status'=>'saved'));
-		return array('boolean'=>$result);
-	}		
-		
-	
-	# STUB: Apply for a vacancy
-	function apply($vacancyDetails)
-	{
-		$isApplied = false;
-		
-		
-		return $isApplied;
+		return $result = $this->_query_reader->run('update_vacancy_status', array('vacancy_id'=>$vacancyId, 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id')));
 	}
+	
 		
 		
 	
@@ -135,6 +114,7 @@ class _vacancy extends CI_Model
 	function get_list($instructions=array())
 	{
 		$searchString = " V.status='published' ";
+		$orderBy = " V.date_added DESC ";
 		if(!empty($instructions['action']) && $instructions['action']== 'publish')
 		{
 			$searchString = " V.status IN ('saved','verified') ";
@@ -147,6 +127,11 @@ class _vacancy extends CI_Model
 		{
 			$searchString = " V.status='saved' ";
 		}
+		else if(!empty($instructions['action']) && $instructions['action']== 'public')
+		{
+			$searchString = " V.status='published' AND (DATE(V.start_date) < NOW() AND DATE(V.end_date) > NOW()) ";
+			$orderBy = " V.end_date ASC ";
+		}
 		
 		# If a search phrase is sent in the instructions
 		if(!empty($instructions['searchstring']))
@@ -158,7 +143,7 @@ class _vacancy extends CI_Model
 		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
 		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
 		
-		return $this->_query_reader->get_list('get_vacancy_list_data',array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" V.date_added DESC "));
+		return $this->_query_reader->get_list('get_vacancy_list_data',array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>$orderBy));
 	}
 	
 	
@@ -207,27 +192,29 @@ class _vacancy extends CI_Model
 			switch($instructions['action'])
 			{
 				case 'approve_toverify':
-					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '2', 'approved', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') ); 
+					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '2', 'approved', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): 'NONE') );
+					$this->change_status($instructions['id'], 'verified'); 
 				break;
 				
 				case 'reject_fromverify':
-					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '2', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') ); 
+					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '2', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): 'NONE') );
 				break;
 				
 				case 'approve_topublish':
-					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '3', 'approved', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') );
+					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '3', 'approved', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): 'NONE') );
+					# The vacancy status is changed by the approval chain
 				break;
 				
 				case 'reject_frompublish':
-					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '3', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') );
+					$result = $this->_approval_chain->add_chain($instructions['id'], 'vacancy', '3', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): 'NONE') );
 				break;
 				
 				case 'archive':
-					$result = $this->archive($instructions['id']);
+					$result = $this->change_status($instructions['id'], 'archived');
 				break;
 				
 				case 'restore':
-					$result = $this->restore($instructions['id']);
+					$result = $this->change_status($instructions['id'], 'saved');
 				break;
 			}
 		}

@@ -26,9 +26,13 @@ class Teacher extends CI_Controller
 	function add()
 	{
 		$data = filter_forwarded_data($this);
-		check_access($this, 'add_new_teacher');
+		# Only proceed if just viewing or has access rights
+		if(!(((!empty($data['action']) && $data['action'] == 'view')) || check_access($this, 'add_new_teacher', 'boolean'))) 
+			check_access($this, 'add_new_teacher');
+		
 		# Remove any session variables if still in the session.
-		if(empty($_POST) && empty($data['edit']) && !(!empty($data['urlaction']) && $data['urlaction'] == 'submit')) $this->_teacher->clear_session();
+		if(empty($_POST) && empty($data['edit']) && !(!empty($data['urlaction']) && $data['urlaction'] == 'submit')) 
+			$this->_teacher->clear_session();
 		
 		# If user has posted the form for processing
 		if(!empty($_POST))
@@ -166,6 +170,24 @@ class Teacher extends CI_Controller
 			$this->load->view('addons/basic_addons', $data);
 		}
 	}
+	
+	
+	
+	
+	# Download the list
+	function download()
+	{
+		check_access($this, 'view_teachers');
+		
+		$data['list'] = array();
+		$list = $this->_teacher->get_list(array('action'=>'download', 'pagecount'=>DOWNLOAD_LIMIT));
+		foreach($list AS $row) array_push($data['list'], array('Teacher Name'=>$row['name'], 'School'=>$row['school'], 'School Address'=>$row['school_address'], 'Email Address'=>$row['email_address'], 'Telephone'=>$row['telephone'], 'Date Added'=>date('d-M-Y', strtotime($row['date_added'])) ));
+		
+		$data['area'] = 'download_csv';
+		$this->load->view('page/download', $data); 
+	}
+	
+	
 	
 	
 }

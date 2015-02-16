@@ -115,6 +115,96 @@ class _finder extends CI_Model
 				break;
 				
 				
+				case 'job':
+					$this->load->model('_job');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('V.topic', 'V.summary', 'I.name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_job->get_list($data);
+				break;
+				
+				
+				case 'interview':
+					$this->load->model('_interview');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						if(in_array($instructions['action'], array('setdate', 'recommend', 'recommendations'))) 
+							$default = array('V.topic', 'V.summary', 'I.name');
+						else if($instructions['action'] == 'shortlist') $default = array('S.shortlist_name', 'V.topic', 'I.name');
+						else $default = array('P.first_name', 'P.last_name', 'V.topic');
+						
+						$searchBy = !empty($data['searchby'])? $data['searchby']: $default;
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_interview->get_list($data);
+				break;
+				
+				
+				case 'confirmation':
+					$this->load->model('_confirmation');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P1.last_name', 'P1.first_name', 'D.name', 'I.name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_confirmation->get_list($data);
+				break;
+				
+				
+				case 'retirement':
+					$this->load->model('_retirement');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.last_name', 'P.first_name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_retirement->get_list($data);
+				break;
+				
+				
+				case 'leave':
+					$this->load->model('_leave');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.last_name', 'P.first_name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_leave->get_list($data);
+				break;
+				
+				
+				case 'transfer':
+					$this->load->model('_transfer');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.last_name', 'P.first_name', 'I.name');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_transfer->get_list($data);
+				break;
+				
+				
+				case 'report':
+					$this->load->model('_report');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.last_name', 'P.first_name', 'L.details');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_report->get_list($data);
+				break;
+				
+				
+				
 				
 			}
 		}

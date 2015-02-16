@@ -15,6 +15,7 @@ class Report extends CI_Controller
 	public function __construct()
     {
         parent::__construct();
+		$this->load->model('_report');
 	}
 	
 	
@@ -25,8 +26,8 @@ class Report extends CI_Controller
 		$instructions['action'] = array('user'=>'view_user_log', 'system'=>'view_system_log');
 		check_access($this, get_access_code($data, $instructions));
 		
-		
-		$this->load->view('page/under_construction', $data); 
+		$data['list'] = $this->_report->get_list($data);
+		$this->load->view('report/list_reports', $data); 
 	}
 	
 	

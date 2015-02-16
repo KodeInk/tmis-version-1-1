@@ -24,23 +24,23 @@ if(!empty($list))
 	if(!empty($action) && $action == 'verify')
 	{
 		if($row['teacher_status'] == 'completed'){
-			echo "<div data-val='approve_toapproved__".$row['id']."' ".$listType." class='approverow'></div>
-			<div data-val='reject_fromcompleted__".$row['id']."' ".$listType." class='rejectrow'></div>";
+			echo "<div data-val='approve_toapproved__".$row['id']."' ".$listType." class='approverow' title='Click to approve'></div>
+			<div data-val='reject_fromcompleted__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>";
 		}
 		else if($row['teacher_status'] == 'active')
 		{
-			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm'></div>";
+			echo "<div data-val='archive__".$row['id']."' ".$listType." class='archiverow confirm' title='Click to archive'></div>";
 		}
 		else if($row['teacher_status'] == 'archived')
 		{
-			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm'></div>";
+			echo "<div data-val='restore__".$row['id']."' ".$listType." class='restorerow confirm' title='Click to restore'></div>";
 		}
 	}
 	else  if(!empty($action) && $action == 'approve')
 	{
 		if($row['teacher_status'] == 'approved' && !$this->native_session->get('__nosignature')){
-			echo "<div data-val='approve_toactive__".$row['id']."' ".$listType." class='approverow'></div>
-			<div data-val='reject_fromapproved__".$row['id']."' ".$listType." class='rejectrow'></div>";
+			echo "<div data-val='approve_toactive__".$row['id']."' ".$listType." class='approverow' title='Click to approve'></div>
+			<div data-val='reject_fromapproved__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>";
 		}
 	}
 	
@@ -52,9 +52,9 @@ if(!empty($list))
 	<td>".$row['telephone']."</td>
 	<td>".$row['email_address']."</td>
 	<td>".strtoupper($row['teacher_status'])."</td>
-	<td>".format_date($row['last_updated'],'d-M-Y h:i:sa T').
+	<td>".format_date($row['last_updated'],'d-M-Y h:ia T').
 	
-	(check_access($this, 'add_new_teacher', 'boolean')? "<br><div class='rightnote'><a href='".base_url()."teacher/add/id/".$row['id']."/action/view' class='shadowbox closable'>details</a></div>": "").
+	"<br><div class='rightnote'><a href='".base_url()."teacher/add/id/".$row['id']."/action/view' class='shadowbox closable'>details</a></div>".
 	
 	((check_access($this, 'add_new_teacher', 'boolean') && !empty($action) && $action == 'view')? "<div class='rightnote'><a href='".base_url()."teacher/add/id/".$row['id']."/action/verify' class='shadowbox'>edit</a></div>": "")
 	

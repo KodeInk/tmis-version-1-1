@@ -29,6 +29,11 @@ class Register extends CI_Controller
 		{
 			$this->native_session->set('just_preview_1', 'Y');
 		}
+		else if(!empty($data['action']) && $data['action'] == 'prefill')
+		{
+			$this->load->model('_teacher');
+			$this->_teacher->populate_session($this->native_session->get('__user_id'));
+		}
 		
 		# The user posted the form
 		if(!empty($_POST))
@@ -253,7 +258,7 @@ class Register extends CI_Controller
 		# The user posted the form
 		if(!empty($_POST))
 		{
-			$result = $this->_person->submit_application($this->native_session->get('person_id'), array('user_id'=>$this->native_session->get('user_id'), 'emailaddress'=>$this->native_session->get('emailaddress'), 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname')));
+			$result = $this->_person->submit_application($this->native_session->get('person_id'), array('user_id'=>($this->native_session->get('__user_id')? $this->native_session->get('__user_id'): $this->native_session->get('user_id')), 'emailaddress'=>$this->native_session->get('emailaddress'), 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname')));
 			if($result['boolean'])
 			{
 				$data['msg'] = !empty($result['msg'])? $result['msg']: "Your application has been submitted. You will be notified using your registered email when it is approved.";

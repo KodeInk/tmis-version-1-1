@@ -15,29 +15,22 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.mobile.css" media="(max-width:790px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.tablet.css" media="(min-width:791px) and (max-width: 900px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
-
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
 
 <!-- Javascript -->
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery-2.1.1.min.js'></script>
-<script type='text/javascript' src='<?php echo base_url();?>assets/js/jquery.form.js'></script>
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.fileform.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.menu.js"></script> 
-<script type="text/javascript" src="<?php echo base_url();?>assets/js/tmis.responsive.js"></script> 
-
+<?php echo minify_js('profile-user_data', array('jquery-2.1.1.min.js', 'jquery.form.js', 'tmis.js', 'tmis.callout.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js'));?>
 </head>
 
 <body style="margin:0px;">
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <?php $this->load->view("addons/secure_header", array('page'=>'my_settings'));?>
   <tr>
-    <td valign="top" colspan="2" class="bodyspace">
+    <td valign="top" colspan="2" style="padding-left:15px;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0">
       <tr>
         <td id="menucontainer"><?php $this->load->view("addons/menu", array('clear_menu'=>'Y'));?></td>
-        <td style="padding-left:15px;padding-top:15px; vertical-align:top;">
+        <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 		<table width="100%" border="0" cellspacing="0" cellpadding="0">
       		<?php echo !empty($msg)?"<tr><td>".format_notice($this,$msg)."</td></tr>": "";?>
             <tr><td style="vertical-align:middle;"><div class="nextdiv h1 grey">My Settings</div><div class="nextdiv editcontenticon editcontent"></div></td></tr>
@@ -73,11 +66,20 @@
     <td class="label">Other Names:</td>
     <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_firstname');?></div><div class="editdiv"><input type="text" id="firstname" name="firstname" title="Other Names" class="textfield" value="<?php echo $this->native_session->get('profile_firstname');?>"/></div></td>
   </tr>
+  
+  <tr>
+    <td class="label top">Photo:</td>
+    <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_photo')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_photo')."' style='max-height:80px;' border='0' />": 'None';?></div><div class="editdiv">
+    <?php echo $this->native_session->get('profile_photo')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_photo')."' style='max-height:110px;' border='0' /><br>": '';?>
+    <input type="text" id="photo" name="photo" title="Your Profile Photo" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_photo')? "placeholder='Select New Image'": '';?> value=""/>
+    <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF</div></div></td>
+  </tr>
+  
   <tr>
     <td class="label top">Signature on File:</td>
     <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_signature')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_signature')."' style='max-height:80px;' border='0' />": 'None';?></div><div class="editdiv">
     <?php echo $this->native_session->get('profile_signature')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_signature')."' style='max-height:80px;' border='0' /><br>": '';?>
-    <input type="text" id="signature" name="signature" title="Your Signature on File" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield" <?php echo $this->native_session->get('profile_signature')? "placeholder='Select New Image'": '';?> value=""/>
+    <input type="text" id="signature" name="signature" title="Your Signature on File" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_signature')? "placeholder='Select New Image'": '';?> value=""/>
     <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF</div></div></td>
   </tr>
   <tr>
@@ -86,6 +88,10 @@
   </tr>
   <tr>
     <td class="label">Email Address:</td><td class="value"><?php echo $this->native_session->get('profile_emailaddress');?></td>
+  </tr>
+  <tr>
+    <td class="label">Address:</td>
+    <td><div class="viewdiv value"><?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline'): 'None');?></div><div class="editdiv"><input type="text" id="contactaddress" name="contactaddress" title="Contact Address" placeholder="" maxlength="16" class="textfield placefield optional" value="<?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline'): '');?>"/></div></td>
   </tr>
   <tr>
     <td class="label">&nbsp;</td>

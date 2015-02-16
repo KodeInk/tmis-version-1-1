@@ -144,6 +144,7 @@ class _user extends CI_Model
 			}
 			else
 			{
+				$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
 				$personId = $this->native_session->get('__person_id');
 			}
 			
@@ -175,12 +176,40 @@ class _user extends CI_Model
 					{
 						$this->native_session->delete('__nosignature');
 						$this->native_session->set('__signature', $details['signature__fileurl']);
+						# Remove the old image
+						$signature = UPLOAD_DIRECTORY.'images/'.$user['signature'];
+						if(!empty($user['signature'])) if(file_exists($signature)) unlink($signature);
 					}
 				}
 				else
 				{
 					$msg = "WARNING: The uploaded file format is not supported.";
 				}
+			}
+			
+			# A new photo file has been submitted
+			if(!empty($details['photo']))
+			{
+				if(!empty($details['photo__fileurl']))
+				{
+					$isUpdated = $this->_query_reader->run('update_person_profile_part', array('query_part'=>" photo='".$details['photo__fileurl']."' ", 'person_id'=>$personId ));
+					#Update some profile settings for the user in case they do not log out
+					if($isUpdated) $this->native_session->set('__photo', $details['photo__fileurl']);
+					# Remove the old image
+					$photo = UPLOAD_DIRECTORY.'images/'.$user['photo'];
+					if(!empty($user['photo'])) if(file_exists($photo)) unlink($photo);
+				}
+				else
+				{
+					$msg = "WARNING: The uploaded file format is not supported.";
+				}
+			}
+			
+			
+			# Save the address if it is added
+			if($this->native_session->get('contactaddress__adddressline'))
+			{
+				$isUpdated = $this->_query_reader->add_data('add_new_address', array('parent_id'=>$personId, 'parent_type'=>'person', 'address_type'=>$this->native_session->get('contactaddress__addresstype'), 'importance'=>'contact', 'details'=>$this->native_session->get('contactaddress__adddressline'), 'county'=>$this->native_session->get('contactaddress__county'), 'district'=>$this->native_session->get('contactaddress__district'), 'country'=>$this->native_session->get('contactaddress__country') ));
 			}
 			
 			# Notify to login again if the user's changes were successful
@@ -248,6 +277,35 @@ class _user extends CI_Model
 		return !empty($user)? $this->_query_reader->run('update_user_password', array('user_id'=>$userId, 'new_password'=>sha1($newPassword), 'old_password'=>$user['login_password'], 'updated_by'=>$this->native_session->get('__user_id') )): false;
 	}
 	
+	
+	
+	# Recover a user password
+	function recover_password($details)
+	{
+		$result = false;
+		$msg = '';
+		
+		if(is_valid_email($details['registeredemail']))
+		{
+			$user = $this->_query_reader->get_row_as_array('get_user_by_email', array('email_address'=>$details['registeredemail']));
+			if(!empty($user))
+			{
+				$password = generate_temp_password();
+				$result = $this->update_password($user['user_id'], $password);
+				if($result) 
+				{
+					$result = $this->_messenger->send($user['user_id'], array('code'=>'password_recovery_notification', 'emailaddress'=>$details['registeredemail'], 'password'=>$password, 'login_link'=>base_url()), array('email'));
+					if(!$result) $msg = "ERROR: The message with your temporary password could not be sent.";
+				}
+				else $msg = "ERROR: The password update failed.";
+			}
+			else $msg = "WARNING: There is no valid user with the given email address.";
+		}
+		else $msg = "WARNING: Please enter a valid email address.";
+		
+		return array('boolean'=>$result, 'msg'=>$msg);
+	}
+	
 
 	
 	# STUB: Assign the user to a school
@@ -275,7 +333,10 @@ class _user extends CI_Model
 	# Change the role of the user
 	function change_role($userId, $newRole)
 	{
-		return $this->_query_reader->run('update_user_permission_group', array('user_id'=>$userId, 'permission_group'=>$newRole, 'updated_by'=>$this->native_session->get('__user_id')));
+		$result1 = $this->_query_reader->run('update_user_permission_group', array('user_id'=>$userId, 'permission_group'=>$newRole, 'updated_by'=>$this->native_session->get('__user_id')));
+		$result2 = $this->_logger->add_event(array('log_code'=>'change_user_role', 'result'=>($result1? 'success':'failed'), 'details'=>"user_id=".$userId."|new_role=".$newRole ));
+		
+		return $result1;
 	}
 	
 	
@@ -295,6 +356,20 @@ class _user extends CI_Model
 			$this->native_session->set('profile_signature', $profile['signature']);
 			if(!empty($profile['telephone'])) $this->native_session->set('profile_telephone', $profile['telephone']);
 			$this->native_session->set('profile_emailaddress', $profile['email_address']);
+			$this->native_session->set('profile_photo', $profile['photo']);
+			
+			# Load the user's contact address
+			$address = $this->_query_reader->get_row_as_array('get_user_address', array('user_id'=>$userId, 'address_type'=>'contact'));
+			if(!empty($address))
+			{
+				$this->native_session->set('contactaddress__addresstype', $address['address_type']);
+				$this->native_session->set('contactaddress__addressline', $address['addressline']);
+				$this->native_session->set('contactaddress__county', $address['county']);
+				$this->native_session->set('contactaddress__district', $address['district']);
+				$this->native_session->set('contactaddress__district__hidden', $address['district_id']);
+				$this->native_session->set('contactaddress__country', $address['country']);
+				$this->native_session->set('contactaddress__country__hidden', $address['country_id']);
+			}
 		}
 		#Setting the session for another user
 		else if(!empty($profile))
@@ -331,10 +406,12 @@ class _user extends CI_Model
 			$searchString .= " AND ".$instructions['searchstring'];
 		}
 		
+		$orderBy = ($instructions['action'] == 'download')? " ORDER BY P.last_name ASC ": " ORDER BY U.last_updated DESC ";
+		
 		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
 		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
 		
-		return $this->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" ORDER BY U.last_updated DESC "));
+		return $this->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>$orderBy));
 	}
 	
 }

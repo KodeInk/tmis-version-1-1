@@ -23,7 +23,7 @@ if(!empty($page))
     </div></td>
   </tr>
   <tr>
-    <td colspan="2" class="bluebg topgreyborder"><div style="padding-left:1%;padding-top:10px;padding-bottom:10px;" class="logo h3 lightgrey">TEACHER MANAGEMENT INFORMATION SYSTEM</div><div class="loginform"><a href="javascript:;" <?php echo $helpStyle;?>>Help</a></div></td>
+    <td colspan="2" class="bluebg topgreyborder"><div style="padding-left:1%;padding-top:10px;padding-bottom:10px;" class="logo h3 lightgrey">TEACHER MANAGEMENT INFORMATION SYSTEM</div><div class="loginform"><a href="<?php echo base_url();?>message/send_new_system" <?php echo $helpStyle;?>>Help</a></div></td>
   </tr>
   
   

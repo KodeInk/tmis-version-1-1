@@ -36,7 +36,7 @@ class _person extends CI_Model
 			
 			# First check if a user with the given email already exists
 			$check = $this->_query_reader->get_row_as_array('get_user_by_email', array('email_address'=>$details['emailaddress']));
-			if(empty($check))
+			if((empty($check) && !$this->native_session->get('person_id')) || ($this->native_session->get('person_id') && !empty($check)))
 			{
 				# Determine whether to update the data or to create a new record
 				if($this->native_session->get('person_id'))
@@ -50,7 +50,7 @@ class _person extends CI_Model
 					$details['gender'] = !empty($details['gender'])? $details['gender']: 'unknown';
 					$details['birthday'] = !empty($details['birthday'])? format_date($details['birthday'], 'YYYY-MM-DD'): '0000-00-00';
 					
-					$personId = $this->_query_reader->add_data('add_person_data', array('first_name'=>$details['firstname'], 'last_name'=>$details['lastname'], 'gender'=>$details['gender'], 'citizenship_country'=>$details['citizenship__country'], 'citizenship_type'=>$details['citizenship__citizentype'], 'marital_status'=>$details['marital'], 'date_of_birth'=>$details['birthday'] )); 
+					$personId = $this->_query_reader->add_data('add_person_data', array('first_name'=>$details['firstname'], 'last_name'=>$details['lastname'], 'gender'=>$details['gender'], 'citizenship_country'=>(!empty($details['citizenship__country'])? $details['citizenship__country']: ''), 'citizenship_type'=>(!empty($details['citizenship__citizentype'])?$details['citizenship__citizentype']: '') , 'marital_status'=>$details['marital'], 'date_of_birth'=>$details['birthday'] )); 
 			
 					if(!empty($personId) || $personId == 0)
 					{
@@ -69,7 +69,7 @@ class _person extends CI_Model
 						# 3. Create an account and generate a confirmation code
 						# For the first account, use the user's email address as the login username.
 						$password = generate_temp_password();
-						$userId = $this->_query_reader->add_data('add_user_data', array('person_id'=>$personId, 'login_name'=>$details['emailaddress'], 'login_password'=>sha1($password), 'permission_group'=>(!empty($details['role__roles'])? $details['role__roles']: ''), 'status'=>($isAdmin? 'active':(!empty($details['citizenship__citizentype'])? 'pending': 'completed')) ));
+						$userId = $this->_query_reader->add_data('add_user_data', array('person_id'=>$personId, 'login_name'=>$details['emailaddress'], 'login_password'=>sha1($password), 'permission_group'=>(!empty($details['role__roles'])? $details['role__roles']: 'Teacher Applicant'), 'status'=>($isAdmin || !empty($details['step1']) || !empty($details['step2'])? 'active':'completed') ));
 						if(empty($userId)) 
 						{
 							$msg = "ERROR: We could not create your user record.";
@@ -86,7 +86,7 @@ class _person extends CI_Model
 							if(!$result) $msg = "ERROR: We could not send the new account email message to the user.";
 						}
 						#This is a teacher
-						else if(!empty($details['citizenship__citizentype']))
+						else if(!empty($details['step1']) || !empty($details['step2']))
 						{
 							$this->_query_reader->run('update_teacher_status', array('user_id'=>$userId, 'status'=>'pending', 'updated_by'=>$userId));
 							
@@ -138,9 +138,10 @@ class _person extends CI_Model
 	{
 		$results = array();
 		$details['gender'] = !empty($details['gender'])? $details['gender']: 'unknown';
+		$details['marital'] = !empty($details['marital'])? $details['marital']: 'unknown';
 		$details['birthday'] = !empty($details['birthday'])? format_date($details['birthday'], 'YYYY-MM-DD'): '0000-00-00';
 					
-		$result = $this->_query_reader->run('update_person_data', array('person_id'=>$personId, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'last_name'=>htmlentities($details['lastname'], ENT_QUOTES), 'gender'=>$details['gender'], 'date_of_birth'=>$details['birthday'] )); 
+		$result = $this->_query_reader->run('update_person_data', array('person_id'=>$personId, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'last_name'=>htmlentities($details['lastname'], ENT_QUOTES), 'marital_status'=>$details['marital'], 'gender'=>$details['gender'], 'date_of_birth'=>$details['birthday'] )); 
 		array_push($results, $result);
 		
 		if(!empty($details['telephone'])) 
@@ -152,7 +153,7 @@ class _person extends CI_Model
 		if($this->native_session->get('birthplace__addressline'))
 		{
 			$result = $this->_query_reader->run('update_address_data', array('parent_id'=>$personId, 'parent_type'=>'person', 'address_type'=>'physical', 'importance'=>'birthplace', 'details'=>htmlentities($this->native_session->get('birthplace__addressline'), ENT_QUOTES), 'district'=>$this->native_session->get('birthplace__district'), 'country'=>$this->native_session->get('birthplace__country'), 'county'=>($this->native_session->get('birthplace__county')? $this->native_session->get('birthplace__county'): "") ));
-		array_push($results, $result);
+			array_push($results, $result);
 		}
 		
 		$isUpdated = get_decision($results);
@@ -418,7 +419,7 @@ class _person extends CI_Model
 		$results = array();
 		
 		# If the user is editing, first remove the old records
-		if($this->native_session->get('edit_step_3') || !empty($details['userid']))
+		if($this->native_session->get('edit_step_3') || !empty($personId))
 		{
 			$result1 = $this->_query_reader->run('remove_academic_history', array('person_id'=>$personId));
 			$result2 = $this->_query_reader->run('remove_subject_data', array('parent_id'=>$personId, 'parent_type'=>'person'));
@@ -473,10 +474,12 @@ class _person extends CI_Model
 	function submit_application($personId, $details)
 	{
 		$msg = "";
-		if(!is_model_loaded($this, '_approval_chain')) $this->load->model('_approval_chain');
+		#if(!is_model_loaded($this, '_approval_chain')) 
+		$this->load->model('_approval_chain');
 		
 		# 1. Mark the user status as complete - for the admin to be able to approve it
 		$result1 = $this->_query_reader->run('update_teacher_status', array('user_id'=>$details['user_id'], 'status'=>'completed', 'updated_by'=>$details['user_id']));
+		$result2 = $this->_query_reader->run('update_user_status', array('user_id'=>$details['user_id'], 'status'=>'active', 'updated_by'=>$this->native_session->get('__user_id') ));
 		if(!$result1) $msg = "ERROR: We could not set up your user account for activation.";
 		
 		# 2. Start the teacher approval chain

@@ -25,7 +25,7 @@ class Page extends CI_Controller
 		$data = filter_forwarded_data($this);
 		$this->load->model('_vacancy');
 		
-		$data['list'] = $this->_vacancy->get_list();
+		$data['list'] = $this->_vacancy->get_list(array('action'=>'public'));
 		$this->load->view('home', $data);
 	}
 	
@@ -138,16 +138,22 @@ class Page extends CI_Controller
 		# User has posted a message
 		if(!empty($_POST))
 		{
-			$passed = process_fields($this, $this->input->post(NULL, TRUE), array('yourname','emailaddress', 'reason__contactreason', 'message'));
+			$passed = process_fields($this, $this->input->post(NULL, TRUE), array('yourname','emailaddress', 'reason__contactreason', 'details'), array('@','!'));
 			$data['msg'] = !empty($passed['msg'])? $passed['msg']: "";
 			
 			# All required fields are included? Then send the message to the admin
 			if($passed['boolean'])
 			{
 				$details = $passed['data'];
-				$data['result'] = $this->_messenger->send('', array('code'=>'contact_us_message', 'emailfrom'=>$details['emailaddress'], 'telephone'=>(!empty($details['telephone'])? $details['telephone']:''), 'fromname'=>$details['yourname'], 'cc'=>$details['emailaddress'], 'subject'=>$details['reason__contactreason'], 'details'=>$details['message'], 'emailaddress'=>HELP_EMAIL, 'login_link'=>base_url(), 'sent_time'=>date('d-M-Y h:i:sa T', strtotime('now')) ));
 				
-				$data['msg'] = $data['result']? "Your message has been sent. We shall respond as soon as possible.": "ERROR: There was a problem sending your message";
+				$data['result'] = $this->_messenger->send('', array('code'=>'contact_us_message', 'emailfrom'=>NOREPLY_EMAIL, 'telephone'=>(!empty($details['telephone'])? $details['telephone']:''), 'fromname'=>SITE_GENERAL_NAME, 'cc'=>$details['emailaddress'], 'useremailaddress'=>$details['emailaddress'], 'usernames'=>$details['yourname'], 'subject'=>$details['reason__contactreason'], 'details'=>$details['details'], 'emailaddress'=>HELP_EMAIL, 'login_link'=>base_url(), 'sent_time'=>date('d-M-Y h:i:sa T', strtotime('now')) ));
+				
+				if($data['result'])
+				{
+					$this->native_session->delete_all(array('yourname'=>'','emailaddress'=>'', 'reason__contactreason'=>'', 'details'=>''));
+					$data['msg'] = "Your message has been sent. We shall respond as soon as possible.";
+				}
+				else $data['msg'] = "ERROR: There was a problem sending your message";
 			}
 			else
 			{
@@ -200,7 +206,7 @@ class Page extends CI_Controller
 		
 		if(!empty($data['type'])){
 			$searchBy = !empty($data['search_by'])? $data['search_by']: '';
-			$data['list'] =  get_option_list($this, $data['type'], 'div', $searchBy);
+			$data['list'] =  get_option_list($this, $data['type'], 'div', $searchBy, $data); 
 		}
 		
 		$data['area'] = "dropdown_list";
@@ -219,13 +225,19 @@ class Page extends CI_Controller
 				$data = !empty($_POST)? array_merge($data, $this->input->post(NULL, TRUE)): $data;
 				# Verify and clean up the fields and put them in the session for use layer
 				process_fields($this, $data);
+				$data['msg'] = "data added";
+			break;
+			
+			case 'verify_document':
+				$this->load->model('_validator');
+				$result = $this->_validator->is_valid_document($_POST);
+				$data['msg'] = $result? 'Document is valid.': 'WARNING: Document is invalid.';
 			break;
 			
 			default:
 			break;
 		}
 		
-		$data['msg'] = "data added";
 		$data['area'] = "basic_msg";
 		$this->load->view('addons/basic_addons', $data);
 	}
@@ -240,10 +252,79 @@ class Page extends CI_Controller
 	}
 	
 	
+	# Verify a document 
+	function verify()
+	{
+		$data = filter_forwarded_data($this);
+		if(!empty($_POST))
+		{
+			$this->load->model('_validator');
+			$result = $this->_validator->is_valid_document($_POST);
+			
+			$data['msg'] = $result? 'Document is valid.': 'WARNING: Document is invalid.';
+			$data['area'] = 'basic_msg';
+			$this->load->view('addons/basic_addons', $data);
+		}
+		else $this->load->view('page/verify_document', $data);
+	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	# Test send an SMS
 	function test()
 	{
-		$this->load->view('page/letter');
+		/*$this->load->library('Sms_global', array('user'=>SMS_GLOBAL_USERNAME, 'pass'=>SMS_GLOBAL_PASSWORD, 'from'=>SMS_GLOBAL_VERIFIED_SENDER)); 
+				
+		$this->sms_global->to('256784000808');
+		$this->sms_global->from('16786442425');
+		$this->sms_global->message('THIS IS A TMIS TEST SMS FROM AL. DROP ME AN EMAIL IF YOU RECEIVE THIS.');
+		$this->sms_global->send();
+		
+		# only use this to output the message details on screen for debugging
+		#$this->sms_global->print_debugger(); 
+				
+		$isSent = !empty($this->sms_global->get_sms_id())? true: false;
+		
+		
+		#$isSent = $this->_messenger->send_email_message('', array('emailfrom'=>'admin@tmis.go.ug', 'fromname'=>'TMIS TEST', 'emailaddress'=>'azziwa@gmail.com', 'subject'=>'A test email', 'details'=>'This is testing the attachement.<br>Al', 'fileurl'=>UPLOAD_DIRECTORY.'documents/file_1423958732.pdf'));
+		
+		*/
+		
+		$this->load->model('_approval_chain');
+		$chain = $this->_query_reader->get_row_as_array('get_approval_chain_by_id', array('chain_id'=>'106'));
+		
+		$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$chain['subject_id']));
+		
+		$actionDetails['date_today'] = date('d-M-Y', strtotime('now'));
+		$actionDetails['asset_folder'] = BASE_URL."assets/";
+		$actionDetails['document_size'] = 'A4';
+		$actionDetails['document_orientation'] = 'landscape';
+		$actionDetails['teacher_name'] = strtoupper($user['last_name'].' '.$user['first_name']);
+		$actionDetails['teacher_grade'] = 'PRIMARY EDUCATION - GRADE 4';
+		$actionDetails['effective_date'] = '09-Feb-2015';
+		$actionDetails['tracking_number'] = $actionDetails['certificate_number'] = '20041423958732';
+		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>'25'));
+		$actionDetails['signature_url'] = $approver['signature'];
+		
+		$isSent = $this->_approval_chain->send_document($chain, 'registration_certificate', array('system'), $actionDetails);
+		
+		if($isSent) echo "WOW! MESSAGE SENT";
+		else echo "SORRY! NOT SENT";
 	}
 	
 	

@@ -128,7 +128,7 @@ class Message extends CI_Controller
 		$data = filter_forwarded_data($this);
 		if(!empty($_POST))
 		{
-			# Approve or reject a user
+			# Verify a message
 			$result = $this->_messenger->verify($_POST);
 			
 			$actionPart = current(explode("_", $_POST['action']));

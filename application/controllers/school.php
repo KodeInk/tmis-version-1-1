@@ -19,26 +19,26 @@ class School extends CI_Controller
 	}
 	
 	
-	#STUB: View current school where this teacher works
+	# View current school where this teacher works
 	function view_current()
 	{
 		$data = filter_forwarded_data($this);
 		check_access($this, 'view_current_school');
 		
-		
-		$this->load->view('page/under_construction', $data); 
+		$data['school'] = $this->_school->get_current();
+		$this->load->view('school/current', $data); 
 	}
 	
 	
 	
-	#STUB: View previous schools where the teacher has worked before
+	# View previous schools where the teacher has worked before
 	function view_previous()
 	{
 		$data = filter_forwarded_data($this);
 		check_access($this, 'view_previous_schools');
 		
-		
-		$this->load->view('page/under_construction', $data); 
+		$data['list'] = $this->_school->get_previous();
+		$this->load->view('school/previous', $data); 
 	}
 	
 	
@@ -89,6 +89,21 @@ class School extends CI_Controller
 		
 		$data['list'] = $this->_school->get_list($data);
 		$this->load->view('school/list_schools', $data); 
+	}
+	
+	
+	
+	# Download the list
+	function download()
+	{
+		check_access($this, 'view_schools');
+		
+		$data['list'] = array();
+		$list = $this->_school->get_list(array('action'=>'download', 'pagecount'=>DOWNLOAD_LIMIT));
+		foreach($list AS $row) array_push($data['list'], array('School Name'=>$row['name'], 'Date Registered'=>$row['date_registered'], 'School Type'=>$row['school_type'], 'Address'=>$row['addressline'].' '.$row['county'].' '.$row['district'].' '.$row['country'], 'Email Address'=>$row['email_address'], 'Telephone'=>$row['telephone'] ));
+		
+		$data['area'] = 'download_csv';
+		$this->load->view('page/download', $data); 
 	}
 	
 	

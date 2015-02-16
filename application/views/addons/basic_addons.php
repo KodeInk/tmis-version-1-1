@@ -34,7 +34,8 @@ else if(!empty($area) && $area == "address_field_form")
 	   
 	$tableHTML .= "<tr><td><input type='text' id='".$field_id."__addressline' name='".$field_id."__addressline' class='textfield' placeholder='Address' value='".($this->native_session->get($field_id.'__addressline')? $this->native_session->get($field_id.'__addressline'): '')."' maxlength='200'/></td></tr>
 	
-  <tr><td><input type='text' id='".$field_id."__county' name='".$field_id."__county' class='textfield optional' placeholder='County (Optional)' value='".($this->native_session->get($field_id.'__county')? $this->native_session->get($field_id.'__county'): '')."' maxlength='200'/></td></tr>
+  <tr><td><input type='text' id='".$field_id."__county' name='".$field_id."__county' class='textfield selectfield searchable optional' placeholder='County (Optional)' data-val='-district-".$field_id."' value='".($this->native_session->get($field_id.'__county')? $this->native_session->get($field_id.'__county'): '')."' maxlength='200'/>
+  <input type='hidden' id='-district-".$field_id."' name='-district-".$field_id."' value='".$field_id."__district' /></td></tr>
   
   <tr><td><input type='text' id='".$field_id."__district' name='".$field_id."__district' class='textfield selectfield editable' placeholder='District or State' value='".($this->native_session->get($field_id.'__district')? $this->native_session->get($field_id.'__district'): '')."' maxlength='200'/>".
   ($this->native_session->get($field_id.'__district__hidden')? "<input type='hidden' id='".$field_id."__district__hidden' name='".$field_id."__district__hidden' value='".$this->native_session->get($field_id.'__district__hidden')."' /><div id='".$field_id."__district__div' class='selectfielddiv'></div>": "")
@@ -100,7 +101,7 @@ else if(!empty($area) && $area == "education_form")
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().($this->native_session->get('is_admin_adding_teacher')? "teacher": "register/step_three/action")."/add_education' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='institution_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().(($this->native_session->get('is_admin_adding_teacher') || $this->native_session->get('is_teacher_updating'))? "teacher": "register/step_three/action")."/add_education' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='institution_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
   </tr>
         </table>";
 	
@@ -151,7 +152,7 @@ else if(!empty($area) && $area == "subject_form")
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().($this->native_session->get('is_admin_adding_teacher')? "teacher": "register/step_three/action")."/add_subject' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='subject_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().(($this->native_session->get('is_admin_adding_teacher') || $this->native_session->get('is_teacher_updating'))? "teacher": "register/step_three/action")."/add_subject' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='subject_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
   </tr>
   </table>";
 }
@@ -186,7 +187,7 @@ else if(!empty($area) && $area == "subject_list")
 
 
 
-else if(!empty($area) && in_array($area, array("verify_vacancy", "verify_user", "verify_permission", "verify_school")))
+else if(!empty($area) && in_array($area, array("verify_vacancy", "verify_user", "verify_permission", "verify_school", "verify_census")))
 {
 	$item = str_replace('verify_', '', $area);
 	$additional = in_array($area, array("verify_user", "verify_permission", "verify_school"))? "WARNING: The ".$item." will be completely removed from the system. ": "";
@@ -197,6 +198,19 @@ else if(!empty($area) && in_array($area, array("verify_vacancy", "verify_user", 
 	</table>";
 }
 
+
+
+
+
+else if(!empty($area) && in_array($area, array("verify_interview")))
+{
+	$item = str_replace('verify_', '', $area);
+	
+	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='5' width='100%' />
+	<tr><td width='99%'><textarea id='reason_".$action."_".$id."' name='reason_".$action."_".$id."' class='yellowfield' style='width:100%' placeholder='WARNING: The ".$item." will be completely removed from the system. Enter the reason you want to cancel this ".$item.". (Optional)'></textarea></td>
+	<td width='1%'><input id='confirm_".$action."_".$id."' name='confirm_".$action."_".$id."' type='button' class='greybtn confirmlistbtn' style='width:125px;' value='CONFIRM' /><div style='padding-top:5px;'><input id='cancel_".$action."_".$id."' name='cancel_".$action."_".$id."' type='button' class='greybtn cancellistbtn' style='width:125px;' value='CANCEL' /><input type='hidden' id='hidden_".$action."_".$id."' name='hidden_".$action."_".$id."' value='".$item."' /></div></td></tr>
+	</table>";
+}
 
 
 
@@ -327,6 +341,14 @@ else if(!empty($area) && $area == "census_sub_lists")
 
 
 
+else if(!empty($area) && $area == "choose_job_option")
+{
+	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='5' width='100%'>
+	<tr><td colspan='2' class='h1'>Are you registered yet?</td></tr>
+	<tr><td style='text-align:left;'><button type='button' name='proceed' id='proceed' data-rel='".base_url()."account/login' class='greybtn frompop'>Yes. Login and Apply</button></td><td style='text-align:right;'><button type='button' name='register' id='register' data-rel='".base_url()."register/step_one' class='btn frompop'>No. Register and Apply</button></td></tr>
+	</table>";
+	
+}
 
 
 

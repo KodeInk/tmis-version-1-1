@@ -29,7 +29,7 @@ class _school extends CI_Model
 		if($passed['boolean'])
 		{
 			$details = $passed['data'];
-			$schoolId = $this->_query_reader->add_data('add_school_data', array('name'=>$details['schoolname'], 'school_type'=>$details['schooltype__schooltypes'], 'date_registered'=>format_date($details['dateschoolregistered'], 'YYYY-MM-DD'), 'added_by'=>$this->native_session->get('__user_id') ));
+			$schoolId = $this->_query_reader->add_data('add_school_data', array('name'=>$details['schoolname'], 'school_type'=>$details['schooltype__schooltypes'], 'start_date'=>format_date($details['dateschoolregistered'], 'YYYY-MM-DD'), 'added_by'=>$this->native_session->get('__user_id') ));
 			
 			# Add the contact details if the root school record has been added
 			if(!empty($schoolId)) 
@@ -172,12 +172,30 @@ class _school extends CI_Model
 		}
 	}
 	
+	
+	
+	#Set the current school details
+	function get_current()
+	{
+		return $this->_query_reader->get_row_as_array('get_teacher_jobs', array('user_id'=>$this->native_session->get('__user_id'), 'search_condition'=>" AND P.posting_end_date = '0000-00-00' LIMIT 1" ));
+	}
+	
+	
+	
+	#Set the previous school details
+	function get_previous()
+	{
+		return $this->_query_reader->get_list('get_previous_schools', array('user_id'=>$this->native_session->get('__user_id') ));
+	}
+	
+	
+	
 		
 	
 	# Get list of schools
 	function get_list($instructions=array())
 	{
-		$searchString = " S.status='active' ";
+		$searchString = " S.status='verified' ";
 		if(!empty($instructions['action']) && $instructions['action']== 'verify')
 		{
 			$searchString = " 1=1 "; #Show all schools
@@ -212,7 +230,7 @@ class _school extends CI_Model
 			switch($instructions['action'])
 			{
 				case 'approve':
-					$result['boolean'] = $this->change_status($instructions['id'], 'active');
+					$result['boolean'] = $this->change_status($instructions['id'], 'verified');
 				break;
 				
 				case 'reject':
@@ -250,7 +268,7 @@ class _school extends CI_Model
 			$this->_messenger->send($school['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'school', 'details'=>"Name: ".$school['name']." <br>Telephone: ".$school['telephone']." <br>Location: ".$school['addressline']." ".$school['county']." ".$school['district'].", ".$school['country'], 'status'=>strtoupper($newStatus), 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:i:sa T', strtotime('now')) ))
 			: true;
 		
-		$result2 = $this->_query_reader->run('update_item_status', array('item_id'=>$schoolId, 'table_name'=>'school', 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id') ));
+		$result2 = $this->_query_reader->run('update_item_status', array('item_id'=>$schoolId, 'table_name'=>'institution', 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id') ));
 		
 		return get_decision(array($result1,$result2), FALSE);
 	}
