@@ -283,14 +283,13 @@ function handleHttpResponse() {
 
 function handleHttpResponseRemoveDiv() {
 	var loadToDiv = document.getElementById("layerid").value;
-	//$('#'+loadToDiv).hide('fast');
+	
 	if($('#'+loadToDiv).length)
 	{
 		if (http.readyState == 4) 
 		{
 			results = http.responseText;
 			document.getElementById(loadToDiv).innerHTML = '';
-		
 			$('#'+loadToDiv).replaceWith(results);
 		}
 		else
@@ -1872,7 +1871,23 @@ function showServerSideFadingMessage(msg)
 	showFadingMessage();
 }
  
- 
+
+
+
+// Check if a date value is future date
+function isFutureDate(dateString){
+	// Process the date string
+	var months = new Array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
+	var dateArray = dateString.split(' ').shift().split('-');
+	var dateStringFormatted = (months.indexOf(dateArray[1])+1)+'/'+dateArray[0]+'/'+dateArray[2];
+	
+	var now = new Date().getTime();
+	var future = new Date(dateStringFormatted).getTime();
+	
+	return (now < future)? true: false;
+}
+
+
  
 
 
@@ -2332,15 +2347,15 @@ $(function() {
 		dateFormat: 'dd-M-yy'
 	});
 	
-		// This will require including the timepicker-addon js file
-		if($('.datefield.showtime').length > 0){
-			$('.datefield.showtime').datetimepicker({
-				changeMonth: true,
-				changeYear: true,
-				dateFormat: 'dd-M-yy',
-				timeFormat: "hh:mm tt"
-			});
-		}
+	// This will require including the timepicker-addon js file
+	if($('.datefield.showtime').length > 0){
+		$('.datefield.showtime').datetimepicker({
+			changeMonth: true,
+			changeYear: true,
+			dateFormat: 'dd-M-yy',
+			timeFormat: "hh:mm tt"
+		});
+	}
 	
 	$( ".datefield" ).datepicker({
 		changeMonth: true,

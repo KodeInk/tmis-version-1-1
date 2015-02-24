@@ -42,7 +42,7 @@ if(!empty($list))
 				<td>".$row['display']."</td>
 				<td>".$row['for_system']."</td>
 				<td>".$row['last_updated_user']."</td>
-				<td>".format_date($row['last_update_date'],'d-M-Y h:i:sa T').
+				<td>".format_date($row['last_update_date'],'d-M-Y h:ia T').
 	
 	((check_access($this, 'change_group_permissions', 'boolean') && $action == 'updategroups')? "<div class='rightnote'><a href='".base_url()."permission/add_group/id/".$row['id']."/action/edit' class='shadowbox'>edit</a></div>": "")
 	
@@ -56,7 +56,7 @@ if(!empty($list))
 				<td>".$row['user_name']."</td>
 				<td><a href='".base_url()."permission/group_permissions/id/".$row['group_id']."' class='shadowbox closable'>".$row['group_name']."</a></td> 
 				<td>".$row['default_permission']."</td>
-				<td>".format_date($row['last_update_date'],'d-M-Y h:i:sa T')."".$stop."</td>
+				<td>".format_date($row['last_update_date'],'d-M-Y h:ia T')."".$stop."</td>
 			</tr>";
 		}
 		else

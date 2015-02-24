@@ -117,7 +117,7 @@
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td align="right" style="padding-top:20px;"><button type="submit" name="step1" id="step1" value="step1" class="btn next">NEXT</button></td>
+    <td align="right" style="padding-top:20px;"><input type="submit" name="step1" id="step1" value="NEXT" class="btn next" /></td>
   </tr>
 </table>
         </form>

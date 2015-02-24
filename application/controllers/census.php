@@ -40,12 +40,20 @@ class Census extends CI_Controller
 			$this->_census->clear_session();
 			# Redirect to appropriate page if successful
 			$this->native_session->set('msg', $data['msg']);
-			# Go to verification page if user has permission
-			if(check_access($this, 'verify_teacher_census_submissions', 'boolean')) $data['action'] = 'verify';
 			
-			if($data['result']['boolean'] && !$this->input->post('censusid')) redirect(base_url().'census/lists'.(!empty($data['action']) && $data['action'] !='view'? '/action/'.$data['action']: ''));
-			else if($this->input->post('censusid')) $data['forward'] = base_url().$this->input->post('forward');
-			
+			if($data['result']['boolean'] && !$this->input->post('censusid')) 
+			{
+				if(check_access($this, 'view_teacher_census_report', 'boolean', false) || check_access($this, 'verify_teacher_census_submissions', 'boolean', false))
+				{
+					$action = check_access($this, 'verify_teacher_census_submissions', 'boolean', false)? 'verify': 'view';
+					redirect(base_url().'census/lists/action/'.$action);
+				}
+				else redirect(base_url().get_user_dashboard($this, $this->native_session->get('__user_id') ));
+			}
+			else if($this->input->post('censusid') && $this->input->post('forward')) 
+			{
+				$data['forward'] = base_url().$this->input->post('forward');
+			}
 		}
 		
 		#If editing, load the id details into the session for the first time 

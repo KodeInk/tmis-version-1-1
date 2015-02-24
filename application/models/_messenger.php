@@ -273,7 +273,7 @@ class _messenger extends CI_Model {
 		
 		if(!empty($message))
 		{
-			$msgSeparator = '<br><br><br><br>-------------------------------<br>Received '.date('d-M-Y h:i:sA T').'<br><br>';
+			$msgSeparator = '<br><br><br><br>-------------------------------<br>Received '.date('d-M-Y h:ia T', strtotime($message['date_sent'])).'<br><br>';
 			$this->native_session->set('recipientname__users', $message['sender_name']);
 			$this->native_session->set('recipientid', $message['sender_id']);
 			$this->native_session->set('subject', (strtolower(substr($message['subject'], 0,3)) != 're:'? 'Re: ': '').$message['subject']);

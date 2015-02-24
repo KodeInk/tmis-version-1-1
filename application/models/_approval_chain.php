@@ -337,7 +337,7 @@ class _approval_chain extends CI_Model
 	# Issue transfer letter as part of the approval process
 	function issue_transfer_letter($chain, $otherDetails)
 	{
-		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 		$currentPosting = $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
 		
 		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
@@ -540,7 +540,7 @@ class _approval_chain extends CI_Model
 	function change_teacher_posting($chain)
 	{
 		# 1. End the previous teacher assignment
-		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 		$currentPosting = $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
 		
 		if(!empty($currentPosting)) 
@@ -561,7 +561,7 @@ class _approval_chain extends CI_Model
 	function get_current_posting_from_chain($chain)
 	{
 		# 1. Get the transfer details
-		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 		
 		# 2. Get the current assignment from the transfer details on the teacher
 		return $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));

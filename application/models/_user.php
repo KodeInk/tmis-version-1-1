@@ -227,7 +227,7 @@ class _user extends CI_Model
 	# Check if the password provided is valid
 	function is_valid_password($password)
 	{
-		return (strlen($password) > 5 && preg_match('([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])', $password));
+		return (strlen($password) > 7 && preg_match('([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])', $password));
 	}
 	
 	
@@ -274,7 +274,11 @@ class _user extends CI_Model
 	function update_password($userId, $newPassword)
 	{
 		$user = $this->_query_reader->get_row_as_array('get_user_by_id', array('user_id'=>$userId));
-		return !empty($user)? $this->_query_reader->run('update_user_password', array('user_id'=>$userId, 'new_password'=>sha1($newPassword), 'old_password'=>$user['login_password'], 'updated_by'=>$this->native_session->get('__user_id') )): false;
+		$result1 = !empty($user)? $this->_query_reader->run('update_user_password', array('user_id'=>$userId, 'new_password'=>sha1($newPassword), 'old_password'=>$user['login_password'], 'updated_by'=>$this->native_session->get('__user_id') )): false;
+		
+		$result2 = $this->_messenger->send($userId, array('code'=>'password_recovery_notification', 'emailaddress'=>$user['login_name'], 'password'=>$newPassword, 'login_link'=>base_url() ));
+		
+		return get_decision(array($result1, $result2));
 	}
 	
 	
@@ -333,10 +337,17 @@ class _user extends CI_Model
 	# Change the role of the user
 	function change_role($userId, $newRole)
 	{
+		# 1. Update the user's permission group
 		$result1 = $this->_query_reader->run('update_user_permission_group', array('user_id'=>$userId, 'permission_group'=>$newRole, 'updated_by'=>$this->native_session->get('__user_id')));
-		$result2 = $this->_logger->add_event(array('log_code'=>'change_user_role', 'result'=>($result1? 'success':'failed'), 'details'=>"user_id=".$userId."|new_role=".$newRole ));
 		
-		return $result1;
+		# 2. Notify the user about their new permission group
+		if($result1) $result2 = $this->_messenger->send($userId, array('code'=>'notify_permission_change', 'email_from'=>NOREPLY_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'new_permission_group'=>$newRole, 'updated_by'=>$this->native_session->get('__full_name'), 'action_date'=>date('d-M-Y h:ia T', strtotime('now')), 'login_link'=>base_url() ));
+		else $result2 = false;
+		
+		# 3. Log the event
+		$result3 = $this->_logger->add_event(array('log_code'=>'change_user_role', 'result'=>($result1? 'success':'failed'), 'details'=>"user_id=".$userId."|new_role=".$newRole ));
+		
+		return get_decision(array($result1, $result2));
 	}
 	
 	

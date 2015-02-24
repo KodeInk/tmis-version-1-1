@@ -77,8 +77,8 @@ class Sms_global {
             {
                 $this->error = 'SMS Global failure';
             }
-        }
-        $this->smsID = $smsID;        
+        	$this->smsID = $smsID;
+        }        
     }
     
     function get_sms_id()

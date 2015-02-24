@@ -114,8 +114,6 @@ class Profile extends CI_Controller
 	}
 	
 	
-	
-	
 }
 
 /* End of controller file */

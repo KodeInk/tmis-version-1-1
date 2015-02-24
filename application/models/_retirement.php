@@ -40,7 +40,7 @@ class _retirement extends CI_Model
 		# Narrow the items viewed for the manager to their school(s) only
 		if($this->native_session->get('__permission_group') == '3')
 		{
-			$searchString .= " AND PS.institution_id IN ('".implode("','", $this->get_postings($this->native_session->get('__user_id')))."') ";
+			$searchString .= " AND PS.institution_id IN ('".implode("','", $this->get_postings($this->native_session->get('__user_id')))."') AND retiree_id <> '".$this->native_session->get('__user_id')."' ";
 		}
 		
 		# If a search phrase is sent in the instructions

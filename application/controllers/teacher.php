@@ -83,6 +83,8 @@ class Teacher extends CI_Controller
 		#If editing - and for the first time, load the id details into the session 
 		if(!empty($data['id']) && empty($data['edit']) && empty($_POST)) $this->_teacher->populate_session($data['id']);
 		if(!empty($data['action']) && $data['action'] == 'view') $data['preview'] = "Y";
+		# Viewing the teacher's profile, collect any documents they have been issued
+		if(!empty($data['id']) && !empty($data['action']) && $data['action'] == 'view') $data['documents'] = $this->_teacher->get_documents($data['id']);
 		
 		# This helps differentiate source of command for shared functions with the teacher's registration functionality
 		$this->native_session->set('is_admin_adding_teacher', 'Y');

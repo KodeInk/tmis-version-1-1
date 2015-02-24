@@ -17,6 +17,7 @@ class _transfer extends CI_Model
 	function get_list($instructions=array())
 	{
 		$searchString = " 1=1 ";
+		$posteeSearch = " AND PS.posting_end_date='0000-00-00' ";
 		if(!empty($instructions['action']) && $instructions['action']== 'institutionapprove')
 		{
 			$searchString = " T.status='pending' ";
@@ -28,6 +29,7 @@ class _transfer extends CI_Model
 		else if(!empty($instructions['action']) && $instructions['action']== 'pca')
 		{
 			$searchString = " T.status='countyapproved' ";
+			$posteeSearchLimit = "";
 		}
 		else if(!empty($instructions['action']) && $instructions['action']== 'ministryapprove')
 		{
@@ -51,7 +53,7 @@ class _transfer extends CI_Model
 		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
 		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
 		
-		return $this->_query_reader->get_list('get_transfer_list_data',array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" T.last_updated DESC "));
+		return $this->_query_reader->get_list('get_transfer_list_data',array('search_query'=>$searchString.$posteeSearch, 'limit_text'=>$start.','.($count+1), 'order_by'=>" T.last_updated DESC "));
 	}
 
 	
@@ -210,14 +212,14 @@ class _transfer extends CI_Model
 	# Get the details of a transfer application
 	function details($transferId)
 	{
-		return $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$transferId."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		return $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$transferId."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 	}
 	
 	
 	# Get user transfer application
 	function get_application($status='pending')
 	{
-		return $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.teacher_id='".$this->native_session->get('__user_id')."' AND T.status='".$status."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		return $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.teacher_id='".$this->native_session->get('__user_id')."' AND T.status='".$status."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 	}
 	
 	

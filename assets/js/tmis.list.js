@@ -3,8 +3,15 @@
 
 // Handle clicking on list buttons
 $(function(){
-	$(document).on('click', '.addcontenticon, .downloadcontenticon', function(e){
-		window.location.href = getBaseURL()+$(this).data('url');
+	$(document).on('click', '.addcontenticon, .downloadcontenticon, .printcontenticon', function(e){
+		var url = getBaseURL()+$(this).data('url');
+		if($(this).hasClass('newwindow')){
+			 window.open(url,'_blank');
+		} else if($(this).hasClass('newwindowfromiframe')){
+			window.parent.location.href= url;
+		} else {
+		   window.location.href = url;
+		}
 	});
 });
 

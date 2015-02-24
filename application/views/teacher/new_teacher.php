@@ -117,7 +117,7 @@ if(empty($id) || !empty($editing_teacher)) {?>
   <tr>
     <td class="label">Birth Place:</td>
     <td><?php if(!empty($preview)){ 
-		echo "<span class='value'>".$this->native_session->get('birthplace__addressline')." ".$this->native_session->get('birthplace__county')." <br>".$this->native_session->get('birthplace__district').", ".$this->native_session->get('birthplace__country')."</span>";
+		echo "<span class='value'>".$this->native_session->get('birthplace__addressline')." ".$this->native_session->get('birthplace__county')." <br>".$this->native_session->get('birthplace__district').($this->native_session->get('birthplace__country')? ", ".$this->native_session->get('birthplace__country'): '')."</span>";
 	} else {?><input type="text" id="birthplace" name="birthplace" title="Birth Place" class="textfield placefield physical" value="<?php echo ($this->native_session->get('birthplace__addressline')? $this->native_session->get('birthplace__addressline'): '');?>" readonly/><?php }?></td>
     </tr>
 </table></td></tr>
@@ -137,14 +137,14 @@ if(empty($id) || !empty($editing_teacher)) {?>
   <tr>
     <td class="label">Permanent Address:</td>
     <td><?php if(!empty($preview)){ 
-		echo "<span class='value'>".$this->native_session->get('permanentaddress__addressline')."</span>";
+		echo "<span class='value'>".$this->native_session->get('permanentaddress__addressline')." ".$this->native_session->get('permanentaddress__county')." <br>".$this->native_session->get('permanentaddress__district').($this->native_session->get('permanentaddress__country')? ", ".$this->native_session->get('permanentaddress__country'): '')."</span>";
 	} else {?><input type="text" id="permanentaddress" name="permanentaddress" title="Permanent Address" class="textfield placefield" value="<?php echo ($this->native_session->get('permanentaddress')? $this->native_session->get('permanentaddress'): '');?>"/>
     <?php }?></td>
   </tr>
   <tr>
     <td class="label">Contact Address:</td>
     <td><?php if(!empty($preview)){ 
-		echo "<span class='value'>".$this->native_session->get('contactaddress__addressline')."</span>";
+		echo "<span class='value'>".$this->native_session->get('contactaddress__addressline')." ".$this->native_session->get('contactaddress__county')." <br>".$this->native_session->get('contactaddress__district').($this->native_session->get('contactaddress__country')? ", ".$this->native_session->get('contactaddress__country'): '')."</span>";
 	} else {?><div class="nextdiv"><input type="text" id="contactaddress" name="contactaddress" title="Contact Address" class="textfield placefield" value="<?php echo ($this->native_session->get('contactaddress')? $this->native_session->get('contactaddress'): '');?>"/></div>
     <div class="nextdiv"><input type="checkbox" id="permanentsameascontact" name="permanentsameascontact" value="Y" /><label for="permanentsameascontact">Same as above</label></div><?php }?></td>
   </tr>
@@ -201,7 +201,23 @@ if(empty($id) || !empty($editing_teacher)) {?>
      <?php }?>
      </div></td></tr>
 <tr><td>&nbsp;</td></tr>     
-     
+
+
+<?php if(!empty($preview) && !empty($documents)){?>
+<tr><td class="greybg h3"  style="padding:5px; padding-left:10px;">Documents List:</td></tr>
+<?php 
+echo "<tr><td>
+<table class='listtable'>
+<tr class='header'><td>Document</td><td>Date Issued</td></tr>";
+foreach($documents AS $row)
+{
+	if($row['description'] == 'Transfer Pca') $row['description'] = 'Transfer PCA';
+	
+	echo "<tr class='listrow'><td><a href='".base_url()."page/download/folder/documents/file/".$row['url']."'>".$row['description']."</a></td><td>".date('d-M-Y h:ia T', strtotime($row['date_added']))."</td></tr>";
+}
+
+echo "</table></td></tr>";
+}?>
      
      
      
@@ -216,7 +232,7 @@ if(empty($id) || !empty($editing_teacher)) {?>
      <td><?php echo !empty($id)? "<input type='hidden' id='userid' name='userid' value='".$id."'/>": ''; ?><button type="submit" name="save" id="save" value="save" class="btn">SUBMIT</button></td>
      <?php } else { ?>
      <td>&nbsp;</td>
-     <td><button type="submit" name="preview" id="preview" value="preview" class="btn">PREVIEW</button></td>
+     <td><input type="submit" name="preview" id="preview" value="PREVIEW" class="btn" /></td>
      <?php } ?>
      </tr>
      </table></td></tr> 

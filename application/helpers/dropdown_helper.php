@@ -30,7 +30,7 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		case "institutions":
 			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
-			$searchQuery = !empty($searchString)? " MATCH(name) AGAINST('+".implode(" +",explode(" ",$searchString))."') OR name LIKE '".$searchString."%' OR name LIKE '% ".$searchString."%'": " 1=1 ";
+			$searchQuery = !empty($searchString)? " (MATCH(name) AGAINST('+".implode(" +",explode(" ",$searchString))."') OR name LIKE '".$searchString."%' OR name LIKE '% ".$searchString."%') ": " 1=1 ";
 			$institutions = $obj->_query_reader->get_list('get_list_of_institutions', array('search_query'=>$searchQuery));
 			foreach($institutions AS $row)
 			{
@@ -50,7 +50,7 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		case "county":
 			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
-			$searchQuery = !empty($searchString)? " C.name LIKE '".$searchString."%' OR C.name LIKE '% ".$searchString."%' ": " 1=1 ";
+			$searchQuery = !empty($searchString)? " (C.name LIKE '".$searchString."%' OR C.name LIKE '% ".$searchString."%') ": " 1=1 ";
 			$orderBy = " C.name ASC";
 			
 			# Get the district field if given
@@ -130,7 +130,7 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		case "schooljobs":
 			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
-			$searchQuery = !empty($searchString)? " V.topic LIKE '".$searchString."%' OR V.topic LIKE '% ".$searchString."%'": " 1=1 ";
+			$searchQuery = !empty($searchString)? " (V.topic LIKE '".$searchString."%' OR V.topic LIKE '% ".$searchString."%') ": " 1=1 ";
 			
 			$jobs = $obj->_query_reader->get_list('get_school_jobs', array('user_id'=>$obj->native_session->get('__user_id'), 'search_query'=>$searchQuery));
 			foreach($jobs AS $row)
@@ -143,10 +143,11 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		case "users":
 			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
-			$searchQuery = !empty($searchString)? " P.first_name LIKE '".$searchString."%' OR P.first_name LIKE '% ".$searchString."%' OR P.last_name LIKE '".$searchString."%' AND U.status='active' ": " U.status='active' ";
+			$searchQuery = !empty($searchString)? " (P.first_name LIKE '".$searchString."%' OR P.first_name LIKE '% ".$searchString."%' OR P.last_name LIKE '".$searchString."%') AND U.status='active' ": " U.status='active' ";
 			$orderBy = " ORDER BY P.last_name ASC";
 			
-			$users = $obj->_query_reader->get_list('get_user_list_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			$users = $obj->_query_reader->get_list('get_user_list_data', array('search_query'=>" U.id <> '".$obj->native_session->get('__user_id')."' AND ".$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			
 			foreach($users AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."' onclick=\"universalUpdate('userid', '".$row['id']."')\">".$row['display']."</div>";
@@ -165,7 +166,7 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		case "teachers":
 			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
-			$searchQuery = !empty($searchString)? " P.first_name LIKE '".$searchString."%' OR P.first_name LIKE '% ".$searchString."%' OR P.last_name LIKE '".$searchString."%' AND U.status='active' ": " U.status='active' ";
+			$searchQuery = !empty($searchString)? " (P.first_name LIKE '".$searchString."%' OR P.first_name LIKE '% ".$searchString."%' OR P.last_name LIKE '".$searchString."%') AND U.status='active' ": " U.status='active' ";
 			$orderBy = " ORDER BY P.last_name ASC";
 			
 			if($obj->native_session->get('__permission_group') && $obj->native_session->get('__permission_group') == '3')
@@ -232,7 +233,7 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		case "schools":
 			$searchString = !empty($searchBy)? htmlentities(restore_bad_chars($searchBy), ENT_QUOTES): "";
-			$searchQuery = !empty($searchString)? " INS.name LIKE '".$searchString."%' OR INS.name LIKE '% ".$searchString."%' ": " 1=1 ";
+			$searchQuery = !empty($searchString)? " (INS.name LIKE '".$searchString."%' OR INS.name LIKE '% ".$searchString."%') ": " 1=1 ";
 			$orderBy = " ORDER BY I.name ASC";
 			
 			$schools = $obj->_query_reader->get_list('get_institution_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));

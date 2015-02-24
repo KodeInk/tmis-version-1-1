@@ -1,5 +1,5 @@
 <?php 
-$forward = check_access($this, 'publish_job_notices', 'boolean')? 'vacancy/lists/action/publish': get_user_dashboard($this, $this->native_session->get('__user_id'));
+$forward = check_access($this, 'publish_job_notices', 'boolean', false)? 'vacancy/lists/action/publish': get_user_dashboard($this, $this->native_session->get('__user_id'));
 ?>
 <!DOCTYPE html>
 <html>

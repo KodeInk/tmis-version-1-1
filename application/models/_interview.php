@@ -19,7 +19,8 @@ class _interview extends CI_Model
 		{
 			$application = $this->_query_reader->get_row_as_array('get_simple_application_details', array('application_id'=>$applicationId));
 			
-			$result2 = $this->_messenger->send($application['user_id'], array('code'=>'notice_of_set_interview', 'applicant'=>$this->native_session->get('applicant'), 'submission_date'=>date('d-M-Y h:i:sa T', strtotime($this->native_session->get('submission_date'))), 'institution_name'=>$this->native_session->get('institution_name'), 'interview_notes'=>htmlentities($details['notes'], ENT_QUOTES), 'planned_date'=>$details['interviewdate'], 'interviewer'=>$details['interviewer__users'] ));
+			#Send both the applicant and interviewer notice of interview set
+			$result2 = $this->_messenger->send(array($application['user_id'], $details['userid']), array('code'=>'notice_of_set_interview', 'applicant'=>$this->native_session->get('applicant'), 'submission_date'=>date('d-M-Y h:ia T', strtotime($this->native_session->get('submission_date'))), 'institution_name'=>$this->native_session->get('institution_name'), 'interview_notes'=>htmlentities($details['notes'], ENT_QUOTES), 'planned_date'=>$details['interviewdate'], 'interviewer'=>$details['interviewer__users'] ));
 		} 
 		else $result2 = false;
 		
@@ -46,13 +47,10 @@ class _interview extends CI_Model
 		
 		
 		
-	# STUB: Send a reminder for interview
-	function send_reminder($interviewId)
+	# Get the details about a vacancy
+	function get_vacancy_details($vacancyId)
 	{
-		$isSent = false;
-		
-		
-		return $isSent;
+		return $this->_query_reader->get_row_as_array('get_vacancy_by_id', array('vacancy_id'=>$vacancyId));
 	}	
 		
 		
@@ -163,7 +161,11 @@ class _interview extends CI_Model
 		# Narrow the items viewed for the manager to their school(s) only
 		if($this->native_session->get('__permission_group') == '3')
 		{
-			$searchString .= " AND I.id IN ('".implode("','", $this->get_postings($this->native_session->get('__user_id')))."') ";
+			if($queryCode == 'get_interview_shortlists') $institutionField = "I.id";
+			else if($queryCode == 'get_job_applications') $institutionField = "PS.institution_id";
+			else $institutionField = "I.id";
+			
+			$searchString .= " AND ".$institutionField." IN ('".implode("','", $this->get_postings($this->native_session->get('__user_id')))."') ";
 		}
 		
 		

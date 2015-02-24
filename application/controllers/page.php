@@ -146,7 +146,7 @@ class Page extends CI_Controller
 			{
 				$details = $passed['data'];
 				
-				$data['result'] = $this->_messenger->send('', array('code'=>'contact_us_message', 'emailfrom'=>NOREPLY_EMAIL, 'telephone'=>(!empty($details['telephone'])? $details['telephone']:''), 'fromname'=>SITE_GENERAL_NAME, 'cc'=>$details['emailaddress'], 'useremailaddress'=>$details['emailaddress'], 'usernames'=>$details['yourname'], 'subject'=>$details['reason__contactreason'], 'details'=>$details['details'], 'emailaddress'=>HELP_EMAIL, 'login_link'=>base_url(), 'sent_time'=>date('d-M-Y h:i:sa T', strtotime('now')) ));
+				$data['result'] = $this->_messenger->send_email_message('', array('code'=>'contact_us_message', 'emailfrom'=>NOREPLY_EMAIL, 'telephone'=>(!empty($details['telephone'])? $details['telephone']:''), 'fromname'=>SITE_GENERAL_NAME, 'cc'=>$details['emailaddress'], 'useremailaddress'=>$details['emailaddress'], 'usernames'=>$details['yourname'], 'subject'=>$details['reason__contactreason'], 'details'=>$details['details'], 'emailaddress'=>HELP_EMAIL, 'login_link'=>base_url(), 'sent_time'=>date('d-M-Y h:ia T', strtotime('now')) ));
 				
 				if($data['result'])
 				{
@@ -231,7 +231,7 @@ class Page extends CI_Controller
 			case 'verify_document':
 				$this->load->model('_validator');
 				$result = $this->_validator->is_valid_document($_POST);
-				$data['msg'] = $result? 'Document is valid.': 'WARNING: Document is invalid.';
+				$data['msg'] = !empty($result)? 'The document is valid.<br><br>It was issued to '.$result['owner_name'].' on '.date('d-M-Y', strtotime($result['date_added'])) : 'WARNING: Document is invalid.';
 			break;
 			
 			default:
@@ -256,16 +256,8 @@ class Page extends CI_Controller
 	function verify()
 	{
 		$data = filter_forwarded_data($this);
-		if(!empty($_POST))
-		{
-			$this->load->model('_validator');
-			$result = $this->_validator->is_valid_document($_POST);
-			
-			$data['msg'] = $result? 'Document is valid.': 'WARNING: Document is invalid.';
-			$data['area'] = 'basic_msg';
-			$this->load->view('addons/basic_addons', $data);
-		}
-		else $this->load->view('page/verify_document', $data);
+		
+		$this->load->view('page/verify_document', $data);
 	}
 	
 	

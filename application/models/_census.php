@@ -204,7 +204,7 @@ class _census extends CI_Model
 		$census = $this->_query_reader->get_row_as_array('get_census_list', array('search_query'=>" C.id='".$censusId."' ", 'limit_text'=>'1', 'order_by'=>' P.last_name '));
 		
 		$result1 = !in_array($newStatus, array('pending'))? 
-			$this->_messenger->send($census['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'census', 'details'=>"Teacher Name: ".$census['teacher_name']." <br>Period: ".format_date($census['start_date'],'d-M-Y').' to '.format_date($census['end_date'],'d-M-Y')." <br>Average Weekly Work Load: ".$census['weekly_workload_average'], 'status'=>strtoupper($newStatus), 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:i:sa T', strtotime('now')) ))
+			$this->_messenger->send($census['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'census', 'details'=>"Teacher Name: ".$census['teacher_name']." <br>Period: ".format_date($census['start_date'],'d-M-Y').' to '.format_date($census['end_date'],'d-M-Y')." <br>Average Weekly Work Load: ".$census['weekly_workload_average'], 'status'=>strtoupper($newStatus), 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:ia T', strtotime('now')) ))
 			: true;
 		
 		$result2 = $this->_query_reader->run('update_item_status', array('item_id'=>$censusId, 'table_name'=>'census', 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id') ));
@@ -221,7 +221,7 @@ class _census extends CI_Model
 	{
 		$census = $this->_query_reader->get_row_as_array('get_census_list', array('search_query'=>" C.id='".$censusId."' ", 'limit_text'=>'1', 'order_by'=>' P.last_name '));
 		
-		$result1 = $this->_messenger->send($census['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'census', 'details'=>"REASON FOR REJECTION:<br> ".$reason."<br>Please resubmit with reasons fixed.<br><br>Teacher Name: ".$census['teacher_name']." <br>Period: ".format_date($census['start_date'],'d-M-Y').' to '.format_date($census['end_date'],'d-M-Y')." <br>Average Weekly Work Load: ".$census['weekly_workload_average'], 'status'=>'REJECTED', 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:i:sa T', strtotime('now')) ));
+		$result1 = $this->_messenger->send($census['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'census', 'details'=>"REASON FOR REJECTION:<br> ".$reason."<br>Please resubmit with reasons fixed.<br><br>Teacher Name: ".$census['teacher_name']." <br>Period: ".format_date($census['start_date'],'d-M-Y').' to '.format_date($census['end_date'],'d-M-Y')." <br>Average Weekly Work Load: ".$census['weekly_workload_average'], 'status'=>'REJECTED', 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:ia T', strtotime('now')) ));
 		
 		$result2 = $this->_query_reader->run('delete_census_data', array('census_id'=>$censusId));
 		

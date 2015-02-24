@@ -34,7 +34,7 @@ else if(!empty($area) && $area == "address_field_form")
 	   
 	$tableHTML .= "<tr><td><input type='text' id='".$field_id."__addressline' name='".$field_id."__addressline' class='textfield' placeholder='Address' value='".($this->native_session->get($field_id.'__addressline')? $this->native_session->get($field_id.'__addressline'): '')."' maxlength='200'/></td></tr>
 	
-  <tr><td><input type='text' id='".$field_id."__county' name='".$field_id."__county' class='textfield selectfield searchable optional' placeholder='County (Optional)' data-val='-district-".$field_id."' value='".($this->native_session->get($field_id.'__county')? $this->native_session->get($field_id.'__county'): '')."' maxlength='200'/>
+  <tr><td><input type='text' id='".$field_id."__county' name='".$field_id."__county' class='textfield selectfield searchable editable optional' placeholder='County (Optional)' data-val='-district-".$field_id."' value='".($this->native_session->get($field_id.'__county')? $this->native_session->get($field_id.'__county'): '')."' maxlength='200'/>
   <input type='hidden' id='-district-".$field_id."' name='-district-".$field_id."' value='".$field_id."__district' /></td></tr>
   
   <tr><td><input type='text' id='".$field_id."__district' name='".$field_id."__district' class='textfield selectfield editable' placeholder='District or State' value='".($this->native_session->get($field_id.'__district')? $this->native_session->get($field_id.'__district'): '')."' maxlength='200'/>".
@@ -101,7 +101,7 @@ else if(!empty($area) && $area == "education_form")
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().(($this->native_session->get('is_admin_adding_teacher') || $this->native_session->get('is_teacher_updating'))? "teacher": "register/step_three/action")."/add_education' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='institution_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+    <td><button type='button' name='saveeducation' data-val='".(!empty($details['item_id']) && !empty($type)? $type."_id": "")."' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().(($this->native_session->get('is_admin_adding_teacher') || $this->native_session->get('is_teacher_updating'))? "teacher": "register/step_three/action")."/add_education' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='institution_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
   </tr>
         </table>";
 	
@@ -287,7 +287,7 @@ else if(!empty($area) && $area == 'message_details')
 	{
 		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='5' width='100%' class='listtable' />
 			<tr><td colspan='2' class='h2' style='font-weight:bold;'>".$message['subject']."</td></tr>
-			<tr><td class='label'>Date:</td><td class='value'>".date('d-M-Y h:i:sA T', strtotime($message['date_sent']))."</td></tr>
+			<tr><td class='label'>Date:</td><td class='value'>".date('d-M-Y h:ia T', strtotime($message['date_sent']))."</td></tr>
 			<tr><td class='label'>From:</td><td class='value'>".$message['sender_name']."</td></tr>
 			<tr><td class='label'>To:</td><td class='value'>".$message['recipient_name']."</td></tr>
 			<tr><td class='label top'>Details:</td><td>".html_entity_decode($message['details'],ENT_QUOTES)."</td></tr>".

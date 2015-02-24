@@ -117,7 +117,7 @@ class _validator extends CI_Model
 			$document = $this->_query_reader->get_row_as_array('validate_system_document', array('document_type'=>$details['documenttype'], 'tracking_number'=>trim($details['trackingnumber']) )); 
 		}
 		
-		return !empty($document)? true: false;
+		return !empty($document)? $document: array();
 	}
 
 }

@@ -662,6 +662,7 @@ function format_date($dateString, $instruction="YYYY-MM-DD H:I:S", $default="&nb
 			
 			case "d-M-Y h:i:s":
 			case "d-M-Y h:i:sa T":
+			case "d-M-Y h:ia T":
 			case "d-M-Y":
 				$date = date($instruction, strtotime($dateString));
 			break;
@@ -1133,13 +1134,13 @@ function get_session_msg($obj)
 
 # Check user access to a given feature
 # Valid return options [msg, boolean]
-function check_access($obj, $accessCode, $return='msg')
+function check_access($obj, $accessCode, $return='msg', $setMenuItem=true)
 {
 	# 1. Are the user's permissions set and they have the requested permission?
 	# then, return appropriate response
 	if($obj->native_session->get('__permissions') && in_array($accessCode, $obj->native_session->get('__permissions')))
 	{
-		$obj->native_session->set('__selected_permission', $accessCode);
+		if($setMenuItem) $obj->native_session->set('__selected_permission', $accessCode);
 		if($return == 'boolean') return true;
 	}
 	else

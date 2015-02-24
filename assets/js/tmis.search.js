@@ -26,14 +26,14 @@ $(function() {
 	
 	//What happens if you start typing in a find field (search field)
 	$(document).on("keyup", ".findfield", function(){ 
+		var fieldParts = $(this).attr('id').split('__');
+		var searchFieldId = fieldParts[0];
+		// The search action
+		var fieldValue = $(this).val().length > 0? replaceBadChars($(this).val()): '_';
+		var action = ($('#'+searchFieldId+'__action').length > 0? $('#'+searchFieldId+'__action').val(): getBaseURL()+'search/load_list')+'/type/'+$(this).data('type')+'/phrase/'+fieldValue;
+			
 		//Activate search if text is more than 2 characters
 		if($(this).val().length > 1){
-			var fieldParts = $(this).attr('id').split('__');
-			var searchFieldId = fieldParts[0];
-			
-			// The search action
-			var action = ($('#'+searchFieldId+'__action').length > 0? $('#'+searchFieldId+'__action').val(): getBaseURL()+'search/load_list')+'/type/'+$(this).data('type')+'/phrase/'+replaceBadChars($(this).val());
-			
 			// The fields to search by and append to the url
 			var searchBy = $('#'+searchFieldId+'__searchby').length > 0? $('#'+searchFieldId+'__searchby').val().replace('|', '--'): '';
 			action += searchBy !=''? '/searchby/'+searchBy: '';
@@ -78,14 +78,19 @@ $(function() {
 				}
 			}
 		}
+		//Reload the list if the field is empty
+		else if($(this).val().length == 0 && $(this).hasClass('clearfield'))
+		{
+			updateFieldLayer(action+'/__clear/Y','','',$('#'+searchFieldId+'__displaydiv').val(),'');
+		}
 	});
 	
 	
 	
 	// What happens if you click on a search field
 	$(document).on("click", ".findfield", function(e){
-		//Activate if there is a character in the search
-		if($(this).val().length > 0){
+		//Activate if has class that clears field
+		if($(this).hasClass('clearfield')){
 			
 			//Only clear if the clicked area is where the clear icon is shown
 			var fieldOffset = $(this).offset().left;
@@ -94,7 +99,8 @@ $(function() {
 				var searchFieldId = fieldParts[0];
 				
 				// The search action
-				var action = ($('#'+searchFieldId+'__action').length > 0? $('#'+searchFieldId+'__action').val(): getBaseURL()+'search/load_list')+'/type/'+$(this).data('type')+'/phrase/'+replaceBadChars($(this).val());
+				var fieldValue = $(this).val().length > 0? replaceBadChars($(this).val()): '_';
+				var action = ($('#'+searchFieldId+'__action').length > 0? $('#'+searchFieldId+'__action').val(): getBaseURL()+'search/load_list')+'/type/'+$(this).data('type')+'/phrase/'+fieldValue;
 				
 				//Clear the field and remove all data
 				$(this).val('');

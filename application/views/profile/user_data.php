@@ -17,9 +17,10 @@
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.desktop.css" media="(min-width:901px)" />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.list.css"/>
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.menu.css"/>
+<link rel="stylesheet" href="<?php echo base_url();?>assets/css/tmis.shadowbox.css"/>
 
 <!-- Javascript -->
-<?php echo minify_js('profile-user_data', array('jquery-2.1.1.min.js', 'jquery.form.js', 'tmis.js', 'tmis.callout.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js'));?>
+<?php echo minify_js('profile-user_data', array('jquery-2.1.1.min.js', 'jquery.form.js', 'tmis.js', 'tmis.callout.js', 'tmis.fileform.js', 'tmis.menu.js', 'tmis.responsive.js', 'tmis.shadowbox.js'));?>
 </head>
 
 <body style="margin:0px;">
@@ -38,33 +39,49 @@
             
             
             <form id="user_data" method="post" autocomplete="off" enctype="multipart/form-data" action="<?php echo base_url();?>profile/user_data" class='simplevalidator'>
-            <table border="0" cellspacing="0" cellpadding="10">
+            <table border="0" cellspacing="0" cellpadding="10" width="100%">
   <tr>
-    <td class="label">User Name:</td>
+    <td class="label" width='1%'>User Name:</td>
     <td class='value'><?php echo $this->native_session->get('profile_loginname');?></td>
+    <td rowspan="2" <?php echo $this->native_session->get('__permission_group') == '4'? " width='98%'": "";?>><?php 
+	if($this->native_session->get('__permission_group') == 4)
+	{
+		echo "<table align='right'  class='listtable' style='border: 1px solid #DDDDDD; text-align:right; width: 220px;'>
+		
+		<tr><td><div class='rightnote'><a href='".base_url()."cron/update_query_cache' class='shadowbox closable'>refresh query cache</a></div></td></tr>
+		
+		<tr><td><div class='rightnote'><a href='".base_url()."cron/update_message_cache' class='shadowbox closable'>refresh message cache</a></div></td></tr>
+		
+		</table>";
+	}
+	?></td>
   </tr>
   <tr>
     <td class="label">Current Role:</td>
     <td class='value'><?php echo $this->native_session->get('profile_userrole');?></td>
-  </tr>
+    </tr>
   <tr>
-    <td class="label top">Current Password:</td>
+    <td class="label top" nowrap>Current Password:</td>
     <td><div class="viewdiv value">*********</div><div class="editdiv"><input type="password" id="currentpassword" name="currentpassword" title="Current Password" placeholder="Current Password" maxlength="100" class="textfield optional" value=""/>
     <div class="editdiv smalltext">Enter the password only if you want to change it.</div></div></td>
+    <td>&nbsp;</td>
   </tr>
   <tr>
     <td class="label editdiv">New Password:</td>
     <td><div class="nextdiv"><div class="editdiv"><input type="password" id="newpassword" name="newpassword" title="New Password" placeholder="New Password" maxlength="100" class="textfield optional" value=""/></div></div><div class="nextdiv"><div class="editdiv"><input type="password" id="repeatpassword" name="repeatpassword" title="Repeat New Password" placeholder="Repeat New Password" maxlength="100" class="textfield optional" value=""/></div></div>
-    <div class="editdiv smalltext">Your password should be at least 6 characters long with a letter and a number.</div>
+    <div class="editdiv smalltext">Your new password should be at least 8 characters long with a letter and a number.</div>
     </td>
+    <td>&nbsp;</td>
   </tr>
   <tr>
     <td class="label">Surname:</td>
     <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_lastname');?></div><div class="editdiv"><input type="text" id="lastname" name="lastname" title="Surname" class="textfield" value="<?php echo $this->native_session->get('profile_lastname');?>"/></div></td>
+    <td>&nbsp;</td>
   </tr>
   <tr>
     <td class="label">Other Names:</td>
     <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_firstname');?></div><div class="editdiv"><input type="text" id="firstname" name="firstname" title="Other Names" class="textfield" value="<?php echo $this->native_session->get('profile_firstname');?>"/></div></td>
+    <td>&nbsp;</td>
   </tr>
   
   <tr>
@@ -73,6 +90,7 @@
     <?php echo $this->native_session->get('profile_photo')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_photo')."' style='max-height:110px;' border='0' /><br>": '';?>
     <input type="text" id="photo" name="photo" title="Your Profile Photo" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_photo')? "placeholder='Select New Image'": '';?> value=""/>
     <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF</div></div></td>
+    <td>&nbsp;</td>
   </tr>
   
   <tr>
@@ -81,21 +99,25 @@
     <?php echo $this->native_session->get('profile_signature')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_signature')."' style='max-height:80px;' border='0' /><br>": '';?>
     <input type="text" id="signature" name="signature" title="Your Signature on File" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_signature')? "placeholder='Select New Image'": '';?> value=""/>
     <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF</div></div></td>
+    <td>&nbsp;</td>
   </tr>
   <tr>
     <td class="label">Telephone:</td>
     <td><div class="viewdiv value"><?php echo ($this->native_session->get('profile_telephone')? $this->native_session->get('profile_telephone'): '&nbsp;');?></div><div class="editdiv"><input type="text" id="telephone" name="telephone" title="Telephone" placeholder="Optional" maxlength="16" class="textfield numbersonly optional" value="<?php echo ($this->native_session->get('profile_telephone')? $this->native_session->get('profile_telephone'): '');?>"/></div></td>
+    <td>&nbsp;</td>
   </tr>
   <tr>
     <td class="label">Email Address:</td><td class="value"><?php echo $this->native_session->get('profile_emailaddress');?></td>
+    <td class="value">&nbsp;</td>
   </tr>
   <tr>
     <td class="label">Address:</td>
     <td><div class="viewdiv value"><?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline'): 'None');?></div><div class="editdiv"><input type="text" id="contactaddress" name="contactaddress" title="Contact Address" placeholder="" maxlength="16" class="textfield placefield optional" value="<?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline'): '');?>"/></div></td>
+    <td>&nbsp;</td>
   </tr>
   <tr>
     <td class="label">&nbsp;</td>
-    <td class="editdiv"><button type="submit" name="save" id="save" class="btn">SAVE</button></td>
+    <td colspan="2" class="editdiv"><button type="submit" name="save" id="save" class="btn">SAVE</button></td>
   </tr>
             </table>
             </form>

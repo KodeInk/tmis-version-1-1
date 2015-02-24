@@ -103,7 +103,7 @@
 	 } else {
 		 ?><button type="button" name="step2save" id="step2save" class="greybtn">SAVE &amp; EXIT</button>
 <?php } ?></td>
-     <td><button type="submit" name="step2" id="step2" class="btn next">NEXT</button></td>
+     <td><input type="submit" name="step2" id="step2" class="btn next" value="NEXT" /></td>
      </tr>
      <tr>
        <td colspan="4" class='note'>Applications not completed within 14 days will be automatically deleted by the system.</td>

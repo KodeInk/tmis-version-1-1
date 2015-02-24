@@ -265,7 +265,7 @@ class _school extends CI_Model
 	{
 		$school = $this->_query_reader->get_row_as_array('get_school_by_id', array('school_id'=>$schoolId));
 		$result1 = !in_array($newStatus, array('pending'))? 
-			$this->_messenger->send($school['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'school', 'details'=>"Name: ".$school['name']." <br>Telephone: ".$school['telephone']." <br>Location: ".$school['addressline']." ".$school['county']." ".$school['district'].", ".$school['country'], 'status'=>strtoupper($newStatus), 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:i:sa T', strtotime('now')) ))
+			$this->_messenger->send($school['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'school', 'details'=>"Name: ".$school['name']." <br>Telephone: ".$school['telephone']." <br>Location: ".$school['addressline']." ".$school['county']." ".$school['district'].", ".$school['country'], 'status'=>strtoupper($newStatus), 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:ia T', strtotime('now')) ))
 			: true;
 		
 		$result2 = $this->_query_reader->run('update_item_status', array('item_id'=>$schoolId, 'table_name'=>'institution', 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id') ));
@@ -281,7 +281,7 @@ class _school extends CI_Model
 	function reject($schoolId, $reason)
 	{
 		$school = $this->_query_reader->get_row_as_array('get_school_by_id', array('school_id'=>$schoolId));
-		$result1 = $this->_messenger->send($school['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'school', 'details'=>"REASON FOR REJECTION:<br> ".$reason."<br>Please resubmit with reasons fixed.<br><br>Name: ".$school['name']." <br>Telephone: ".$school['telephone']." <br>Location: ".$school['addressline']." ".$school['county']." ".$school['district'].", ".$school['country'], 'status'=>'REJECTED', 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:i:sa T', strtotime('now')) ));
+		$result1 = $this->_messenger->send($school['added_by'], array('code'=>'notify_change_of_data_status', 'item'=>'school', 'details'=>"REASON FOR REJECTION:<br> ".$reason."<br>Please resubmit with reasons fixed.<br><br>Name: ".$school['name']." <br>Telephone: ".$school['telephone']." <br>Location: ".$school['addressline']." ".$school['county']." ".$school['district'].", ".$school['country'], 'status'=>'REJECTED', 'approver_name'=>($this->native_session->get('__last_name').' '.$this->native_session->get('__first_name')), 'action_date'=>date('d-M-Y h:ia T', strtotime('now')) ));
 		
 		$result2 = $this->_query_reader->run('delete_school_data', array('school_id'=>$schoolId));
 		

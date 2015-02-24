@@ -35,7 +35,7 @@ if(!empty($list))
 	
 	echo "</td>
 	<td>".strtoupper($row['status'])."</td>
-	<td>".format_date($row['date_sent'],'d-M-Y h:i:sa T').
+	<td>".date('d-M-Y h:ia T', strtotime($row['date_sent'])) .
 	(!empty($action) && $action == 'inbox'? "<br><div class='rightnote'><a href='".base_url()."message/reply/id/".$row['id']."/format/".$row['send_format']."'>reply</a></div>": "").
 	$stop."</td></tr>";
 	

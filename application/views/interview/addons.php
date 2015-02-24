@@ -31,7 +31,7 @@ if(!empty($area) && $area == "submit_recommendation")
 			<tr><td class='label top'>Your Recommendation:</td><td><textarea id='details' name='details' title='Your recommendation' class='textfield' placeholder='Enter your recommendation here' style='min-width:300px; min-height: 150px;'></textarea></td></tr>
 			
 			<tr><td>&nbsp;</td><td><button type='submit' name='submit' id='submit' value='submit' class='btn'>SUBMIT</button></td></tr>
-		</table></form>";
+		</table></form><input type='hidden' id='layerid' name='layerid' value='' />";
 	}
 }
 
@@ -41,11 +41,17 @@ if(!empty($area) && $area == "submit_recommendation")
 else if(!empty($area) && $area == "recommendation_list")
 {
 	$tableHTML .= "<link rel='stylesheet' href='".base_url()."assets/css/tmis.list.css' type='text/css' media='screen' />
-	<table border='0' cellspacing='0' cellpadding='0' class='listtable'>
-		<tr class='header'><td>Recommender</td><td>Recommendation</td><td>Date</td></tr>";
+	<table border='0' cellspacing='0' cellpadding='0' class='listtable' style='font-size:14px;'>
+		<tr class='header'><td>Recommender</td><td>Current School</td><td>Current Role</td><td>Recommendation</td><td>Date</td></tr>";
 	foreach($list AS $row)
 	{
-		$tableHTML .= "<tr class='listrow'><td style='vertical-align:top;'>".$row['recommender']."</td><td>".$row['notes']."</td><td style='vertical-align:top;'>".date('d-M-Y h:ia T', strtotime($row['date_added']))."</td></tr>";
+		$tableHTML .= "<tr class='listrow'>
+		<td style='vertical-align:top;'>".$row['recommender']."</td>
+		<td style='vertical-align:top;'>".$row['recommender_school']."</td>
+		<td style='vertical-align:top;'>".$row['recommender_role']."</td>
+		<td>".html_entity_decode($row['notes'], ENT_QUOTES)."</td>
+		<td style='vertical-align:top;'>".date('d-M-Y h:ia T', strtotime($row['date_added']))."</td>
+		</tr>";
 	}
 	$tableHTML .= "</table>";
 
@@ -85,12 +91,14 @@ else if(!empty($area) && $area == "set_date")
 			
 			<tr><td class='label top'>Interviewer:</td><td><input type='text' id='interviewer__users' name='interviewer__users' title='Select or Search for User' placeholder='Select or Search for User' class='textfield selectfield searchable' value='' style='width:95%;' /><input type='text' class='textfield' id='userid' name='userid' value='' style='display:none;' /></td></tr>
 			
-			<tr><td class='label top'>Interview Date:</td><td><input type='text' id='interviewdate' name='interviewdate' title='Interview Date' class='textfield datefield showtime' value=''/></td></tr>
+			<tr><td class='label top'>Interview Date:</td><td><input type='text' id='interviewdate' name='interviewdate' title='Interview Date' class='textfield datefield showtime futuredate' value=''/></td></tr>
 			
 			<tr><td class='label top'>Notes:</td><td><textarea id='notes' name='notes' title='Interview Notes' class='textfield' placeholder='This message is sent to the applicant on submission of this form. Enter information the applicant may need to consider before the interview.' style='min-width:300px; min-height: 200px;'></textarea></td></tr>
 			
 			<tr><td>&nbsp;</td><td><button type='submit' name='submit' id='submit' value='submit' class='btn'>SUBMIT</button></td></tr>
-		</table></form>
+		</table>
+		<input type='hidden' id='errormessage' name='errormessage' value='Enter all interview details and a future date' />
+		</form>
 		<input type='hidden' id='layerid' name='layerid' value='' />";
 	}
 }
@@ -200,8 +208,14 @@ else if(!empty($area) && $area == "view_shortlist")
 	}
 	else
 	{
-		$tableHTML .= "<link rel='stylesheet' href='".base_url()."assets/css/tmis.list.css' type='text/css' media='screen' />
-		<span class='h1'>".$shortlist_name."</span>
+		$tableHTML .= $jquery.$javascript."<link rel='stylesheet' href='".base_url()."assets/css/tmis.list.css' type='text/css' media='screen' />
+		<script src='".base_url()."assets/js/tmis.list.js' type='text/javascript'></script>
+		
+		<table width='100%'>
+		<tr>
+			<td><span class='h1'>".$shortlist_name."</span></td>
+			<td><div class='nextdiv downloadcontenticon' style='margin-left:5px;' data-url='interview/print_list/name/".$name."/vacancy/".$vacancy."' title='Click to print'></div></td>
+		</tr></table>
 		<table border='0' cellspacing='0' cellpadding='0' class='listtable'>
 		<tr class='header'><td nowrap>Applicant</td><td>Date Added</td><td>Added By</td></tr>";
 		foreach($list AS $row)
@@ -211,10 +225,6 @@ else if(!empty($area) && $area == "view_shortlist")
 		$tableHTML .= "</table>";
 	}
 }
-
-
-
-
 
 
 

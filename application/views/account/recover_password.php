@@ -30,10 +30,15 @@
       <tr>
       <td class="h1 grey">Forgot Password</td>
      </tr>
-    
+    <tr><td><br><br>
+    Your username is the same as your registered email address. <br>
+    <br>If your account was specially created by an administrator without using your email address, please <a href='<?php echo base_url();?>page/contact_us'>contact us</a> for a password recovery. <br>Otherwise, send yourself a temporary password using the form below.</td></tr>
      <tr>
       <td><table border="0" cellspacing="0" cellpadding="10" class="microform" id="forgottable" align="center">
-   <tr><td><div id='forgotmsgdiv'></div></td></tr>
+      
+   <tr><td>
+   
+   <div id='forgotmsgdiv'></div></td></tr>
    <tr>
     <td class="label" style="text-align:left; padding-bottom:0px;">Enter Your Registered Email Address: </td>
   </tr>

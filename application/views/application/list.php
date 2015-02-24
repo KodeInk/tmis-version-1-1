@@ -38,7 +38,7 @@ if(!empty($list))
 	<td>".$row['user_role']."</td>
 	<td>".$row['email_address']."</td>
 	<td>".$row['telephone']."</td>
-	<td>".format_date($row['last_updated'],'d-M-Y h:i:sa T').
+	<td>".format_date($row['last_updated'],'d-M-Y h:ia T').
 	"<br><div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."/action/view' class='shadowbox closable'>details</a></div>".
 	
 	((check_access($this, 'add_new_user', 'boolean') && !empty($action) && $action == 'update')? "<div class='rightnote'><a href='".base_url()."user/add/id/".$row['id']."/action/edit/actionurl/".$action."' class='shadowbox'>edit</a></div>": "")

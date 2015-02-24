@@ -115,7 +115,7 @@
      <td>&nbsp;</td>
      <td class='spacefiller'>&nbsp;</td>
      <td><?php echo $this->native_session->get('just_preview_1')? "<button type='button' name='step1preview' id='step1preview' class='greybtn'>SAVE &amp; PREVIEW</button>" : "&nbsp;"; ?></td>
-     <td><button type="submit" name="step2" id="step2" value="step2" class="btn next">NEXT</button></td>
+     <td><input type="submit" name="step2" id="step2" value="NEXT" class="btn next" /></td>
      </tr>
      </table> 
       </td>

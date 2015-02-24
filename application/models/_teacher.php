@@ -172,7 +172,7 @@ class _teacher extends CI_Model
 	# Clear a teacher session profile
 	function clear_session()
 	{
-		$fields = array('lastname'=>'', 'firstname'=>'', 'telephone'=>'', 'emailaddress'=>'', 'gender'=>'', 'marital'=>'', 'birthday'=>'', 'birthplace__addressline'=>'', 'birthplace__county'=>'', 'birthplace__district'=>'', 'birthplace__country'=>'', 'birthplace__addresstype'=>'', 'birthplace__district__hidden'=>'', 'birthplace__country__hidden'=>'', 'teacherid'=>'', 'permanentaddress'=>'', 'permanentaddress__addressline'=>'', 'permanentaddress__county'=>'', 'permanentaddress__district'=>'', 'permanentaddress__country'=>'', 'permanentaddress__addresstype'=>'', 'contactaddress'=>'', 'contactaddress__addressline'=>'', 'contactaddress__county'=>'', 'contactaddress__district'=>'', 'contactaddress__country'=>'', 'contactaddress__addresstype'=>'', 'citizenship__country'=>'', 'citizenship__citizentype'=>'', 'education_list'=>'', 'subject_list'=>'', 'is_admin_adding_teacher'=>'');
+		$fields = array('lastname'=>'', 'firstname'=>'', 'telephone'=>'', 'emailaddress'=>'', 'gender'=>'', 'marital'=>'', 'birthday'=>'', 'birthplace__addressline'=>'', 'birthplace__county'=>'', 'birthplace__district'=>'', 'birthplace__country'=>'', 'birthplace__addresstype'=>'', 'birthplace__district__hidden'=>'', 'birthplace__country__hidden'=>'', 'teacherid'=>'', 'permanentaddress'=>'', 'permanentaddress__addressline'=>'', 'permanentaddress__county'=>'', 'permanentaddress__district'=>'', 'permanentaddress__country'=>'', 'permanentaddress__addresstype'=>'', 'contactaddress'=>'', 'contactaddress__addressline'=>'', 'contactaddress__county'=>'', 'contactaddress__district'=>'', 'contactaddress__country'=>'', 'contactaddress__addresstype'=>'', 'citizenship__country'=>'', 'citizenship__citizentype'=>'', 'education_list'=>'', 'subject_list'=>'', 'is_admin_adding_teacher'=>'', 'profile_id'=>'', 'profile_personid'=>'', 'profile_loginname'=>'', 'profile_userrole'=>'', 'profile_lastname'=>'', 'profile_firstname'=>'', 'profile_signature'=>'', 'profile_telephone'=>'', 'profile_emailaddress'=>'', 'profile_photo'=>'');
 		
 		$this->native_session->delete_all($fields);
 	}
@@ -345,6 +345,19 @@ class _teacher extends CI_Model
 		
 		return get_decision(array($result1,$result2), FALSE);
 	}
+	
+	
+	
+	
+	# Get teacher documents
+	function get_documents($teacherId)
+	{
+		return $this->_query_reader->get_list('get_user_documents', array('user_id'=>$teacherId));
+	}
+	
+	
+	
+	
 	
 }
 

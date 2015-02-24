@@ -41,7 +41,7 @@ if(!empty($list))
 	<td>".$row['weekly_workload_average']."</td>
 	<td><a href='".base_url()."census/sub_lists/id/".$row['id']."/type/training' class='shadowbox closable'>Training</a></td>
 	<td><a href='".base_url()."census/sub_lists/id/".$row['id']."/type/responsibility' class='shadowbox closable'>Responsibilities</a></td>
-	<td>".format_date($row['last_updated'],'d-M-Y h:i:sa T').
+	<td>".format_date($row['last_updated'],'d-M-Y h:ia T').
 	
 	((check_access($this, 'submit_teacher_census_data', 'boolean') && !empty($action) && $action == 'verify')? "<div class='rightnote'><a href='".base_url()."census/add/id/".$row['id']."/action/verify' class='shadowbox'>edit</a></div>": "")
 	

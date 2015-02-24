@@ -40,11 +40,7 @@ $(function() {
 	$(document).on('click', '.selectfield', function(){
 		var fieldId = $(this).attr('id');
 		var listType = fieldId.split('__').pop();
-		
-		//Disable if editable is not set
-		if(!$(this).hasClass('editable') && !$(this).hasClass('searchable')){
-			$(this).attr('disabled', 'disabled');
-		}
+		$(this).removeAttr('readonly');
 		
 		//Show the options for the select field. First create the div if its not available
 		if($('#'+fieldId+'__div').length > 0)
@@ -84,6 +80,11 @@ $(function() {
 		}
 		
 		$('#'+fieldId+'__div').offset({ top: offsetTop, left: fieldOffsetLeft });
+		
+		//Disable if editable is not set
+		if(!$('#'+fieldId).hasClass('editable') && !$('#'+fieldId).hasClass('searchable')){
+			$('#'+fieldId).attr('readonly', 'readonly');
+		}
 	});
 	
 	
@@ -91,12 +92,12 @@ $(function() {
 	$(document).on('click focus', '.selectfielddiv div', function(){
 		var fieldId = $(this).parent('div').attr('id').replace(/\__div/g, '');
 		
-		$('#'+fieldId).removeAttr('disabled');
+		$('#'+fieldId).removeAttr('readonly');
 		$('#'+fieldId).val($(this).html());
 		$('#'+fieldId).trigger('change'); // Make this look like the person has entered the stuff
 		if(!$('#'+fieldId).hasClass('editable') && !$(this).hasClass('searchable'))
 		{
-			$(this).attr('disabled', 'disabled');
+			$(this).attr('readonly', 'readonly');
 		}
 		// Also fill the hidden value for the field with the real value
 		$('#'+fieldId+'__hidden').val($(this).data('value'));
@@ -112,7 +113,7 @@ $(function() {
     	{
        	 	$('#'+fieldId+'__div').fadeOut('fast');
 			// Now if this is searchable clear the field if it is not among the list of selectable options
-			if($(this).hasClass('searchable'))
+			if($(this).hasClass('searchable') && !$(this).hasClass('editable'))
 			{
 				var fieldValue = $(this).val();
 				var isIn = false;
@@ -155,7 +156,10 @@ $(function() {
 		var activate = true;
 		var form = $(this).parents('.simpleform').first();
 		form.find('input').each(function(){
-			if(!$(this).hasClass('optional') && $(this).attr('type') == 'text' && $(this).val().length < 3){
+			if(!$(this).hasClass('optional') 
+				&& $(this).attr('type') == 'text' 
+				&& $(this).val().length < 3
+			){
 				activate = false; 
 				return false;
 			}
@@ -202,6 +206,7 @@ $(function() {
 				|| ($(this).attr('type') != 'radio' && $(this).attr('type') != 'checkbox' && (
 						($(this).hasClass('email') && !isValidEmail($(this).attr('id'),''))
 						|| ($(this).hasClass('password') && !isValidPassword($(this).attr('id'),''))
+						|| ($(this).hasClass('futuredate') && !isFutureDate($(this).val())) 
 						|| $(this).val().length < 2
 				)))
 			){
@@ -220,6 +225,11 @@ $(function() {
 			showServerSideFadingMessage(msg);
 			$('#'+firstEmpty).focus();
 		} else {
+			// Disable the form submit button to prevent multiple submissions
+			$('#'+formId).find('button[type="submit"]').each(function(){
+				$(this).attr('type', 'button');
+				$(this).html("<img src='"+getBaseURL()+"assets/images/loading_small.gif' />");
+			});
 			return true;
 		}
 		
@@ -282,6 +292,7 @@ $(function() {
 	// --------------------------------------------------------------------------------------------------------
 	$(document).on('click', '.microform button.submitmicrobtn', function(e){
 		// Collect all fields to process
+		var submitBtn = $(this);
 		var formContainer = $(this).parents('.microform').first();
 		var inputs = formContainer.find('input, textarea');
 		var errorMessage = formContainer.find('#errormessage').first().length > 0? formContainer.find('#errormessage').first().val(): 'Enter all required fields to continue.';
@@ -313,12 +324,12 @@ $(function() {
 					if(tempMessage != '') showServerSideFadingMessage(tempMessage);
 				},
 				error: function( xhr ) {
-    				console.log(xhr);
+    				//console.log(xhr);
 					showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
 				},
       	 		success: function(data) {
 		   			if(data.match(/error/i)) {
-						console.log(data);
+						//console.log(data);
 					
 						// Determine which error to show
 						//The script failed
@@ -344,6 +355,14 @@ $(function() {
 								$(this).val('').removeAttr('checked').removeAttr('selected');
 							}
 						});
+						
+						//If certain hidden fields are specified for clearance after submission, put them on the button data-val
+						if(submitBtn.data('val')){
+							var fieldsToClear = submitBtn.data('val').split(',');
+							for(var i=0; i<fieldsToClear.length; i++){
+								$('#'+fieldsToClear[i]).remove();
+							}
+						}
 						
 						$("#"+resultsDiv).html(data).fadeIn('fast');
 					}

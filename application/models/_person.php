@@ -26,6 +26,8 @@ class _person extends CI_Model
 		if(!$isAdmin && $this->native_session->get('__user_id')) array_push($required, 'gender', 'marital', 'birthday', 'birthplace'); 
 		
 		# 1. Add all provided data into the session
+		#If the user is editing, they may not be given the email address, let us add it
+		$profileDetails['emailaddress'] = !empty($profileDetails['emailaddress'])? $profileDetails['emailaddress']: ($this->native_session->get('emailaddress')? $this->native_session->get('emailaddress'): '');
 		$passed = process_fields($this, $profileDetails, $required, array("/"));
 		$msg = !empty($passed['msg'])? $passed['msg']: "";
 			
@@ -91,8 +93,13 @@ class _person extends CI_Model
 							$this->_query_reader->run('update_teacher_status', array('user_id'=>$userId, 'status'=>'pending', 'updated_by'=>$userId));
 							
 							$code = generate_person_code($personId);
-							$result = $this->_messenger->send_email_message($userId, array('code'=>'new_teacher_first_step', 'email_from'=>SIGNUP_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'verification_code'=>$code, 'password'=>$password, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ));
-							if(!$result) $msg = "ERROR: We could not send the email message with your code.";
+							$result = $this->_messenger->send($userId, array('code'=>'new_teacher_first_step', 'email_from'=>SIGNUP_EMAIL, 'from_name'=>SITE_GENERAL_NAME, 'verification_code'=>$code, 'password'=>$password, 'first_name'=>htmlentities($details['firstname'], ENT_QUOTES), 'emailaddress'=>$details['emailaddress'], 'login_link'=>base_url() ), array('email'));
+							if(!$result) 
+							{
+								#Delete the saved record if any, since the user has no access to their account either way
+								$this->_query_reader->run('delete_user_data', array('user_id'=>$userId));
+								$msg = "ERROR: We could not send the email message with your code.";
+							}
 						}
 						# This is a normal application
 						else

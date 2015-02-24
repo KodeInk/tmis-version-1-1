@@ -224,6 +224,29 @@ class Interview extends CI_Controller
 	}
 	
 	
+	
+	# Print a shortlist
+	function print_list()
+	{
+		$data = filter_forwarded_data($this);
+		
+		if(!empty($data['name']) && !empty($data['vacancy']))
+		{
+			$data['shortlist_name'] = decrypt_value($data['name']);
+			$data['list'] = $this->_interview->get_shortlist($data['vacancy'], $data['shortlist_name']);
+			$data['vacancy_details'] = $this->_interview->get_vacancy_details($data['vacancy']);
+			
+			$data['area'] = "download_shortlist_csv";
+			$this->load->view('page/download', $data); 
+		}
+		else
+		{
+			$data['msg'] = "ERROR: The shortlist details can not be resolved.";
+			$data['area'] = "view_print_shortlist";
+			$this->load->view('interview/addons', $data); 
+		}
+	}
+	
 }
 
 /* End of controller file */

@@ -51,15 +51,16 @@ if(!empty($list))
 	}
 	
 	echo "</td> 
-	<td><a href='".base_url()."teacher/add/id/".$row['teacher_id']."/action/view' class='shadowbox closable'>".$row['teacher_name']."</a></td> 
-	<td>".(!empty($row['current_school_name'])? $row['current_school_name']: 'NONE')."</td> 
-	<td>".$row['desired_school_name']."</td> 
-	<td>".format_date($row['proposed_date'],'d-M-Y');
+	<td style='vertical-align:top;'><a href='".base_url()."teacher/add/id/".$row['teacher_id']."/action/view' class='shadowbox closable'>".$row['teacher_name']."</a></td> 
+	<td style='vertical-align:top;'>".(!empty($row['current_school_name'])? $row['current_school_name']: 'NONE')."</td> 
+	<td style='vertical-align:top;'>".$row['desired_school_name']."</td> 
+	<td style='vertical-align:top;'>".format_date($row['proposed_date'],'d-M-Y');
 	if($row['actual_date'] != '0000-00-00') echo " (Actual: ".format_date($row['actual_date'],'d-M-Y').")"; 
 	
-	echo "</td><td>".limit_string_length(html_entity_decode($row['reason'], ENT_QUOTES), 200)."</td>
-	<td>".strtoupper($row['status'])."</td>
-	<td>".date('d-M-Y h:ia T', strtotime($row['last_updated']))."</td></tr> 
+	echo "</td>
+	<td style='vertical-align:top;'>".limit_string_length(html_entity_decode($row['reason'], ENT_QUOTES), 200)."</td>
+	<td style='vertical-align:top;'>".strtoupper($row['status'])."</td>
+	<td style='vertical-align:top;'>".date('d-M-Y h:ia T', strtotime($row['last_updated']))."</td></tr> 
 	
 	<tr><td style='padding:0px;'></td><td colspan='6' style='padding:0px;'><div id='action__".$row['id']."' class='actionrowdiv' style='display:none;'></div>".$stop."</td></tr>";
 	

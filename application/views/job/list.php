@@ -39,7 +39,7 @@ if(!empty($list))
 	if($action == 'report')
 	{
 		echo "<div class='nextdiv header' style='vertical-align:top; padding-top:3px; width: 130px;'>Applicant:</div><div class='nextdiv value'>".$row['applicant_name']."</div>
-	<br><div class='nextdiv header' style='width: 130px;'>Application Date:</div><div class='nextdiv value'>".date('d-M-Y h:i:sa T', strtotime($row['submission_date']))."</div>
+	<br><div class='nextdiv header' style='width: 130px;'>Application Date:</div><div class='nextdiv value'>".date('d-M-Y h:ia T', strtotime($row['submission_date']))."</div>
 	<br><div class='nextdiv header' style='width: 130px;'>Role:</div><div class='nextdiv value'>".$row['role_name']." &nbsp; &nbsp; AT: ".$row['institution_name']."</div>
 	<br><div class='nextdiv header' style='width: 130px;'>Job Summary:</div><div class='nextdiv value'>".$row['summary']."</div>";
 	}
