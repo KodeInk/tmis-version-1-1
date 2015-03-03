@@ -315,10 +315,15 @@ $(function() {
 		{
 			var action = formContainer.find('#action').first().val();
 			var resultsDiv = formContainer.find('#resultsdiv').first().val();
-			$.ajax({
+			var containsFileField = formContainer.find('.filefield').length > 0? true: false;
+
+			var parameters = {
         		type: "POST",
        			url: action,
-      			data: inputs.serializeArray(),
+				// How to handle getting the "form" data
+      			data: (containsFileField? formContainer.serializeFiles(): inputs.serializeArray()),
+				
+				// What to do as the data is being processed
       			beforeSend: function() {
            			//Show a temporary message to show that the form is being worked on
 					if(tempMessage != '') showServerSideFadingMessage(tempMessage);
@@ -328,8 +333,8 @@ $(function() {
 					showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
 				},
       	 		success: function(data) {
-		   			if(data.match(/error/i)) {
-						//console.log(data);
+		   			if(data.match(/php error/i) || data.match(/error:/i)) {
+						console.log(data);
 					
 						// Determine which error to show
 						//The script failed
@@ -354,6 +359,12 @@ $(function() {
 							if($(this).attr('type') != 'hidden'){
 								$(this).val('').removeAttr('checked').removeAttr('selected');
 							}
+							
+							//If some fields were hidden because they should not be edited, show them again
+							if($(this).parent('div').length > 0 && $(this).parent('div').hasClass('hideonedit')){
+								$(this).parent('div').css('display','inline-block');
+								$(this).removeClass('optional');
+							}
 						});
 						
 						//If certain hidden fields are specified for clearance after submission, put them on the button data-val
@@ -367,7 +378,15 @@ $(function() {
 						$("#"+resultsDiv).html(data).fadeIn('fast');
 					}
 				}
-   			});
+   			};
+			
+			//Add the ignore processing for file functions
+			if(containsFileField){
+				parameters['processData'] = false;
+				parameters['contentType'] = false;
+			}
+			//Now run the AJAX query
+			$.ajax(parameters);
 		}
 		else
 		{
@@ -498,6 +517,11 @@ $(function() {
 	
 	// --------------------------------------------------------------------------------------------------------
 	// Handling a file upload field
+	// Example file field is given in the format
+	// data-val specifies a comma delimited list of allowed file types
+	// data-size specifies the size limit in kB for files uploaded using the field. If not given it is limited to 100kB.
+	// 
+	// <input type="text" id="fieldname" name="fieldname" data-val="jpg,jpeg,gif,png,tiff" [OPTIONAL data-size="500"] class="filefield" value=""/>
 	// --------------------------------------------------------------------------------------------------------
 	$(document).on('click focus', '.filefield', function(e){
 		// Disable to prevent bogus files names
@@ -511,23 +535,30 @@ $(function() {
 		}
 		$('#'+fileId+'__fileurl').click();
 	});
+	
 	// What happens when the file is uploaded
 	$(document).on('change', '.filefieldurl', function(e){
 		var parentFieldId = $(this).attr('id').replace(/\__fileurl/g, '');
+		
 		// Get the allowed file formats
 		var allowedFormats = $('#'+parentFieldId).data('val').split(',');
 		var uploadedFileUrl = $(this).val();
 		var uploadedFileExtension = uploadedFileUrl.split('.').pop().toLowerCase();
 		
-		// Proceed if the file in is the allowed formats
-		if(allowedFormats.indexOf(uploadedFileExtension) != -1){
+		// Get the allowed file size for this file field, otherwise default to 100kB
+		var allowedSize = typeof $('#'+parentFieldId).data('size') !== 'undefined'? +$('#'+parentFieldId).data('size'): 100;
+		
+		// Proceed if the file in is the allowed formats and within allowed size
+		if(allowedFormats.indexOf(uploadedFileExtension) != -1 && $(this)[0].files[0].size <= (allowedSize*1024)){
 			$('#'+parentFieldId).val(uploadedFileUrl.split('/').pop());
 			
 		} else {
+			var msg = $(this)[0].files[0].size > (allowedSize*1024)? 'The uploaded file exceeds allowed size.': 'The uploaded file format is not valid.';
+			
 			//Clear the invalid file url uploaded
 			$(this).val('');
 			$('#'+parentFieldId).val('');
-			showServerSideFadingMessage('The uploaded file format is not valid.');
+			showServerSideFadingMessage(msg);
 		}
 		
 	});
@@ -547,8 +578,50 @@ $(function() {
 	
 	
 	
+
+
 	
 	
+	
+// --------------------------------------------------------------------------------------------------------
+// Handles processing a form with a file field in it before submission asynchronously
+// --------------------------------------------------------------------------------------------------------
+(function($) {
+$.fn.serializeFiles = function() {
+    var inputs = $(this).find("input, textarea"),
+    files = {};
+
+	// jquery or javascript have a slightly different notation
+	// it's either accessing functions () or arrays [] depending on which object you're holding at the moment
+	for (var i = 0; i < inputs.length; i++){
+    	if(inputs.eq(i).attr('type') == 'file') {
+			files[inputs.eq(i).attr('name')] = inputs.eq(i).prop("files")[0];
+    		//files.push(inputs[i].files[0]);
+    		//filename = inputs[i].files[0].name;
+    		//filesize = inputs[i].files[0].size;
+		} else {
+			files[inputs.eq(i).attr('name')] = inputs.eq(i).val();
+		}
+	}
+
+	var formdata = new FormData();  
+	if (formdata) {
+    	// you can use the array notation of your input's `name` attribute here
+    	$.each(files, function(fieldname, element) { 
+			formdata.append(fieldname, element);
+		});
+	}
+	//Now return the form data for processing as normal
+	return formdata;
+};
+})(jQuery);
+
+
+
+
+
+
+
 	
 	
 	

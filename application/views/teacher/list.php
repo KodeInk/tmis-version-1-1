@@ -8,7 +8,18 @@ if(!empty($list))
 	$page = !empty($page)? $page: 1;
 	$stop = ($rowsPerPage >= $listCount && !empty($listid))? "<input name='paginationdiv__".$listid."_stop' id='paginationdiv__".$listid."_stop' type='hidden' value='".$page."' />": "";
 	
-	echo "<tr class='header'><td>&nbsp;</td><td>Name</td><td>School</td><td>Location</td><td>Telephone</td><td>Email</td><td>Teacher Status</td><td>Last Updated</td></tr>";
+	if($action == 'payrollreport')
+	{
+		echo "<tr class='header'><td>&nbsp;</td><td>Registration Number</td><td>Name</td><td>Title</td><td>Salary Scale</td><td>Birth Date</td><td>Status</td><td>Proposed Retirement</td></tr>";
+	}
+	else if($action == 'cimreport')
+	{
+		echo "<tr class='header'><td>&nbsp;</td><td>Registration Number</td><td>Name</td><td>Title</td><td>Responsibility</td><td>Birth Date</td><td>Location</td><td>School</td><td>School Type</td></tr>";
+	}
+	else
+	{
+		echo "<tr class='header'><td>&nbsp;</td><td>Name</td><td>Age</td><td>School</td><td>Location</td><td>Telephone</td><td>Email</td><td>Teacher Status</td><td>Last Updated</td></tr>";
+	}
 	
 	# Pick the lesser of the two - since if there is a next page, the list count will come with an extra row
 	$maxRows = $listCount < $rowsPerPage? $listCount: $rowsPerPage;
@@ -44,23 +55,50 @@ if(!empty($list))
 		}
 	}
 	
+	echo "</td>";
 	
 	
-	echo "</td> <td>".$row['name']."</td> 
-	<td>".(!empty($row['school'])? $row['school']: '&nbsp;')."</td>
-	<td>".(!empty($row['school_address'])? $row['school_address']: '&nbsp;')."</td>
-	<td>".$row['telephone']."</td>
-	<td>".$row['email_address']."</td>
-	<td>".strtoupper($row['teacher_status'])."</td>
-	<td>".format_date($row['last_updated'],'d-M-Y h:ia T').
+	if($action == 'payrollreport')
+	{
+		echo "<td>".$row['file_number']."</td>
+			<td>".$row['name']."</td>
+			<td>".$row['title']."</td>
+			<td>".$row['salary_scale']."</td>
+			<td>".format_date($row['date_of_birth'],'d-M-Y')."</td>
+			<td>".$row['teacher_status']."</td>
+			<td>".format_date($row['proposed_retirement'],'d-M-Y').$stop."</td>
+			</tr>";
+	}
+	else if($action == 'cimreport')
+	{
+		echo "<td>".$row['file_number']."</td>
+			<td>".$row['name']."</td>
+			<td>".$row['title']."</td>
+			<td>".$row['responsibility']."</td>
+			<td>".format_date($row['date_of_birth'],'d-M-Y')."</td>
+			<td>".$row['location']."</td>
+			<td>".$row['school']."</td>
+			<td>".$row['school_type'].$stop."</td>
+			</tr>";
+	}
+	else
+	{
+		echo "<td>".$row['name']."</td> 
+			<td style='".format_age($row['age'])."'>".$row['age']." yrs".format_age($row['age'],'timeleft')."</td>
+			<td>".(!empty($row['school'])? $row['school']: '&nbsp;')."</td>
+			<td>".(!empty($row['school_address'])? $row['school_address']: '&nbsp;')."</td>
+			<td>".$row['telephone']."</td>
+			<td>".$row['email_address']."</td>
+			<td>".strtoupper($row['teacher_status'])."</td>
+			<td>".format_date($row['last_updated'],'d-M-Y h:ia T').
 	
-	"<br><div class='rightnote'><a href='".base_url()."teacher/add/id/".$row['id']."/action/view' class='shadowbox closable'>details</a></div>".
+			"<br><div class='rightnote'><a href='".base_url()."teacher/add/id/".$row['id']."/action/view' class='shadowbox closable'>details</a></div>".
 	
-	((check_access($this, 'add_new_teacher', 'boolean') && !empty($action) && $action == 'view')? "<div class='rightnote'><a href='".base_url()."teacher/add/id/".$row['id']."/action/verify' class='shadowbox'>edit</a></div>": "")
+			((check_access($this, 'add_new_teacher', 'boolean') && !empty($action) && $action == 'view')? "<div class='rightnote'><a href='".base_url()."teacher/add/id/".$row['id']."/action/verify' class='shadowbox'>edit</a></div>": "")
 	
-	."</td></tr>
+			."</td></tr>
 	<tr><td style='padding:0px;'></td><td colspan='7' style='padding:0px;'><div id='action__".$row['id']."' class='actionrowdiv' style='display:none;'></div>".$stop."</td></tr>";
-	
+		}
 	}  
 }
 else

@@ -109,41 +109,7 @@ class _school extends CI_Model
 	}
 	
 	
-		
-		
-		
-	# STUB: Get the list of teachers at the specified school
-	function get_teachers_list($schoolId)
-	{
-		$teachersList = array();
-		
-		
-		return $teachersList;
-	}
-			
-		
-		
-	# STUB: Archive the school.
-	function archive($schoolId)
-	{
-		$isArchived = false;
-		
-		
-		return $isArchived;
-	}
-				
-		
-		
-	# STUB: Get the school details.
-	function get_details($schoolId)
-	{
-		$schoolDetails = array();
-		
-		
-		return $schoolDetails;
-	}
 	
-
 
 	# Clear a school session profile
 	function clear_session()

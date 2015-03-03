@@ -71,43 +71,10 @@ class _vacancy extends CI_Model
 	# Change the status of the vacancy
 	function change_status($vacancyId, $newStatus)
 	{
-		return $result = $this->_query_reader->run('update_vacancy_status', array('vacancy_id'=>$vacancyId, 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id')));
+		return $this->_query_reader->run('update_vacancy_status', array('vacancy_id'=>$vacancyId, 'status'=>$newStatus, 'updated_by'=>$this->native_session->get('__user_id')));
 	}
 	
 		
-		
-	
-	# STUB: Generate a shortlist of the applicants
-	function generate_shortlist($vacancyId)
-	{
-		$shortlist = array();
-		
-		
-		return $shortlist;
-	}
-		
-		
-	
-	# STUB: Get responses to a vacancy.
-	function get_responses($vacancyId)
-	{
-		$responses = array();
-		
-		
-		return $responses;
-	}
-		
-		
-	
-	# STUB: Set an interview for a vacancy.
-	function set_interview($vacancyId, $interviewDetails)
-	{
-		$isSet = false;
-		
-		
-		return $isSet;
-	}
-	
 		
 	
 	# Get list of vacancies

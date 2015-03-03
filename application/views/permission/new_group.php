@@ -95,7 +95,7 @@ if(empty($id)) {?>
   <?php if(!(!empty($action) && $action=='view')) {?>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SAVE</button>
+    <td><input type="submit" name="save" id="save" class="btn" value="SAVE" />
 	<input type='hidden' id='errormessage' name='errormessage' value='Enter all required fields to continue including selecting a default permission.' /><?php 
 	echo !empty($id)? "<input type='hidden' id='groupid' name='groupid' value='".$id."' />": "";
 	echo "<input type='hidden' id='forward' name='forward' value='permission/update_group' />";

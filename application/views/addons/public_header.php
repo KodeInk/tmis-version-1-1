@@ -14,9 +14,9 @@ $logoutLink = ($page != "login" && $this->native_session->get('__user_id')? " &n
 <tr>
     <td colspan="2" class="greybg"><div class="logo"><a href="<?php echo base_url();?>"><img src="<?php echo base_url();?>assets/images/tmis_logo.png" alt="TMIS logo" border="0"></a></div><?php if($page != "login" && !$this->native_session->get('__user_id') ){?><div class="loginform"><form method="post" autocomplete="off" ><table border="0" cellspacing="0" cellpadding="0">
   <tr>
-    <td><input type="text" id="loginusername" name="loginusername" placeholder="Enter User Name" class="textfield" value="" maxlength="100"  style="width:140px;"/></td>
+    <td><input type="text" id="loginusername" name="loginusername" placeholder="Email Address" class="textfield" value="" maxlength="100"  style="width:140px;"/></td>
     <td><input type="password" id="loginpassword" name="loginpassword" placeholder="Password" class="textfield" value="" maxlength="100" style="width:140px;"/></td>
-    <td><button type="button" class="greybtn" id="submitlogin" name="submitlogin">SUBMIT</button></td>
+    <td><button type="button" class="greybtn" id="submitlogin" name="submitlogin">LOGIN</button></td>
   </tr>
 </table></form></div><?php }?></td>
   </tr>

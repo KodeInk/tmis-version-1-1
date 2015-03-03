@@ -40,9 +40,11 @@ $(function(){
 
 
 // Handle step responsiveness by recoloring the divs as you move from one page to another
-$(function(){
+$(document).ready(function() {
 	if($('#stepstracker').length > 0){
+		var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
 		var index = 0;
+		
 		$('#stepstracker tr:first-child td').each(function(){
 			// Recolor the divs in those cells as you proceed in the steps
 			if(index > 1){
@@ -60,6 +62,39 @@ $(function(){
 			
 			index++;
 		});
+		
+		
+		
+		//Forcefully resize the divs if its Chrome browser
+		if(isChrome){
+			$('#stepstracker tr:first-child td').each(function(){
+				$(this).find('div').last().css('margin-right', '0px');
+				$(this).css('padding-right', '0px');
+				
+				// STEP ONE
+				if($(this).hasClass('stepone')){
+					$(this).find('div').last().width($(this).width()+76);
+				}
+					
+				// MIDDLE STEPS WITHOUT VISITED
+				if(($(this).hasClass('steptwo') || $(this).hasClass('stepthree')) && !$(this).hasClass('visitedwithmore')){
+					var halfWidth = ($(this).width())/2;
+					$(this).find('div').first().width(halfWidth+38);
+					$(this).find('div').last().width(halfWidth+38);
+				}
+				
+				// MIDDLE STEPS WITH VISITED	
+				if(($(this).hasClass('steptwo') || $(this).hasClass('stepthree')) && $(this).hasClass('visitedwithmore')){
+					$(this).find('div').last().width($(this).width()+76);
+				}
+				
+				// STEP FOUR
+				if($(this).hasClass('stepfour')){
+					$(this).find('div').first().width($(this).width()+76);
+				}
+				
+			});
+		}
 	}
 });
 

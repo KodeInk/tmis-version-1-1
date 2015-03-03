@@ -15,12 +15,12 @@ else if(!empty($area) && $area == 'download_shortlist_csv')
 		array('Shortlist:'=>'Role:', $shortlist_name=>$vacancy_details['role_name']),
 		array('Shortlist:'=>'Summary:', $shortlist_name=>$vacancy_details['summary']),
 		array('Shortlist:'=>'', $shortlist_name=>''),
-		array('APPLICANT','DATE ADDED','ADDED BY')
+		array('NAME','NUMBER','ADDRESS')
 	);
 	
 	foreach($list AS $row)
 	{
-		array_push($htmldata, array($row['applicant'], date('d-M-Y h:ia T', strtotime($row['date_added'])), $row['added_by'])); 
+		array_push($htmldata, array($row['name'], $row['number'], $row['address'])); 
 	}
 	
 	send_download_headers("file_".strtotime('now').".csv");

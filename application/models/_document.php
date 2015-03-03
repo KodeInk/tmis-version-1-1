@@ -10,49 +10,6 @@
 class _document extends CI_Model
 {
 	
-	# STUB: Add a new document
-	function add_new($documentDetails)
-	{
-		$isAdded = false;
-		
-		
-		return $isAdded;
-	}
-	
-	
-		
-	# STUB: Remove a document.
-	function remove($documentId)
-	{
-		$isRemoved = false;
-		
-		
-		return $isRemoved;
-	}
-	
-	
-		
-	# STUB: Update a document's details.
-	function update($documentId)
-	{
-		$isUpdated = false;
-		
-		
-		return $isUpdated;
-	}
-	
-	
-		
-	# STUB: Get document details
-	function get_details($documentId)
-	{
-		$documentDetails = array();
-		
-		
-		return $documentDetails;
-	}
-
-
 
 	# Generate a letter with the passed details
 	function generate_letter($code, $details, $action='save', $return='filename')
@@ -162,7 +119,8 @@ class _document extends CI_Model
 		{
 			$file = $this->move_file($fileObj['tmp_name'], 'images', $extension);
 		}
-		else if($instructions['type'] == 'document' && in_array(finfo_file(finfo_open(FILEINFO_MIME_TYPE), $fileObj['tmp_name']), $documentTypes))
+		# TODO: Check for valid formats - not caught by name extension check
+		else if($instructions['type'] == 'document')# && in_array($this->get_mime($fileObj['tmp_name']), $documentTypes))
 		{
 			$file = $this->move_file($fileObj['tmp_name'], 'documents', $extension);
 		}
@@ -197,6 +155,14 @@ class _document extends CI_Model
 	}
 	
 	
+	
+	
+	function get_mime($url) 
+	{
+    	$image_type = exif_imagetype($url);
+    	return image_type_to_mime_type($image_type);
+	}
+
 }
 
 

@@ -172,13 +172,13 @@
 	display: none;
 }
 
-.resultslisttable.editable tr:not(:first-child) td:first-child {
+.resultslisttable.editable .edit {
 	background: url(../../assets/images/edit_icon.png) no-repeat center center;
 	width: 39px;
 	height: 39px;
 	cursor:pointer;
 }
-.resultslisttable.editable tr:not(:first-child) td:last-child {
+.resultslisttable.editable .delete {
 	background: url(../../assets/images/remove_icon_bg.png) no-repeat center center;
 	width: 39px;
 	height: 39px;

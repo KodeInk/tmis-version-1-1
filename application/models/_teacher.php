@@ -73,7 +73,18 @@ class _teacher extends CI_Model
 					$this->native_session->set('user_id', $userId);
 				}
 				
-				if($result) $this->native_session->set('person_id', $personId);
+				
+				# 4. Take note of the new teacher's person ID for use later
+				if(!empty($result) && $result) 
+				{
+					$this->native_session->set('person_id', $personId);
+					# If we have been using a temp person ID, update the database with the real ID and remove the temp one
+					if($this->native_session->get('temp_person_id'))
+					{
+						$result = $this->_query_reader->run('update_document_owner', array('temp_id'=>$this->native_session->get('temp_person_id'), 'actual_id'=>$personId ));
+						if($result) $this->native_session->delete('temp_person_id');
+					}
+				}
 			}
 			else
 			{
@@ -139,28 +150,6 @@ class _teacher extends CI_Model
 		return $this->_query_reader->add_data('add_another_id', array('parent_id'=>$personId, 'parent_type'=>'person', 'id_type'=>$idDetails['id_type'], 'id_value'=>$idDetails['id_value']));
 	}		
 		
-		
-	# STUB: Archive the teacher.
-	function archive($teacherId)
-	{
-		$isArchived = false;
-		
-		
-		return $isArchived;
-	}
-				
-		
-		
-	# STUB: Get the teacher details.
-	function get_details($schoolId)
-	{
-		$schoolDetails = array();
-		
-		
-		return $schoolDetails;
-	}
-	
-	
 	
 	# Add a person's address
 	function add_address($personId, $addressDetails)
@@ -226,6 +215,10 @@ class _teacher extends CI_Model
 			#Get teacher's subjects taught list
 			$subjects = $this->_query_reader->get_list('get_teacher_subjects', array('person_id'=>$teacher['person_id']));
 			$this->native_session->set('subject_list',$subjects);
+			
+			#Get teacher's document list
+			$documents = $this->_query_reader->get_list('get_teacher_documents', array('person_id'=>$teacher['person_id']));
+			$this->native_session->set('document_list',$documents);
 		}
 	}
 	
@@ -246,6 +239,7 @@ class _teacher extends CI_Model
 	function get_list($instructions=array())
 	{
 		$searchString = " U.teacher_status='active' ";
+		$query = 'get_teacher_list_data';
 		if(!empty($instructions['action']) && $instructions['action']== 'view')
 		{
 			$searchString = " U.teacher_status IN ('pending', 'completed') ";
@@ -258,6 +252,16 @@ class _teacher extends CI_Model
 		{
 			$searchString = " U.teacher_status = 'approved' ";
 		}
+		else if(!empty($instructions['action']) && $instructions['action']== 'payrollreport')
+		{
+			$searchString = " U.teacher_status NOT IN ('unknown','pending') ";
+			$query = 'get_teacher_payroll_data';
+		}
+		else if(!empty($instructions['action']) && $instructions['action']== 'cimreport')
+		{
+			$searchString = " U.teacher_status NOT IN ('unknown','pending') ";
+			$query = 'get_teacher_cim_data';
+		}
 		
 		# If a search phrase is sent in the instructions
 		if(!empty($instructions['searchstring']))
@@ -269,7 +273,7 @@ class _teacher extends CI_Model
 		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
 		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
 		
-		return $this->_query_reader->get_list('get_teacher_list_data',array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" ORDER BY U.last_updated DESC, U.date_added DESC "));
+		return $this->_query_reader->get_list($query, array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" ORDER BY U.last_updated DESC, U.date_added DESC "));
 	}
 	
 	
@@ -297,7 +301,6 @@ class _teacher extends CI_Model
 				break;
 				
 				case 'reject_fromcompleted':
-					#$result = $this->_approval_chain->add_chain($instructions['id'], 'registration', '2', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') ); 
 					$this->change_status($instructions['id'], 'pending');
 				break;
 				
@@ -308,11 +311,11 @@ class _teacher extends CI_Model
 					$details['grade__grades'] = $instructions['grade__grades'];
 					
 					$result = $this->_approval_chain->add_chain($instructions['id'], 'registration', '3', 'approved', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): ''), $details);
+					
 					$this->change_status($instructions['id'], 'active');
 				break;
 				
 				case 'reject_fromapproved':
-					#$result = $this->_approval_chain->add_chain($instructions['id'], 'registration', '3', 'rejected', (!empty($instructions['reason'])? htmlentities($instructions['reason'], ENT_QUOTES): '') );
 					$this->change_status($instructions['id'], 'completed');
 				break;
 				

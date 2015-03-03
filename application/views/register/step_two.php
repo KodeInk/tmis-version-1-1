@@ -70,8 +70,8 @@
     <br><span class="smalltext">Check your email for code.</span><?php }?></td>
   </tr>
   <tr>
-    <td class="label">Teacher File Number:</td>
-    <td><input type="text" id="teacherid" name="teacherid" title="Teacher ID Number" class="textfield optional" placeholder="Optional" value="<?php echo ($this->native_session->get('teacherid')? $this->native_session->get('teacherid'): '');?>"/></td>
+    <td class="label">Teacher UTS Number:</td>
+    <td><input type="text" id="teacherid" name="teacherid" title="Teacher UTS Number" class="textfield optional" placeholder="Optional" value="<?php echo ($this->native_session->get('teacherid')? $this->native_session->get('teacherid'): '');?>"/></td>
   </tr>
   <tr>
     <td class="label">Permanent Address:</td>
@@ -85,7 +85,7 @@
   <tr>
     <td class="label">Country of Citizenship:</td>
     <td><div class="nextdiv"><input type="text" id="citizenship__country" name="citizenship__country" title="Country of Citizenship" placeholder="Select Country" class="textfield selectfield" value="<?php echo ($this->native_session->get('citizenship__country')? $this->native_session->get('citizenship__country'): '');?>"/></div>
-    <div class="nextdiv"><input type="text" id="citizenship__citizentype" name="citizenship__citizentype" title="How You Obtained Citizenship" placeholder="Select Source" class="textfield selectfield" value="<?php echo ($this->native_session->get('citizenship__citizentype')? $this->native_session->get('citizenship__citizentype'): '');?>"/></div></td>
+    <div class="nextdiv"><input type="text" id="citizenship__citizentype" name="citizenship__citizentype" title="How You Obtained Citizenship" placeholder="Citizen By" class="textfield selectfield" value="<?php echo ($this->native_session->get('citizenship__citizentype') && $this->native_session->get('citizenship__citizentype') != '_CITIZENSHIP_TYPE_'? $this->native_session->get('citizenship__citizentype'): '');?>"/></div></td>
   </tr>
 </table>
         

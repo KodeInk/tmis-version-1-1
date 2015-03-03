@@ -182,6 +182,76 @@ class Interview extends CI_Controller
 		$this->load->view('interview/addons', $data); 
 	}
 	
+	
+	
+	
+	
+	# Select interview board
+	function select_board()
+	{
+		$data = filter_forwarded_data($this);
+		if(empty($_POST)) $this->_interview->clear_board();
+		
+		if(!empty($data['id']))
+		{	
+			if(!empty($_POST))
+			{
+				$data['result'] = $this->_interview->add_board($data['id'], $this->input->post(NULL, TRUE)); 
+				$this->native_session->set('msg', ($data['result']? 'The interview board has been set.': 'ERROR: We could not set the interview board.'));
+				redirectFromIframe(base_url().'interview/lists/action/addresult');
+				
+			}
+			else $this->_interview->populate_board($data['id']);
+		}
+		else
+		{
+			$data['msg'] = "ERROR: We can not resolve the interview details.";
+		}
+		
+		$data['area'] = "select_board";
+		$this->load->view('interview/addons', $data); 
+	}
+	
+	
+	
+	
+	# Add a member to an interview board
+	function add_board_member()
+	{
+		$data = filter_forwarded_data($this);
+		
+		$data['msg'] = $this->_interview->add_member_to_board($data);
+		$data['area'] = "select_board_members";
+		$this->load->view('interview/addons', $data); 
+	}
+	
+	
+	
+	
+	# Remove a member from an interview board
+	function remove_board_member()
+	{
+		$data = filter_forwarded_data($this);
+		
+		$data['msg'] = $this->_interview->remove_member_from_board($data);
+		$data['area'] = "select_board_members";
+		$this->load->view('interview/addons', $data); 
+	}
+	
+	
+	
+	
+	# View board members
+	function view_board_members()
+	{
+		$data = filter_forwarded_data($this);
+		
+		$data['msg'] = $this->_interview->populate_board_list($data);
+		$data['area'] = "select_board_members";
+		$this->load->view('interview/addons', $data); 
+	}
+	
+	
 		
 	
 	# Verify the interview - just keeping the function name consistent
@@ -225,8 +295,8 @@ class Interview extends CI_Controller
 	
 	
 	
-	# Print a shortlist
-	function print_list()
+	# Download a shortlist
+	function download_list()
 	{
 		$data = filter_forwarded_data($this);
 		
@@ -242,7 +312,7 @@ class Interview extends CI_Controller
 		else
 		{
 			$data['msg'] = "ERROR: The shortlist details can not be resolved.";
-			$data['area'] = "view_print_shortlist";
+			$data['area'] = "view_shortlist";
 			$this->load->view('interview/addons', $data); 
 		}
 	}

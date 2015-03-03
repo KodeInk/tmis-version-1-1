@@ -84,7 +84,7 @@ if(empty($id)) {?>
   <?php if(!(!empty($action) && $action=='view')) {?>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SAVE</button><?php 
+    <td><input type="submit" name="save" id="save" class="btn" value="SAVE" /><?php 
 	if(!empty($actionurl) && $actionurl == 'update'){
 		$forward = "user/update_status";
 	} else if(!empty($actionurl) && $actionurl == 'changepassword'){

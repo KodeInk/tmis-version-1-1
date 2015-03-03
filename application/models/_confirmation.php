@@ -44,7 +44,7 @@ class _confirmation extends CI_Model
 		# Narrow the items viewed for the manager to their school(s) only
 		if($this->native_session->get('__permission_group') == '3')
 		{
-			$searchString .= " AND I.id IN ('".implode("','", $this->get_postings($this->native_session->get('__user_id')))."') ";
+			$searchString .= " AND I.id = '".$this->get_current_school('id')."' ";
 		}
 		#Narrow the items viewed for the cao to their district only
 		else if($this->native_session->get('__permission_group') == '12')
@@ -66,6 +66,24 @@ class _confirmation extends CI_Model
 		return $this->_query_reader->get_list('get_job_postings',array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>' P.last_updated DESC '));
 	}
 
+	
+	
+	#Get the postings of a user given their ID
+	function get_postings($userId)
+	{
+		return $this->_query_reader->get_single_column_as_array('get_user_posting', 'institution_id', array('user_id'=>$userId));
+	}
+	
+	
+	
+	
+	#Set the current school details
+	function get_current_school($returnType='array')
+	{
+		$school = $this->_query_reader->get_row_as_array('get_teacher_jobs', array('user_id'=>$this->native_session->get('__user_id'), 'search_condition'=>" AND P.posting_end_date = '0000-00-00' LIMIT 1" ));
+		
+		return ($returnType == 'id' && !empty($school['institution_id']))? $school['institution_id']: $school;
+	}
 	
 	
 	

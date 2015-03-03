@@ -59,7 +59,7 @@ if(!empty($result) && $result){
     <td><textarea id="details" name="details" placeholder="Enter your message here" class="textfield" style="height:120px;"><?php echo $this->native_session->get('details');?></textarea></td>
   </tr>
   <tr>
-    <td colspan="2" style="text-align:right;"><button type="submit" class="btn" id="submitmessage" value-'send' name="submitmessage" style="width:238px;">SEND</button></td>
+    <td colspan="2" style="text-align:right;"><input type="submit" class="btn" id="submitmessage" name="submitmessage" style="width:238px;" value="SEND" /></td>
   </tr>
 <?php }?>
       </table>

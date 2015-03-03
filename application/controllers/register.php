@@ -11,7 +11,7 @@
 
 class Register extends CI_Controller 
 {
-	#Constructor to set some default values at class load
+	# Constructor to set some default values at class load
 	function __construct()
     {
         parent::__construct();
@@ -161,7 +161,23 @@ class Register extends CI_Controller
 					$viewToLoad = "addons/basic_addons";
 				}
 			
-				# c) Are they submitting the entire form to save the data?
+				# c) Are they adding a document?
+				else if(!empty($data['action']) && $data['action'] == 'add_document')
+				{
+					# Process the document addition if one has been successfully uploaded
+					if(!empty($_FILES['documenturl__fileurl']) && file_exists($_FILES['documenturl__fileurl']['tmp_name']))
+					{
+						$this->load->model('_document');
+						$upload = $this->_document->upload($_FILES['documenturl__fileurl'], array('type'=>'document'));
+						$_POST['documenturl__fileurl'] = $upload['file'];
+					}
+					$data['response'] = $this->_person->add_document($this->native_session->get('person_id'), $this->input->post(NULL, TRUE));
+					
+					$data['area'] = "document_list";
+					$viewToLoad = "addons/basic_addons";
+				}
+				
+				# d) Are they submitting the entire form to save the data?
 				else if($this->native_session->get('education_list') && $this->native_session->get('subject_list'))
 				{
 					#Pass these details to the person object to handle with XSS filter turned on
@@ -255,13 +271,15 @@ class Register extends CI_Controller
 	#The third step form for the registration process
 	function step_four()
 	{
+		$data = filter_forwarded_data($this);
+		
 		# The user posted the form
 		if(!empty($_POST))
 		{
 			$result = $this->_person->submit_application($this->native_session->get('person_id'), array('user_id'=>($this->native_session->get('__user_id')? $this->native_session->get('__user_id'): $this->native_session->get('user_id')), 'emailaddress'=>$this->native_session->get('emailaddress'), 'first_name'=>$this->native_session->get('firstname'), 'last_name'=>$this->native_session->get('lastname')));
 			if($result['boolean'])
 			{
-				$data['msg'] = !empty($result['msg'])? $result['msg']: "Your application has been submitted. You will be notified using your registered email when it is approved.";
+				$data['msg'] = !empty($result['msg'])? $result['msg']: "Your application has been submitted. You will be notified using your registered email when it is approved.<br><br>Please check your email spam folder if you can not find your confirmation email.";
 				$viewToLoad = 'account/login';
 			}
 			else
@@ -276,25 +294,6 @@ class Register extends CI_Controller
 		$this->load->view($viewToLoad, $data); 
 	}
 	
-	
-	
-	
-	#STUB: View teacher applications
-	function applications()
-	{
-		$data = filter_forwarded_data($this);
-		$instructions['action'] = array(
-			'view'=>'view_teacher_applications', 
-			'verify'=>array('level'=>array('hr'=>'verify_teacher_application_at_hr_level', 'instructor'=>'verify_teacher_application_at_instructor_level'))
-			# Can add more permission instructions here
-		);
-		check_access($this, get_access_code($data, $instructions));
-		
-		
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
 	
 }
 

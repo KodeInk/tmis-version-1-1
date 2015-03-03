@@ -172,7 +172,9 @@ function format_notice($obj, $msg)
 						"<tr><td class='error' style='border:0px;padding:5px;min-width:0px;' width='1%' nowrap>".str_replace("ERROR:", "<img src='".base_url()."assets/images/error.png'  border='0'/></td><td  width='99%' class='error'  style='font-size:13px;border:0px;' valign='middle'>", $msg)."</td></tr>".
 					  "</table>";
 		
-		$obj->_logger->add_event(array('log_code'=>'system_error', 'result'=>'fail', 'details'=>"msg=".$msg));
+		$userId = $obj->native_session->get('__user_id')? $obj->native_session->get('__user_id'): 'UNKNOWN';
+		$email = $obj->native_session->get('__email_address')? $obj->native_session->get('__email_address'): 'UNKNOWN';
+		$obj->_logger->add_event(array('log_code'=>'system_error', 'result'=>'fail', 'details'=>"userid=".$userId."|email=".$email."|msg=".$msg));
 	}
 	
 	#Normal Message
@@ -1344,6 +1346,32 @@ function minify_js($page, $files)
 	
 	return $string;
 }
+
+
+# Function to redirect a user from an iframe
+function redirectFromIframe($url)
+{
+	echo "<script type='text/javascript'>window.top.location.href = '".$url."';</script>";exit;
+}
+
+
+# Format age for display indicator
+function format_age($userAge, $return='style', $retirementAge = RETIREMENT_AGE)
+{
+	$format = "";
+	
+	if(($retirementAge - $userAge) < 4 && $userAge <= RETIREMENT_AGE)
+	{
+		$format = $return=='timeleft'? "<br>[".($retirementAge - $userAge)." yrs to AMAR]": "font-weight:bold;color: #FFD418;";
+	}
+	else if(($retirementAge - $userAge) < 0)
+	{
+		$format = $return=='timeleft'? "<br>[".($userAge - $retirementAge)." yrs past AMAR]": "font-weight:bold;color: #FF0000;";
+	}
+	
+	return $format;
+}
+
 
 
 ?>

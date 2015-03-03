@@ -19,17 +19,6 @@ class Permission extends CI_Controller
 	}
 	
 	
-	#STUB: View permission changes
-	function changes()
-	{
-		$data = filter_forwarded_data($this);
-		$instructions['action'] = array('verify'=>'verify_permission_change_requests');
-		check_access($this, get_access_code($data, $instructions));
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
 	
 	
 	# View list of permissions

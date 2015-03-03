@@ -88,8 +88,8 @@
     <td class="label top">Photo:</td>
     <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_photo')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_photo')."' style='max-height:80px;' border='0' />": 'None';?></div><div class="editdiv">
     <?php echo $this->native_session->get('profile_photo')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_photo')."' style='max-height:110px;' border='0' /><br>": '';?>
-    <input type="text" id="photo" name="photo" title="Your Profile Photo" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_photo')? "placeholder='Select New Image'": '';?> value=""/>
-    <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF</div></div></td>
+    <input type="text" id="photo" name="photo" title="Your Profile Photo" data-size='300' data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_photo')? "placeholder='Select New Image'": '';?> value=""/>
+    <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF  &nbsp;&nbsp; Max Size: 300kB</div></div></td>
     <td>&nbsp;</td>
   </tr>
   
@@ -97,8 +97,8 @@
     <td class="label top">Signature on File:</td>
     <td><div class="viewdiv value"><?php echo $this->native_session->get('profile_signature')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_signature')."' style='max-height:80px;' border='0' />": 'None';?></div><div class="editdiv">
     <?php echo $this->native_session->get('profile_signature')? "<img src='".base_url().'assets/uploads/images/'.$this->native_session->get('profile_signature')."' style='max-height:80px;' border='0' /><br>": '';?>
-    <input type="text" id="signature" name="signature" title="Your Signature on File" data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_signature')? "placeholder='Select New Image'": '';?> value=""/>
-    <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF</div></div></td>
+    <input type="text" id="signature" name="signature" title="Your Signature on File" data-size='300' data-val='jpg,jpeg,gif,png,tiff' class="textfield filefield optional" <?php echo $this->native_session->get('profile_signature')? "placeholder='Select New Image'": '';?> value=""/>
+    <div class="editdiv smalltext">Allowed Formats: JPG, JPEG, GIF, PNG, TIFF  &nbsp;&nbsp; Max Size: 300kB</div></div></td>
     <td>&nbsp;</td>
   </tr>
   <tr>
@@ -112,12 +112,12 @@
   </tr>
   <tr>
     <td class="label">Address:</td>
-    <td><div class="viewdiv value"><?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline'): 'None');?></div><div class="editdiv"><input type="text" id="contactaddress" name="contactaddress" title="Contact Address" placeholder="" maxlength="16" class="textfield placefield optional" value="<?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline'): '');?>"/></div></td>
+    <td><div class="viewdiv value"><?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline')." ".$this->native_session->get('contactaddress__county')." <br>".$this->native_session->get('contactaddress__district').($this->native_session->get('contactaddress__country')? ", ".$this->native_session->get('contactaddress__country'): ''): 'None');?></div><div class="editdiv"><input type="text" id="contactaddress" name="contactaddress" title="Contact Address" placeholder="" maxlength="16" class="textfield placefield optional" value="<?php echo ($this->native_session->get('contactaddress__addressline')? $this->native_session->get('contactaddress__addressline'): '');?>"/></div></td>
     <td>&nbsp;</td>
   </tr>
   <tr>
     <td class="label">&nbsp;</td>
-    <td colspan="2" class="editdiv"><button type="submit" name="save" id="save" class="btn">SAVE</button></td>
+    <td colspan="2" class="editdiv"><input type="submit" name="save" id="save" class="btn" value="SAVE" /></td>
   </tr>
             </table>
             </form>

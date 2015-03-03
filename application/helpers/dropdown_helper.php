@@ -271,6 +271,21 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		
 		
+		case "boards":
+			$boards = $obj->_query_reader->get_list('get_list_of_boards');
+			foreach($boards AS $row)
+			{
+				$optionString .= "<div data-value='".$row['value']."' onclick=\"universalUpdate('boardid', '".$row['id']."');updateFieldLayer('".base_url()."interview/view_board_members/boardid/".$row['id']."','','','memberlist_div','');\">".$row['display']."</div>";
+			}
+		break;
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		

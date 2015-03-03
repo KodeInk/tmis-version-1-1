@@ -17,10 +17,17 @@ if(!empty($area) && $area == "verify_transfer")
 	<tr><td width='99%'>";
 	
 	
-	if(in_array($action, array('approve_tocountyapprove','approve_topca')) )
+	if($action == 'approve_tocountyapprove')
 	{
 		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' width='100%' />
 		<tr><td class='label'>Minute Number:</td><td><input type='text' id='minutenumber_".$action."_".$id."' name='minutenumber_".$action."_".$id."' placeholder='In the format 188/2015(29)(i)' class='textfield yellowfield otherfield' style='width:97%'/></td>
+		</tr>
+		</table>"; 
+	}
+	else if($action == 'approve_topca')
+	{
+		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' width='100%' />
+		<tr><td class='label top' style='width:1%;' nowrap>Subjects:</td><td><textarea id='subjectlist_".$action."_".$id."' name='subjectlist_".$action."_".$id."' style='width:100%' placeholder='Enter the subjects the teacher is going to teach (e.g., Mathematics, Social Studies, Religious Studies)' class='textfield yellowfield otherfield' style='width:97%'></textarea></td>
 		</tr>
 		</table>"; 
 	}

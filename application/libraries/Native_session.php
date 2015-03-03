@@ -47,6 +47,7 @@ class Native_session
 		# Delete all
 		else 
 		{
+			$_SESSION = array();
 			session_destroy();
 		}
     }

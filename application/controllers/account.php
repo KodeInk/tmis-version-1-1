@@ -37,7 +37,7 @@ class Account extends CI_Controller
 					#If so, assign permissions and redirect to their respective dashboard
 					$this->native_session->set('__permissions', $this->_permission->get_user_permission_list($results['user_id']));
 					#Log sign-in event
-					$this->_logger->add_event(array('log_code'=>'user_login', 'result'=>'success', 'details'=>"username=".trim($this->input->post('loginusername')) ));
+					$this->_logger->add_event(array('log_code'=>'user_login', 'result'=>'success', 'details'=>"userid=".$results['user_id']."|username=".trim($this->input->post('loginusername')) ));
 					
 					# Go to the user dashboard
 					redirect(base_url().get_user_dashboard($this, $results['user_id']));

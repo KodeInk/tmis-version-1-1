@@ -86,7 +86,7 @@ if(empty($id)) {?>
   <?php if(!(!empty($action) && $action=='view')) {?>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SUBMIT</button><?php 
+    <td><input type="submit" name="save" id="save" class="btn" value="SUBMIT" /><?php 
 	$forward = $this->native_session->get('__user_id')? "user/applications/action/view": "";
 	echo !empty($id)? "<input type='hidden' id='userid' name='userid' value='".$id."' /><input type='hidden' id='forward' name='forward' value='".$forward."' />": "";
 	?></td>

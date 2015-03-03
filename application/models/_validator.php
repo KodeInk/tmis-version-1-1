@@ -35,7 +35,7 @@ class _validator extends CI_Model
 			$this->native_session->set('__default_permission', $user['default_permission_code']);
 			$this->native_session->set('__first_name', $user['first_name']);
 			$this->native_session->set('__last_name', $user['last_name']);
-			$this->native_session->set('__full_name', $user['last_name'].' '.$user['first_name']);
+			$this->native_session->set('__full_name', $user['last_name'].', '.$user['first_name']);
 			$this->native_session->set('__gender', $user['gender']);
 			$this->native_session->set('__date_of_birth', $user['date_of_birth']);
 			$this->native_session->set('__signature', $user['signature']);
@@ -47,27 +47,6 @@ class _validator extends CI_Model
 		return array('boolean'=>$boolean, 'user_id'=>$userId);
 	}
 	
-	
-	
-	# STUB: Check if this is a valid email
-	function is_valid_email($email)
-	{
-		$isValid = false;
-		
-		
-		return $isValid;
-	}
-	
-	
-	
-	# STUB: Check if this is a valid phone
-	function is_valid_phone($phone)
-	{
-		$isValid = false;
-		
-		
-		return $isValid;
-	}
 	
 	
 	
@@ -85,28 +64,6 @@ class _validator extends CI_Model
 		return $isValid;
 	}
 	
-	
-	
-	# STUB: Check if this is a valid confirmation password
-	function is_valid_password($password)
-	{
-		$isValid = false;
-		
-		
-		return $isValid;
-	}
-	
-	
-	
-	# STUB: Check if this is a valid address
-	function is_valid_address($addressDetails)
-	{
-		$isValid = false;
-		
-		
-		return $isValid;
-	}
-
 
 
 	# Validate a document 

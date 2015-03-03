@@ -10,23 +10,12 @@
 class _logger extends CI_Model
 {
 	
-	# STUB: Add an event
+	# Add an event
 	function add_event($eventDetails)
 	{
 		return $this->_query_reader->run('add_event_log', array('log_code'=>$eventDetails['log_code'], 'result'=>$eventDetails['result'], 'details'=>$eventDetails['details']."|url=".uri_string()."|ipaddress=".$this->input->ip_address()."|browser=".$this->agent->browser()."--".$this->agent->version()."--".$this->agent->platform()));
 	}
 		
-		
-		
-	# STUB: Generate a log list
-	function generate_log_list($listParameters)
-	{
-		$list = array();
-		
-		
-		return $list;
-	}	
-	
 }
 
 

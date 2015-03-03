@@ -46,28 +46,6 @@ class _permission extends CI_Model
 		
 		
 	
-	# STUB: Deactivate permission.
-	function deactivate($permissionId)
-	{
-		$isDeactivated = false;
-		
-		
-		return $isDeactivated;
-	}
-		
-		
-	
-	# STUB: Activate permission.
-	function activate($permissionId)
-	{
-		$isActivated = false;
-		
-		
-		return $isActivated;
-	}
-		
-		
-	
 	# Add a new permission group
 	function add_new_group($groupDetails)
 	{
@@ -140,17 +118,6 @@ class _permission extends CI_Model
 		return array('boolean'=>$result, 'msg'=>$msg);
 	}
 		
-		
-	
-	# STUB: Check if a group can be notified about changes in their permissions
-	function can_group_be_notified($groupId)
-	{
-		$canBeNotified = false;
-		
-		
-		return $canBeNotified;
-	}	
-	
 	
 	
 	# Get list of permission

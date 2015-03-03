@@ -59,7 +59,7 @@
   <?php if(!empty($list)){?>
   <tr>
     <td style="padding:40px 15px 10px 15px; "><div class='centerpagination' style="margin:0px;padding:0px;"><div id="censussearch" class="paginationdiv"><div class="previousbtn" style='display:none;'>&#x25c4;</div><div class="selected">1</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__censussearch_action" id="paginationdiv__censussearch_action" type="hidden" value="<?php echo base_url()."search/load_list/type/census/action/".(!empty($action)? $action: 'view');?>" />
-<input name="paginationdiv__censussearch_maxpages" id="paginationdiv__censussearch_maxpages" type="hidden" value="5" />
+<input name="paginationdiv__censussearch_maxpages" id="paginationdiv__censussearch_maxpages" type="hidden" value="<?php echo NUM_OF_LISTS_PER_VIEW;?>" />
 <input name="paginationdiv__censussearch_noperlist" id="paginationdiv__censussearch_noperlist" type="hidden" value="<?php echo NUM_OF_ROWS_PER_PAGE;?>" />
 <input name="paginationdiv__censussearch_showdiv" id="paginationdiv__censussearch_showdiv" type="hidden" value="paginationdiv__censussearch_list" /></div></td>
   </tr>

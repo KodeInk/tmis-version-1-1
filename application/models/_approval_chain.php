@@ -14,7 +14,14 @@ class _approval_chain extends CI_Model
 	function add_chain($subjectId, $chainType, $step, $status, $comment='', $actionDetails=array())
 	{
 		$msg = "ERROR: The approval could not be recorded.";
-		$thisUserId = ($chainType == 'registration' && !$this->native_session->get('__user_id'))? $this->native_session->get('user_id'): $this->native_session->get('__user_id');
+		
+		# Get the user id to use
+		if($chainType == 'registration')
+		{
+			$thisUserId = !$this->native_session->get('__user_id')? $this->native_session->get('user_id'): $subjectId;
+		}
+		else $thisUserId = $this->native_session->get('__user_id');
+		
 		
 		# 1. Record the approval chain
 		# 1. a) Get the originator from the previous chain
@@ -254,10 +261,14 @@ class _approval_chain extends CI_Model
 		
 		#Record the file number on the teacher's person profile
 		$result1 = $this->_query_reader->run('update_person_profile_part', array('person_id'=>$user['person_id'], 'query_part'=>" file_number='".$fileNumber."' "));
-		# Make this a bonafide teacher
+		
+		# Make this a bonafide teacher user
 		$result2 = $this->_query_reader->run('update_user_permission_group', array('permission_group'=>'Teacher', 'updated_by'=>$this->native_session->get('__user_id'), 'user_id'=>$originator['originator']));
 		
-		return $this->_messenger->send($originator['originator'], array('code'=>'issue_file_number', 'first_name'=>$user['first_name'], 'file_number'=>$fileNumber, 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME));
+		# Disable editing on the teacher's documents
+		$result3 = $this->_query_reader->run('disable_document_editing', array('person_id'=>$user['person_id']));
+		
+		return $result1 && $result2 && $result3 && $this->_messenger->send($originator['originator'], array('code'=>'issue_file_number', 'first_name'=>$user['first_name'], 'file_number'=>$fileNumber, 'email_from'=>SITE_ADMIN_MAIL, 'from_name'=>SITE_ADMIN_NAME));
 	}
 	
 	
@@ -274,7 +285,7 @@ class _approval_chain extends CI_Model
 		$actionDetails['asset_folder'] = BASE_URL."assets/";
 		$actionDetails['document_size'] = 'A4';
 		$actionDetails['document_orientation'] = 'portrait';
-		$actionDetails['teacher_name'] = ucfirst($user['last_name'].' '.$user['first_name']);
+		$actionDetails['teacher_name'] = ucfirst($user['last_name'].', '.$user['first_name']);
 		$actionDetails['new_position'] = $job['job'];
 		$actionDetails['school_name'] = $job['school'];
 		$actionDetails['school_address'] = $job['addressline'].' '.$job['county'].' '.$job['district'].', '.$job['country'];
@@ -282,7 +293,7 @@ class _approval_chain extends CI_Model
 		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
 		$actionDetails['minute_number'] = $otherDetails['minutenumber'];
 		$actionDetails['approver_signature'] = $approver['signature'];
-		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].', '.$approver['first_name']);
 		
 		return $this->send_document($chain, 'confirmation_letter', array('system'), $actionDetails);
 	}
@@ -308,7 +319,7 @@ class _approval_chain extends CI_Model
 		$actionDetails['asset_folder'] = BASE_URL."assets/";
 		$actionDetails['document_size'] = 'A4';
 		$actionDetails['document_orientation'] = 'landscape';
-		$actionDetails['teacher_name'] = strtoupper($user['last_name'].' '.$user['first_name']);
+		$actionDetails['teacher_name'] = strtoupper($user['last_name'].', '.$user['first_name']);
 		$actionDetails['teacher_grade'] = strtoupper($otherDetails['grade__grades']);
 		$actionDetails['effective_date'] = date('d-M-Y', strtotime($otherDetails['effectivedate']));
 		$actionDetails['certificate_number'] = $this->generate_certificate_number($chain['subject_id'], $otherDetails['grade__grades']);
@@ -337,7 +348,7 @@ class _approval_chain extends CI_Model
 	# Issue transfer letter as part of the approval process
 	function issue_transfer_letter($chain, $otherDetails)
 	{
-		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 		$currentPosting = $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
 		
 		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
@@ -356,7 +367,7 @@ class _approval_chain extends CI_Model
 		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
 		$actionDetails['minute_number'] = $otherDetails['minutenumber'];
 		$actionDetails['approver_signature'] = $approver['signature'];
-		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].', '.$approver['first_name']);
 		
 		return $this->send_document($chain, 'transfer_letter', array('system'), $actionDetails);
 	}
@@ -365,7 +376,29 @@ class _approval_chain extends CI_Model
 	# Submit transfer PCA as part of the approval process
 	function submit_transfer_pca($chain, $otherDetails)
 	{
-		return $this->send_document($chain, 'transfer_pca');
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$currentPosting = $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
+		
+		$approver = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$this->native_session->get('__user_id')));
+		
+		$actionDetails['date_today'] = date('jS F Y', strtotime('now'));
+		$actionDetails['date_year'] = date('Y', strtotime('now'));
+		$actionDetails['asset_folder'] = BASE_URL."assets/";
+		$actionDetails['document_size'] = 'A4';
+		$actionDetails['document_orientation'] = 'portrait';
+		$actionDetails['teacher_name'] = ucfirst($currentPosting['teacher_name']);
+		$actionDetails['file_number'] = $currentPosting['file_number'];
+		
+		$actionDetails['old_school_name'] = $transfer['current_school_name'];
+		$actionDetails['subject_list'] = $otherDetails['subjectlist'];
+		$actionDetails['new_school_name'] = $transfer['desired_school_name'];
+		
+		$actionDetails['tracking_number'] = $this->generate_tracking_number('pca');
+		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
+		$actionDetails['approver_signature'] = $approver['signature'];
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].', '.$approver['first_name']);
+		
+		return $this->send_document($chain, 'transfer_pca', array('system'), $actionDetails);
 	}
 	
 	
@@ -393,7 +426,7 @@ class _approval_chain extends CI_Model
 		$actionDetails['end_date'] = date('d/m/Y', strtotime($otherDetails['enddate']));
 		$actionDetails['leave_reason'] = $otherDetails['leavereason'];
 		$actionDetails['approver_signature'] = $approver['signature'];
-		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].', '.$approver['first_name']);
 		
 		return $this->send_document($chain, 'verification_letter', array('system'), $actionDetails);
 	}
@@ -417,7 +450,7 @@ class _approval_chain extends CI_Model
 		$actionDetails['tracking_image'] = "<img src='".base_url()."external_libraries/phpqrcode/qr_code.php?value=".$actionDetails['tracking_number']."' />";
 		$actionDetails['retirement_details'] = $otherDetails['reason'];
 		$actionDetails['approver_signature'] = $approver['signature'];
-		$actionDetails['approver_name'] = ucfirst($approver['last_name'].' '.$approver['first_name']);
+		$actionDetails['approver_name'] = ucfirst($approver['last_name'].', '.$approver['first_name']);
 		
 		# 1. Send retirement letter
 		$result1 = $this->send_document($chain, 'retirement_letter', array('email'), $actionDetails);
@@ -540,7 +573,7 @@ class _approval_chain extends CI_Model
 	function change_teacher_posting($chain)
 	{
 		# 1. End the previous teacher assignment
-		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 		$currentPosting = $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
 		
 		if(!empty($currentPosting)) 
@@ -561,12 +594,41 @@ class _approval_chain extends CI_Model
 	function get_current_posting_from_chain($chain)
 	{
 		# 1. Get the transfer details
-		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' AND PS.posting_end_date='0000-00-00' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
+		$transfer = $this->_query_reader->get_row_as_array('get_transfer_list_data', array('search_query'=>" T.id='".$chain['subject_id']."' ", 'order_by'=>' T.last_updated DESC ', 'limit_text'=>'1'));
 		
 		# 2. Get the current assignment from the transfer details on the teacher
 		return $this->_query_reader->get_row_as_array('get_job_postings', array('search_query'=>" P.postee_id='".$transfer['teacher_id']."' AND P.posting_end_date='0000-00-00' ", 'order_by'=>' P.last_updated DESC ', 'limit_text'=>'1'));
 	}
 
+
+	
+
+		
+	
+	# Get list of approvals
+	function get_list($instructions=array())
+	{
+		$searchString = " 1=1 ";
+		
+		# If a search phrase is sent in the instructions
+		if(!empty($instructions['searchstring']))
+		{
+			$searchString .= " AND ".$instructions['searchstring'];
+		}
+		
+		# Instructions
+		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
+		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
+		
+		return $this->_query_reader->get_list('get_approval_list_data',array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" A.last_updated DESC "));
+	}
+	
+	
+	
+	
+	
+	
+	
 }
 
 

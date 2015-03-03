@@ -19,61 +19,6 @@ class Vacancy extends CI_Controller
 	}
 	
 	
-	#STUB: View relevant jobs for the given user
-	function relevant_list()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_relevant_jobs');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	#STUB: shortlist a user for a given vacancy
-	function shortlist()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'set_vacancy_shortlist');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	#STUB: Apply for a job
-	function apply()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'apply_for_job');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	#STUB: View my saved jobs
-	function saved()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_my_saved_jobs');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
-	
-	
-	#STUB: View status of my saved jobs
-	function status()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'view_job_application_status');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
 	
 	
 	#Verify the vacancy before proceeding to the next stage

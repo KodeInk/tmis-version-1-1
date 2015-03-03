@@ -46,16 +46,6 @@ class Promotion extends CI_Controller
 	}
 	
 	
-	#STUB: Verify a promotion application
-	function verify()
-	{
-		$data = filter_forwarded_data($this);
-		check_access($this, 'verify_promotion_application');
-		
-		
-		$this->load->view('page/under_construction', $data); 
-	}
-	
 	
 	
 	# Apply for promotion

@@ -36,7 +36,7 @@
         <td class="bodyspace" style="padding-left:15px;padding-top:15px; vertical-align:top;">
 		<table width="100%" border="0" cellspacing="0" cellpadding="0">
       		<tr>
-              <td><div class="h1 grey nowrap listheader">Teacher<?php if(check_access($this, 'add_new_teacher', 'boolean')) echo "<div class='nextdiv addcontenticon' data-url='teacher/add' title='Click to add'></div>";?><?php if(check_access($this, 'view_teachers', 'boolean') && !empty($list)) echo "<div class='nextdiv downloadcontenticon' style='margin-left:5px;' data-url='teacher/download' title='Click to download'></div>";?></div><div class="listsearchfield"><input type="text" id="teachersearch__teacher" data-type="teacher" name="teachersearch__teacher" placeholder="Search Teacher" class="findfield" value=""/>
+              <td><div class="h1 grey nowrap listheader">Teacher<?php if(check_access($this, 'add_new_teacher', 'boolean')) echo "<div class='nextdiv addcontenticon' data-url='teacher/add' title='Click to add'></div>";?><?php if(check_access($this, 'view_teachers', 'boolean') && !empty($list)) echo "<div class='nextdiv downloadcontenticon' style='margin-left:5px;' data-url='teacher/download/action/".(!empty($action)? $action: 'view')."' title='Click to download'></div>";?></div><div class="listsearchfield"><input type="text" id="teachersearch__teacher" data-type="teacher" name="teachersearch__teacher" placeholder="Search Teacher" class="findfield" value=""/>
 <input type='hidden' id='teachersearch__displaydiv' name='teachersearch__displaydiv' value='teachersearch__1' />
 <input type='hidden' id='teachersearch__action' name='teachersearch__action' value='<?php echo base_url()."search/load_list/action/".(!empty($action)? $action: 'view');?>' />
 </div></td></tr>
@@ -59,7 +59,7 @@
   <?php if(!empty($list)){?>
   <tr>
     <td style="padding:40px 15px 10px 15px; "><div class='centerpagination' style="margin:0px;padding:0px;"><div id="teachersearch" class="paginationdiv"><div class="previousbtn" style='display:none;'>&#x25c4;</div><div class="selected">1</div><div class="nextbtn">&#x25ba;</div></div><input name="paginationdiv__teachersearch_action" id="paginationdiv__teachersearch_action" type="hidden" value="<?php echo base_url()."search/load_list/type/teacher/action/".(!empty($action)? $action: 'view');?>" />
-<input name="paginationdiv__teachersearch_maxpages" id="paginationdiv__teachersearch_maxpages" type="hidden" value="5" />
+<input name="paginationdiv__teachersearch_maxpages" id="paginationdiv__teachersearch_maxpages" type="hidden" value="<?php echo NUM_OF_LISTS_PER_VIEW;?>" />
 <input name="paginationdiv__teachersearch_noperlist" id="paginationdiv__teachersearch_noperlist" type="hidden" value="<?php echo NUM_OF_ROWS_PER_PAGE;?>" />
 <input name="paginationdiv__teachersearch_showdiv" id="paginationdiv__teachersearch_showdiv" type="hidden" value="paginationdiv__teachersearch_list" /></div></td>
   </tr>

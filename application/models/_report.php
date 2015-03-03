@@ -10,43 +10,6 @@
 class _report extends CI_Model
 {
 	
-	private $query = "";
-	
-	# STUB: Generate a CSV report
-	function generate_csv($query, $parameters=array())
-	{
-		$file = "";
-		
-		
-		return $file;
-	}
-		
-		
-		
-	# STUB: Generate a PDF report
-	function generate_pdf($query, $parameters=array())
-	{
-		$file = "";
-		
-		
-		return $file;
-	}	
-		
-		
-		
-	# STUB: Send a report
-	function send_report($query, $parameters=array())
-	{
-		$isSent = false;
-		
-		
-		return $isSent;
-	}	
-		
-	
-	
-		
-	
 	# Get list of reports
 	function get_list($instructions=array())
 	{
@@ -74,17 +37,6 @@ class _report extends CI_Model
 		return $this->_query_reader->get_list('get_log_list_data',array('search_query'=>$searchString, 'limit_text'=>$start.','.($count+1), 'order_by'=>" L.date_added DESC "));
 	}
 	
-		
-		
-	# STUB: Set a report query
-	function set_report_query($queryDetails)
-	{
-		$isSet = false;
-		
-		
-		return $isSet;
-	}
-
 
 
 

@@ -10,37 +10,6 @@
 class _carrier extends CI_Model
 {
 	
-	# STUB: Get phone carrier
-	function get_phone_carrier($phoneParameters)
-	{
-		$carrierDetails = array();
-		
-		
-		return $carrierDetails;
-	}
-		
-		
-		
-	# STUB: Add a carrier
-	function add_carrier($carrierDetails)
-	{
-		$isAdded = array();
-		
-		
-		return $isAdded;
-	}
-			
-		
-		
-	# STUB: Update carrier details
-	function update_carrier($carrierDetails)
-	{
-		$isUpdated = array();
-		
-		
-		return $isUpdated;
-	}
-
 
 	# Get the email domain of a carrier for use in sending an email-to-sms message
 	function get_email_domain($telephone)

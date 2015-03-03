@@ -30,7 +30,7 @@ if(!empty($area) && $area == "submit_recommendation")
 			<tr><td class='label'>Applied On:</td><td class='value'>".date('d-M-Y h:ia T', strtotime($this->native_session->get('submission_date')))."</td></tr>
 			<tr><td class='label top'>Your Recommendation:</td><td><textarea id='details' name='details' title='Your recommendation' class='textfield' placeholder='Enter your recommendation here' style='min-width:300px; min-height: 150px;'></textarea></td></tr>
 			
-			<tr><td>&nbsp;</td><td><button type='submit' name='submit' id='submit' value='submit' class='btn'>SUBMIT</button></td></tr>
+			<tr><td>&nbsp;</td><td><input type='submit' name='submit' id='submit' class='btn' value='SUBMIT' /></td></tr>
 		</table></form><input type='hidden' id='layerid' name='layerid' value='' />";
 	}
 }
@@ -95,7 +95,7 @@ else if(!empty($area) && $area == "set_date")
 			
 			<tr><td class='label top'>Notes:</td><td><textarea id='notes' name='notes' title='Interview Notes' class='textfield' placeholder='This message is sent to the applicant on submission of this form. Enter information the applicant may need to consider before the interview.' style='min-width:300px; min-height: 200px;'></textarea></td></tr>
 			
-			<tr><td>&nbsp;</td><td><button type='submit' name='submit' id='submit' value='submit' class='btn'>SUBMIT</button></td></tr>
+			<tr><td>&nbsp;</td><td><input type='submit' name='submit' id='submit' class='btn' value='SUBMIT' /></td></tr>
 		</table>
 		<input type='hidden' id='errormessage' name='errormessage' value='Enter all interview details and a future date' />
 		</form>
@@ -129,7 +129,7 @@ else if(!empty($area) && $area == "add_note")
 			<tr><td class='label'>Date:</td><td class='value'>".date('d-M-Y h:ia T', strtotime($this->native_session->get('interview_date')))."</td></tr>
 			<tr><td class='label top'>Your Note:</td><td><textarea id='details' name='details' title='Your note' class='textfield' placeholder='Enter your note here' style='min-width:300px; min-height: 150px;'></textarea></td></tr>
 			
-			<tr><td>&nbsp;</td><td><button type='submit' name='submit' id='submit' value='submit' class='btn'>SUBMIT</button></td></tr>
+			<tr><td>&nbsp;</td><td><input type='submit' name='submit' id='submit' class='btn' value='SUBMIT' /></td></tr>
 		</table></form>";
 	}
 }
@@ -191,7 +191,7 @@ else if(!empty($area) && $area == "set_result")
 			
 			<tr><td class='label top'>Notes:</td><td><textarea id='notes' name='notes' title='Interview Notes' class='textfield optional' placeholder='Enter notes related to this result (Optional).' style='min-width:300px; min-height: 200px;'></textarea></td></tr>
 			
-			<tr><td>&nbsp;</td><td><button type='submit' name='submit' id='submit' value='submit' class='btn'>SUBMIT</button></td></tr>
+			<tr><td>&nbsp;</td><td><input type='submit' name='submit' id='submit' class='btn' value='SUBMIT' /></td></tr>
 		</table></form>
 		<input type='hidden' id='layerid' name='layerid' value='' />";
 	}
@@ -214,13 +214,18 @@ else if(!empty($area) && $area == "view_shortlist")
 		<table width='100%'>
 		<tr>
 			<td><span class='h1'>".$shortlist_name."</span></td>
-			<td><div class='nextdiv downloadcontenticon' style='margin-left:5px;' data-url='interview/print_list/name/".$name."/vacancy/".$vacancy."' title='Click to print'></div></td>
+			<td><div class='nextdiv downloadcontenticon' style='margin-left:5px;' data-url='interview/download_list/name/".$name."/vacancy/".$vacancy."' title='Click to download'></div></td>
 		</tr></table>
 		<table border='0' cellspacing='0' cellpadding='0' class='listtable'>
-		<tr class='header'><td nowrap>Applicant</td><td>Date Added</td><td>Added By</td></tr>";
+		<tr class='header'><td>Name</td><td nowrap>Teacher Number</td><td>Address</td><td nowrap>Post Applied</td></tr>";
 		foreach($list AS $row)
 		{
-			$tableHTML .= "<tr class='listrow'><td style='vertical-align:top;'>".$row['applicant']."</td><td style='vertical-align:top;'>".date('d-M-Y h:ia T', strtotime($row['date_added']))."</td><td>".$row['added_by']."</td></tr>";
+			$tableHTML .= "<tr class='listrow'>
+			<td style='vertical-align:top;'>".$row['name']."</td>
+			<td style='vertical-align:top;'>".$row['number']."</td>
+			<td style='vertical-align:top;'>".$row['address']."</td>
+			<td style='vertical-align:top;'>".$row['post_applied']."</td>
+			</tr>";
 		}
 		$tableHTML .= "</table>";
 	}
@@ -230,5 +235,119 @@ else if(!empty($area) && $area == "view_shortlist")
 
 
 
+
+
+
+# Select the interview board
+else if(!empty($area) && $area == "select_board")
+{
+	if(!empty($msg))
+	{
+		$tableHTML .= format_notice($this, $msg);
+	}
+	else
+	{
+		$tableHTML .= $jquery.$javascript."<link rel='stylesheet' href='".base_url()."assets/css/tmis.list.css' type='text/css' media='screen' />
+		<script src='".base_url()."assets/js/tmis.fileform.js' type='text/javascript'></script>
+		<script src='".base_url()."assets/js/tmis.list.js' type='text/javascript'></script>
+		
+		<table width='100%' cellpadding='5' class='microform'>
+		<tr><td colspan='2' class='h1'>Interview Board</td></tr>
+		<tr><td colspan='2'><div id='boardsaveresults_div'></div></td></tr>
+		
+		<tr>
+			<td class='label' width='1%'>Board Name:</td><td>".
+			(!empty($view)? "<span class='value'>".$this->native_session->get('boardname__boards')."</span>": "<input type='text' id='boardname__boards' name='boardname__boards' title='Select or Enter Board Name' placeholder='Select or Enter Board Name' class='textfield selectfield editable' value='".$this->native_session->get('boardname__boards')."' style='width:92%;'/><input type='hidden' id='boardid' name='boardid' value='' />")
+			."</td>
+		</tr>
+		
+		<tr>
+			<td class='label top' nowrap>Board members:</td><td>
+			".(!empty($view)? "": 
+			"<div id='addmemberlink'><a href='javascript:;' onclick=\"showHideOnCondition('addmemberlink', 'addmemberform', '')\">Add a Member</a></div>
+			<div id='addmemberform' style='display:none;'><table width='100%' cellpadding='0'>
+			<tr>
+				<td><input type='text' id='membername__users' name='membername__users' title='Select or search for member' placeholder='Select or Search For Member' class='textfield selectfield searchable optional' value='' style='width:97%;'/>
+				<input type='hidden' id='userid' name='userid' value='' /></td>
+				<td><button type='button' class='greybtn' name='addmember' id='addmember' onclick=\"updateFieldLayer('".base_url()."interview/add_board_member','userid<>membername__users','','memberlist_div','Select a user to add');updateFieldValue('membername__users<>userid', '<>')\" value='ADD'>ADD</button></td>
+			</tr>
+			</table><br></div>")
+			
+			
+			."<div id='memberlist_div' style='min-height:150px;overflow-y: auto; overflow-x: hidden;'>";
+			if($this->native_session->get('boardmembers'))
+			{
+				$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' class='listtable'>
+					<tr class='header'>".(!empty($view)? "": "<td width='1%'>&nbsp;</td>")."<td>Member</td><td width='1%' nowrap>Is Chairman</td></tr>";
+				
+				foreach($this->native_session->get('boardmembers') AS $row)
+				{
+					$tableHTML .= "<tr class='listrow'>".(!empty($view)? "": "<td style='cursor: pointer;' onclick=\"confirmActionToLayer('".base_url()."interview/remove_board_member/userid/".$row['member_id']."', '', '', 'memberlist_div', 'Are you sure you want to remove this member')\"><img src='".base_url()."assets/images/reject_grey.png' /><input type='hidden' id='boardmembers_".$row['member_id']."' name='boardmembers[]' value='".$row['member_id']."' /></td>")."</td>
+						<td style='vertical-align:top;'>".html_entity_decode($row['member_name'], ENT_QUOTES)."</td>
+						<td style='vertical-align:top;'>
+						".(!empty($view)? $row['is_chairman']: "<input type='radio' id='ischairman_".$row['member_id']."' name='ischairman' value='".$row['member_id']."' ".($row['is_chairman'] == 'Y'? "checked": "")."/>")."
+						</td>
+						</tr>";
+				}
+				$tableHTML .= "</table>";
+			}
+			else 
+			{
+				$tableHTML .= "None selected";
+			}
+			
+			$tableHTML .= "</div></td>
+		</tr>".
+		
+		(!empty($view)? "": "<tr><td>&nbsp;</td><td><button type='button' class='btn submitmicrobtn' name='saveboard' id='saveboard' value='SAVE'>SAVE</button>
+		<br><span class='smalltext'>NOTE: This will also update the interviewer to be the board chairman</span>
+		<input type='hidden' id='action' name='action' value='".base_url()."interview/select_board/id/".$id."' />
+		<input type='hidden' id='resultsdiv' name='resultsdiv' value='boardsaveresults_div' />
+		<input type='hidden' id='errormessage' name='errormessage' value='Enter or select a board' />
+		<input type='hidden' id='layerid' name='layerid' value='' />
+		</td></tr>")
+		
+		."</table>";
+		
+	}
+	
+}
+
+
+
+
+
+# Only board members list
+else if(!empty($area) && $area == "select_board_members")
+{
+	
+	if($this->native_session->get('boardmembers'))
+	{
+		$tableHTML .= $jquery.$javascript."<link rel='stylesheet' href='".base_url()."assets/css/tmis.list.css' type='text/css' media='screen' />
+		<script src='".base_url()."assets/js/tmis.list.js' type='text/javascript'></script>
+		
+		".(!empty($msg)? format_notice($this, $msg):"")."
+		<table border='0' cellspacing='0' cellpadding='0' class='listtable'>
+			<tr class='header'><td width='1%'>&nbsp;</td><td>Member</td><td width='1%' nowrap>Is Chairman</td></tr>";
+				
+		foreach($this->native_session->get('boardmembers') AS $row)
+		{
+			$tableHTML .= "<tr class='listrow'>
+						<td style='cursor: pointer;' onclick=\"confirmActionToLayer('".base_url()."interview/remove_board_member/userid/".$row['member_id']."', '', '', 'memberlist_div', 'Are you sure you want to remove this member')\"><img src='".base_url()."assets/images/reject_grey.png' /><input type='hidden' id='boardmembers_".$row['member_id']."' name='boardmembers[]' value='".$row['member_id']."' /></td></td>
+						<td style='vertical-align:top;'>".html_entity_decode($row['member_name'], ENT_QUOTES)."</td>
+						<td style='vertical-align:top;'><input type='radio' id='ischairman_".$row['member_id']."' name='ischairman' value='".$row['member_id']."' ".($row['is_chairman'] == 'Y'? "checked": "")."/> </td>
+						</tr>";
+		}
+		$tableHTML .= "</table>";
+	}
+	else 
+	{
+		$tableHTML .= !empty($msg)? format_notice($this, $msg):"";
+		$tableHTML .= "None selected";
+	}
+
+}
+	
+	
 echo $tableHTML;
 ?>

@@ -73,7 +73,7 @@ if(empty($id)) {?>
    if(empty($id) && empty($current_application)) {?>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="submit" id="submit" class="btn">SUBMIT</button></td>
+    <td><input type="submit" name="submit" id="submit" class="btn" value="SUBMIT" /></td>
   </tr>
   <?php }?>
             </table>

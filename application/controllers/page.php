@@ -306,7 +306,7 @@ class Page extends CI_Controller
 		$actionDetails['asset_folder'] = BASE_URL."assets/";
 		$actionDetails['document_size'] = 'A4';
 		$actionDetails['document_orientation'] = 'landscape';
-		$actionDetails['teacher_name'] = strtoupper($user['last_name'].' '.$user['first_name']);
+		$actionDetails['teacher_name'] = strtoupper($user['last_name'].', '.$user['first_name']);
 		$actionDetails['teacher_grade'] = 'PRIMARY EDUCATION - GRADE 4';
 		$actionDetails['effective_date'] = '09-Feb-2015';
 		$actionDetails['tracking_number'] = $actionDetails['certificate_number'] = '20041423958732';

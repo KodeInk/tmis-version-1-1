@@ -128,7 +128,7 @@ if(empty($id) || !empty($editing_teacher)) {?>
      <tr><td class="greybg h3"  style="padding:5px; padding-left:10px;">Identification &amp; Contacts</td></tr>
      <tr><td><table border="0" cellspacing="0" cellpadding="5" width="100%">
   <tr>
-    <td class="label" style="width:150px;">Teacher File Number:</td>
+    <td class="label" style="width:150px;">Teacher UTS Number:</td>
     <td><?php if(!empty($preview)){ 
 		echo "<span class='value'>".$this->native_session->get('teacherid')."</span>";
 	} else {?><input type="text" id="teacherid" name="teacherid" title="Teacher ID Number" class="textfield optional" placeholder="Optional" value="<?php echo ($this->native_session->get('teacherid')? $this->native_session->get('teacherid'): '');?>"/>
@@ -151,9 +151,9 @@ if(empty($id) || !empty($editing_teacher)) {?>
   <tr>
     <td class="label">Country of Citizenship:</td>
     <td><?php if(!empty($preview)){ 
-		echo "<span class='value'>".$this->native_session->get('citizenship__country').($this->native_session->get('citizenship__citizentype')? " (".$this->native_session->get('citizenship__citizentype').")": "")."</span>";
+		echo "<span class='value'>".$this->native_session->get('citizenship__country').($this->native_session->get('citizenship__citizentype') && $this->native_session->get('citizenship__citizentype') != '_CITIZENSHIP_TYPE_'? " (".$this->native_session->get('citizenship__citizentype').")": "")."</span>";
 	} else {?><div class="nextdiv"><input type="text" id="citizenship__country" name="citizenship__country" title="Country of Citizenship" placeholder="Select Country" class="textfield selectfield" value="<?php echo ($this->native_session->get('citizenship__country')? $this->native_session->get('citizenship__country'): '');?>"/></div>
-    <div class="nextdiv"><input type="text" id="citizenship__citizentype" name="citizenship__citizentype" title="How Teacher Obtained Citizenship" placeholder="Select Source" class="textfield selectfield" value="<?php echo ($this->native_session->get('citizenship__citizentype')? $this->native_session->get('citizenship__citizentype'): '');?>"/></div><?php }?></td>
+    <div class="nextdiv"><input type="text" id="citizenship__citizentype" name="citizenship__citizentype" title="How Teacher Obtained Citizenship" placeholder="Citizen By" class="textfield selectfield" value="<?php echo ($this->native_session->get('citizenship__citizentype') && $this->native_session->get('citizenship__citizentype') != '_CITIZENSHIP_TYPE_'? $this->native_session->get('citizenship__citizentype'): '');?>"/></div><?php }?></td>
   </tr>
 </table></td></tr>
      
@@ -201,10 +201,33 @@ if(empty($id) || !empty($editing_teacher)) {?>
      <?php }?>
      </div></td></tr>
 <tr><td>&nbsp;</td></tr>     
+     
+     
+<tr><td class="greybg h3"  style="padding:5px; padding-left:10px;">Qualification Documents:</td></tr>
+     
+     <?php if(empty($preview)){?>
+     <tr>
+       <td><div id="form_div__document" class='ignorearea'><?php $this->load->view('addons/basic_addons', array('area'=>'document_form'));?></div></td>
+       </tr>
+     <?php }?>
+     
+     <tr><td><div id="document_list">
+     <?php
+	 if($this->native_session->get('document_list')){
+		 $this->load->view('addons/basic_addons', array('area'=>'document_list', 'mode'=>(!empty($preview)? 'preview': '') ));
+	 } else {
+	 ?>
+     <table border="0" cellspacing="0" cellpadding="0" class="resultslisttable">
+     <tr><td>Current List</td></tr>
+     <tr><td>No document added yet.</td></tr>
+     </table>
+     <?php }?>
+     </div></td></tr>
+<tr><td>&nbsp;</td></tr> 
 
 
 <?php if(!empty($preview) && !empty($documents)){?>
-<tr><td class="greybg h3"  style="padding:5px; padding-left:10px;">Documents List:</td></tr>
+<tr><td class="greybg h3"  style="padding:5px; padding-left:10px;">Issued Documents List:</td></tr>
 <?php 
 echo "<tr><td>
 <table class='listtable'>
@@ -229,7 +252,7 @@ echo "</table></td></tr>";
      <td class='spacefiller'>&nbsp;</td>
      <?php if(!empty($preview)){?>
      <td><button type="button" name="edit" id="edit" class="btn" onclick="location.href='<?php echo base_url().(!empty($editing_teacher)? 'profile/teacher_data/edit/Y': 'teacher/add/edit/Y'.(!empty($id)? '/id/'.$id: ''));?>'">EDIT</button></td>
-     <td><?php echo !empty($id)? "<input type='hidden' id='userid' name='userid' value='".$id."'/>": ''; ?><button type="submit" name="save" id="save" value="save" class="btn">SUBMIT</button></td>
+     <td><?php echo !empty($id)? "<input type='hidden' id='userid' name='userid' value='".$id."'/>": ''; ?><input type="submit" name="save" id="save" value="SUBMIT" class="btn" /></td>
      <?php } else { ?>
      <td>&nbsp;</td>
      <td><input type="submit" name="preview" id="preview" value="PREVIEW" class="btn" /></td>

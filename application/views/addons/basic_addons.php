@@ -32,7 +32,7 @@ else if(!empty($area) && $area == "address_field_form")
   			<div class='nextdiv'><input type='radio' name='".$field_id."__addresstype' id='".$field_id."__addresstype_postal' value='postal' ".(($this->native_session->get($field_id.'__addresstype') && $this->native_session->get($field_id.'__addresstype')=='postal')? 'checked': '')."><label for='".$field_id."__addresstype_postal'>Postal</label></div>
 		</td></tr>";
 	   
-	$tableHTML .= "<tr><td><input type='text' id='".$field_id."__addressline' name='".$field_id."__addressline' class='textfield' placeholder='Address' value='".($this->native_session->get($field_id.'__addressline')? $this->native_session->get($field_id.'__addressline'): '')."' maxlength='200'/></td></tr>
+	$tableHTML .= "<tr><td><input type='text' id='".$field_id."__addressline' name='".$field_id."__addressline' class='textfield' placeholder='Address (e.g. Plot 23 Kira Rd)' value='".($this->native_session->get($field_id.'__addressline')? $this->native_session->get($field_id.'__addressline'): '')."' maxlength='200'/></td></tr>
 	
   <tr><td><input type='text' id='".$field_id."__county' name='".$field_id."__county' class='textfield selectfield searchable editable optional' placeholder='County (Optional)' data-val='-district-".$field_id."' value='".($this->native_session->get($field_id.'__county')? $this->native_session->get($field_id.'__county'): '')."' maxlength='200'/>
   <input type='hidden' id='-district-".$field_id."' name='-district-".$field_id."' value='".$field_id."__district' /></td></tr>
@@ -91,7 +91,7 @@ else if(!empty($area) && $area == "education_form")
   </tr>
   <tr>
     <td class='label'>Certificate Obtained:</td>
-    <td><div class='nextdiv'><input type='text' id='certificatename' name='certificatename' title='Certificate Name' class='textfield' value='".(!empty($details['certificatename'])? $details['certificatename']: '')."'/></div>
+    <td><div class='nextdiv'><input type='text' id='certificatename' name='certificatename' placeholder='e.g., MSc. Mathematics' title='Certificate Name' class='textfield' value='".(!empty($details['certificatename'])? $details['certificatename']: '')."'/></div>
       <div class='nextdiv'><input type='checkbox' id='highestcertificate' name='highestcertificate' value='Y' ".(!empty($details['highestcertificate'])? 'checked': '')."/>
       <label for='highestcertificate'>This is my highest certificate.</label></div></td>
   </tr>
@@ -152,7 +152,7 @@ else if(!empty($area) && $area == "subject_form")
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type='button' name='saveeducation' id='saveeducation' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().(($this->native_session->get('is_admin_adding_teacher') || $this->native_session->get('is_teacher_updating'))? "teacher": "register/step_three/action")."/add_subject' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='subject_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+    <td><button type='button' name='savesubject' id='savesubject' data-val='".(!empty($details['item_id']) && !empty($type)? $type."_id": "")."' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().(($this->native_session->get('is_admin_adding_teacher') || $this->native_session->get('is_teacher_updating'))? "teacher": "register/step_three/action")."/add_subject' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='subject_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
   </tr>
   </table>";
 }
@@ -182,6 +182,57 @@ else if(!empty($area) && $area == "subject_list")
 		$tableHTML .= "</table>";
 	}
 }
+
+
+
+
+
+
+else if(!empty($area) && $area == "document_form")
+{
+	$isEditing = (!empty($details['documentname']) && $this->native_session->get('edit_step_3_document'))? true: false;
+	$tableHTML .= "<table border='0' cellspacing='0' cellpadding='10' class='microform'>
+  <tr>
+    <td class='label top' style='width:150px;'>Document:</td>
+    <td style='vertical-align:top;'><div class='nextdiv' style='vertical-align:top;'><input type='text' id='documentname' name='documentname' title='Document Name' placeholder='Name' class='textfield' value='".(!empty($details['documentname'])? $details['documentname']: '')."'/></div>
+      <div class='nextdiv hideonedit' ".($isEditing? "style='display:none;'": "")."><input type='text' id='documenturl' name='documenturl' title='Document URL' data-size='500' data-val='jpg,jpeg,png,tiff,pdf' class='textfield filefield".($isEditing? " optional": "")."' placeholder='Document File' value=''/>
+    <div class='smalltext'>Allowed Formats: PDF, TIFF, JPG, JPEG, PNG  &nbsp;&nbsp; Max Size: 500kB</div></div></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td><button type='button' name='savedocument' data-val='".(!empty($details['item_id']) && !empty($type)? $type."_id": "")."' id='savedocument' class='greybtn submitmicrobtn'>ADD</button><input type='hidden' id='action' name='action' value='".base_url().(($this->native_session->get('is_admin_adding_teacher') || $this->native_session->get('is_teacher_updating'))? "teacher": "register/step_three/action")."/add_document' /><input type='hidden' id='resultsdiv' name='resultsdiv' value='document_list' />".(!empty($details['item_id']) && !empty($type)? "<input type='hidden' name='".$type."_id' id='".$type."_id' value='".$details['item_id']."' />": "")."</td>
+  </tr>
+  </table>";
+}
+
+
+
+
+
+
+else if(!empty($area) && $area == "document_list")
+{
+	$tableHTML .= !empty($response['msg'])? format_notice($this, $response['msg']): "";
+	
+	if($this->native_session->get('document_list'))
+	{
+		$tableHTML .= "<table border='0' cellspacing='0' cellpadding='0' class='resultslisttable".(!empty($mode) && $mode=='preview'? " preview":" editable")."'>
+			<tr><td colspan='3'>Document List</td></tr>";
+			
+		foreach($this->native_session->get('document_list') AS $row) 
+		{
+			$isRemovable = (empty($row['is_removable']) || (!empty($row['is_removable']) && $row['is_removable']=='Y'))? true: false;
+			
+			$tableHTML .= "<tr id='".$row['document_id']."'><td ".($isRemovable? " class='edit'" :"").">&nbsp;</td>
+			<td><a href='".base_url()."page/download/folder/documents/file/".$row['documenturl']."'>".$row['documentname']."</a></td>
+			<td ".($isRemovable? " class='delete'" :"").">&nbsp;</td>
+			</tr>";
+		}
+		$tableHTML .= "</table>";
+	}
+}
+
+
 
 
 

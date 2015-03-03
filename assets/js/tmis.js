@@ -878,8 +878,18 @@ function onlyNumbers(evt)
 		return false;
 
 	return true;
-
 }
+
+
+
+
+//Function to reject bad characters in text field entry e.g., in SQL injection
+//Characters like ", $, =, < and > are not allowed in a plain input text field
+$(function(){
+	$(document).on('change', 'input.textfield', function(){
+		$(this).val($(this).val().replace(/[\\#\=|`;+$~%'^"*<>{}]/g,''));
+	});
+});
 
 
 //Function to format the date as it is entered to MM/DD/YYYY
@@ -1870,7 +1880,44 @@ function showServerSideFadingMessage(msg)
 	showFieldValue('systemmessage', msg);
 	showFadingMessage();
 }
- 
+
+
+//Function to show a wait div so that the user does not click away or click many times to resubmit an action
+function showWaitDiv(doThis)
+{
+	// Proceed depending on action
+	// Show
+	if(doThis == 'start'){
+		//Remove if it is available on the page
+		if($('#__waitbox').length > 0){
+			//Now add new
+			$('#__waitbox').offset({ top: 0, left: 0 });
+			$('#__waitbox').height($(document).height());
+			//Show the waitbox after repositioning it
+			repositionWaitDiv();
+			$('#__waitbox').fadeIn('fast');
+		}
+	}
+	// End
+	else if(doThis == 'end')
+	{
+		if($('#__waitbox').length > 0){
+			$('#__waitbox').fadeOut('fast');
+		}
+	}
+}
+
+
+
+
+//Function to reposition the wait div after it has been shown
+function repositionWaitDiv()
+{
+	var waitDiv = $('#__waitbox div');
+	//Postion iframe
+	waitDiv.offset({ top: ($(window).outerHeight()*0.5 - waitDiv.outerHeight()*0.5), left: ($(window).outerWidth()*0.5 - waitDiv.outerWidth()*0.5) });
+}
+
 
 
 
@@ -2276,9 +2323,10 @@ $(function() {
 });	
 
 
-//Put the message div on each page
+//Put the message divs on each page
 $( document ).ready(function() {
-	$('body').append('<div id="systemmessage" class="pagemessage"></div>');
+	if($('#systemmessage').length == 0) $('body').append('<div id="systemmessage" class="pagemessage"></div>');
+	if($('#__waitbox').length == 0) $('body').append("<div id='__waitbox' style='display:none;'><div>&nbsp;</div></div>");
 });
 
 

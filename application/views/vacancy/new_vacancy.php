@@ -83,7 +83,7 @@ if(empty($id)) {?>
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SAVE</button><?php echo !empty($id)? "<input type='hidden' id='vacancyid' name='vacancyid' value='".$id."' />": "";
+    <td><input type="submit" name="save" id="save" class="btn" value="SAVE" /><?php echo !empty($id)? "<input type='hidden' id='vacancyid' name='vacancyid' value='".$id."' />": "";
 	
 	echo  empty($id)? "<input type='hidden' id='forwardurl' name='forwardurl' value='".$forward."' />": "";?></td>
   </tr>

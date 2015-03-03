@@ -34,15 +34,15 @@
      <tr>
       <td style="text-align:center;"><div style="display:inline-block;"><form id="tmislogin" method="post" autocomplete="off" ><table border="0" cellspacing="0" cellpadding="10">
   <tr>
-    <td class="label">User Name: </td>
-    <td><input type="text" id="loginusername" name="loginusername" placeholder="Enter User Name" class="textfield" value=""/></td>
+    <td class="label">Email Address: </td>
+    <td><input type="text" id="loginusername" name="loginusername" placeholder="Email Address" class="textfield" value=""/></td>
   </tr>
   <tr>
     <td class="label">Password: </td>
     <td><input type="password" id="loginpassword" name="loginpassword" placeholder="Password" class="textfield" value=""/></td>
   </tr>
   <tr>
-    <td colspan="2"><button type="button" class="greybtn" id="submitlogin" name="submitlogin" style="width:325px;">SUBMIT</button></td>
+    <td colspan="2"><button type="button" class="greybtn" id="submitlogin" name="submitlogin" style="width:340px;">LOGIN</button></td>
   </tr>
   <tr>
     <td colspan="2"><a href="<?php echo base_url().'account/forgot';?>">Forgot Username or Password?</a> &nbsp;|&nbsp; <a href="<?php echo base_url().'account/apply';?>">Apply for Account</a></td>

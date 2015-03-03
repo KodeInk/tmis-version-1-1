@@ -11,7 +11,7 @@
 
 class Retirement extends CI_Controller 
 {
-	#Constructor to set some default values at class load
+	# Constructor to set some default values at class load
 	public function __construct()
     {
         parent::__construct();

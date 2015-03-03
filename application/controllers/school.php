@@ -109,7 +109,7 @@ class School extends CI_Controller
 	
 	
 	
-	#Verify the school before proceeding to the next stage
+	# Verify the school before proceeding to the next stage
 	function verify()
 	{
 		$data = filter_forwarded_data($this);

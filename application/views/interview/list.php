@@ -70,12 +70,14 @@ if(!empty($list))
 	{
 		echo "</td> <td>".$row['job']."</td> 
 		<td><a href='".base_url()."teacher/add/id/".$row['applicant_id']."/action/view' class='shadowbox closable'>".$row['applicant']."</a></td>
-		<td>".$row['interviewer']."</td>
+		<td>".$row['interviewer'].(!empty($row['board_id'])? "<br>[<a href='".base_url()."interview/select_board/id/".$row['id']."/view/Y' class='shadowbox closable'>Interview Board</a>]": "")
+		
+		."</td>
 		<td>".date('d-M-Y h:ia T', strtotime($row['interview_date']))."</td>
-		<td>".$row['interview_duration']."min</td>
+		<td>".(!empty($row['interview_duration'])? $row['interview_duration']."min": "unspecified")."</td>
 		<td>".$row['result']."</td>
 		<td>".(!empty($row['note_count'])? "<a href='".base_url()."interview/notes/id/".$row['id']."' class='shadowbox closable'>Notes</a>": "No notes");
-		if($action == 'addresult') echo "<br><div class='rightnote'><a href='".base_url()."interview/set_result/id/".$row['id']."' class='shadowbox'>set result</a></div> &nbsp; <div class='rightnote'><a href='".base_url()."interview/add_note/id/".$row['id']."' class='shadowbox'>add note</a></div>";
+		if($action == 'addresult') echo "<br><div class='rightnote'><a href='".base_url()."interview/set_result/id/".$row['id']."' class='shadowbox'>set result</a></div> &nbsp; <div class='rightnote'><a href='".base_url()."interview/add_note/id/".$row['id']."' class='shadowbox'>add note</a></div> &nbsp; <div class='rightnote'><a href='".base_url()."interview/select_board/id/".$row['id']."' class='shadowbox'>select board</a></div>";
 		echo "</td>";
 	
 	}

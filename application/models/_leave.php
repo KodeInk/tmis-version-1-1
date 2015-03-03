@@ -46,41 +46,6 @@ class _leave extends CI_Model
 	}
 		
 		
-		
-	# STUB: Approve a leave
-	function approve($leaveId,$approverId)
-	{
-		$isApproved = false;
-		
-		
-		return $isApproved;
-	}	
-		
-		
-		
-	# STUB: End a leave
-	function end_leave($leaveId)
-	{
-		$isEnded = false;
-		
-		
-		return $isEnded;
-	}		
-		
-		
-		
-	# STUB: Add a supporting document for a leave
-	function add_supporting_document($leaveId, $documentDetails)
-	{
-		$isAdded = false;
-		
-		
-		return $isAdded;
-	}	
-		
-	
-	
-		
 	
 	# Get list of leave
 	function get_list($instructions=array())

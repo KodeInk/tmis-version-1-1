@@ -64,7 +64,7 @@ if(!empty($currentJob))
  
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SUBMIT</button></td>
+    <td><input type="submit" name="save" id="save" class="btn" value="SUBMIT" /></td>
   </tr>
 
             

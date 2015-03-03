@@ -41,13 +41,14 @@ $(function() {
        				url: getBaseURL()+listType+'/verify',
       				data: fieldsToPost,
       				beforeSend: function() {
-           				//Do nothing
+           				showWaitDiv('start');
 					},
 					error: function(xhr, status, error) {
   						console.log(xhr.responseText);
 					},
       	 			success: function(data) {
 		   				//console.log(data);
+						showWaitDiv('end');
 						updateFieldLayer(document.URL,'','','','');
 					}
    				});
@@ -106,13 +107,14 @@ $(function() {
        			url: getBaseURL()+listType+"/verify",
       			data: fieldsToPost,
       			beforeSend: function() {
-           			//Do nothing
+					showWaitDiv('start');
 				},
 				error: function(xhr, status, error) {
   					console.log(xhr.responseText);
 				},
       	 		success: function(data) {
 		   			//console.log(data);
+					showWaitDiv('end');
 					updateFieldLayer(document.URL,'','','','');
 				}
    			});

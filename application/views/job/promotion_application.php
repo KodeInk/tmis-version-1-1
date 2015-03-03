@@ -62,7 +62,7 @@ if($this->native_session->get('jobname'))
   </tr>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="submit" id="submit" class="btn">SUBMIT</button></td>
+    <td><input type="submit" name="submit" id="submit" class="btn" value="SUBMIT" /></td>
   </tr>
 <?php } 
 else 

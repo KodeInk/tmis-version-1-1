@@ -73,16 +73,6 @@ class _user extends CI_Model
 	
 	
 	
-	# STUB: Delete a user account
-	function delete($userId)
-	{
-		$isDeleted = false;
-		
-		return $isDeleted;
-	}
-	
-	
-	
 	# Update a user account 
 	function update($userId, $details)
 	{
@@ -207,9 +197,15 @@ class _user extends CI_Model
 			
 			
 			# Save the address if it is added
-			if($this->native_session->get('contactaddress__adddressline'))
+			if(!empty($details['contactaddress__addresstype']) || $this->native_session->get('contactaddress__addressline'))
 			{
-				$isUpdated = $this->_query_reader->add_data('add_new_address', array('parent_id'=>$personId, 'parent_type'=>'person', 'address_type'=>$this->native_session->get('contactaddress__addresstype'), 'importance'=>'contact', 'details'=>$this->native_session->get('contactaddress__adddressline'), 'county'=>$this->native_session->get('contactaddress__county'), 'district'=>$this->native_session->get('contactaddress__district'), 'country'=>$this->native_session->get('contactaddress__country') ));
+				$addressType = !empty($details['contactaddress__addresstype'])? $details['contactaddress__addresstype']: $this->native_session->get('contactaddress__addresstype');
+				$addressLine = !empty($details['contactaddress__addressline'])? $details['contactaddress__addressline']: $this->native_session->get('contactaddress__addressline');
+				$county = !empty($details['contactaddress__county'])? $details['contactaddress__county']: $this->native_session->get('contactaddress__county');
+				$district = !empty($details['contactaddress__district'])? $details['contactaddress__district']: $this->native_session->get('contactaddress__district');
+				$country = !empty($details['contactaddress__country'])? $details['contactaddress__country']: $this->native_session->get('contactaddress__country');
+				
+				$isUpdated = $this->_query_reader->run('update_address_data', array('parent_id'=>$personId, 'parent_type'=>'person', 'address_type'=>$addressType, 'importance'=>'contact', 'details'=>$addressLine, 'county'=>$county, 'district'=>$district, 'country'=>$country ));
 			}
 			
 			# Notify to login again if the user's changes were successful
@@ -231,43 +227,6 @@ class _user extends CI_Model
 	}
 	
 	
-		
-	
-	# STUB: Approve a user application
-	function approve_user_application($applicationId, $notes)
-	{
-		$isApproved = false;
-		
-		return $isApproved;
-	}
-			
-	
-	# STUB: Reject a user application
-	function reject_user_application($applicationId, $notes)
-	{
-		$isRejected = false;
-		
-		return $isRejected;
-	}
-	
-			
-	
-	# STUB: Get the vacancies the user saved to view later
-	function get_saved_vacancies($userId, $listParameters=array())
-	{
-		$vacancies = array();
-		
-		return $vacancies;
-	}
-			
-	
-	# STUB: Get the vacancy list that the user can qualify for
-	function get_qualifying_vacancy_list($userId, $listParameters=array())
-	{
-		$vacancies = array();
-		
-		return $vacancies;
-	}
 			
 	
 	# Update the user password
@@ -309,28 +268,6 @@ class _user extends CI_Model
 		
 		return array('boolean'=>$result, 'msg'=>$msg);
 	}
-	
-
-	
-	# STUB: Assign the user to a school
-	function assign_to_school($userId, $schoolId)
-	{
-		$isAssigned = false;
-		
-		
-		return $isAssigned;
-	}
-	
-
-	
-	# STUB: Change the schools the user is assigned
-	function change_schools($userId, $oldSchoolId, $newSchoolId)
-	{
-		$isChanged = false;
-		
-		
-		return $isChanged;
-	}	
 	
 
 	

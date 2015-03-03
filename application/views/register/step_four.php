@@ -148,6 +148,20 @@
      </table>
      <?php }?>
      </div></td></tr>
+     <tr><td>&nbsp;</td></tr>
+     
+     <tr><td><div id="document_list">
+     <?php
+	 if($this->native_session->get('document_list')){
+		 $this->load->view('addons/basic_addons', array('area'=>'document_list', 'mode'=>'preview'));
+	 } else {
+	 ?>
+     <table border="0" cellspacing="0" cellpadding="0" class="resultslisttable">
+     <tr><td>Qualification Documents</td></tr>
+     <tr><td>No document added.</td></tr>
+     </table>
+     <?php }?>
+     </div></td></tr>
      <tr><td style="padding-top:30px;">&nbsp;</td></tr>
      
      <tr>
@@ -157,7 +171,7 @@
      <td><button type="button" name="backtostep3" id="backtostep3" class="greybtn back">BACK</button></td>
      <td class='spacefiller'>&nbsp;</td>
      <td>&nbsp;</td>
-     <td><button type="submit" name="step4" id="step4" class="btn">SUBMIT</button></td>
+     <td><input type="submit" name="step4" id="step4" value="SUBMIT" class="btn" /></td>
      </tr>
      </table> 
       </td>

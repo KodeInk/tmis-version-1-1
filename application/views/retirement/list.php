@@ -31,7 +31,7 @@ if(!empty($list))
 	
 	echo "</td> 
 	<td><a href='".base_url()."teacher/add/id/".$row['retiree_id']."/action/view' class='shadowbox closable'>".$row['teacher_name']."</a></td> 
-	<td>".$row['age']." yrs</td>
+	<td style='".format_age($row['age'])."'>".$row['age']." yrs".format_age($row['age'],'timeleft')."</td>
 	<td>".limit_string_length(html_entity_decode($row['retiree_reason'], ENT_QUOTES), 200)."</td>
 	<td>".format_date($row['proposed_date'],'d-M-Y');
 	if($row['confirmed_date'] != '0000-00-00') echo " (Actual: ".format_date($row['confirmed_date'],'d-M-Y').")"; 

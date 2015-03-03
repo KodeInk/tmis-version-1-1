@@ -46,7 +46,7 @@ if(!empty($list))
 		}
 	}
 	
-	echo "</td> <td>".$row['last_name']." ".$row['first_name'];
+	echo "</td> <td>".$row['last_name'].", ".$row['first_name'];
 	
 	# Changing the user's password
 	if(!empty($action) && $action == 'changepassword')

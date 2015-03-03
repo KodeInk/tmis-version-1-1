@@ -122,7 +122,7 @@ if(empty($id)) {?>
   <?php if(!(!empty($action) && $action=='view')) {?>
   <tr>
     <td>&nbsp;</td>
-    <td><button type="submit" name="save" id="save" class="btn">SAVE</button><?php 
+    <td><input type="submit" name="save" id="save" class="btn" value="SAVE" /><?php 
 	echo !empty($id)? "<input type='hidden' id='schoolid' name='censusid' value='".$id."' />": "";
 	echo "<input type='hidden' id='forward' name='forward' value='census/lists".(!empty($action) && $action!='view'? '/action/'.$action: '')."' />";
 	?></td>

@@ -38,12 +38,15 @@ class Teacher extends CI_Controller
 		if(!empty($_POST))
 		{
 			# 1. Save or add the data to session?
+			
+			# a) Just add to session
 			if($this->input->post('preview') || isset($_POST['preview'])) 
 			{
 				$response = $this->_teacher->add_to_session($this->input->post(NULL, TRUE));
 				if($response['boolean']) $data['preview'] = "Y";
 				else $data['msg'] = $response['msg'];
 			}
+			# b) Save the data to the database
 			else 
 			{
 				if($this->input->post('userid'))
@@ -80,9 +83,10 @@ class Teacher extends CI_Controller
 			}
 		}
 		
-		#If editing - and for the first time, load the id details into the session 
+		#If editing - and for the first time, load the teacher details into the session 
 		if(!empty($data['id']) && empty($data['edit']) && empty($_POST)) $this->_teacher->populate_session($data['id']);
 		if(!empty($data['action']) && $data['action'] == 'view') $data['preview'] = "Y";
+		
 		# Viewing the teacher's profile, collect any documents they have been issued
 		if(!empty($data['id']) && !empty($data['action']) && $data['action'] == 'view') $data['documents'] = $this->_teacher->get_documents($data['id']);
 		
@@ -119,12 +123,33 @@ class Teacher extends CI_Controller
 	
 	
 	
+	# Add the teacher document to the session (and database)
+	function add_document()
+	{
+		$data = filter_forwarded_data($this);
+		
+		# Process the document addition if one has been successfully uploaded
+		if(!empty($_FILES['documenturl__fileurl']) && file_exists($_FILES['documenturl__fileurl']['tmp_name']))
+		{
+			$this->load->model('_document');
+			$upload = $this->_document->upload($_FILES['documenturl__fileurl'], array('type'=>'document'));
+			$_POST['documenturl__fileurl'] = $upload['file'];
+		}
+		
+		$data['response'] = $this->_person->add_document('', $this->input->post(NULL, TRUE));
+		$data['area'] = "document_list";
+		$this->load->view('addons/basic_addons', $data); 
+	}
+	
+	
+	
+	
 	# View a teacher list
 	function lists()
 	{
 		$data = filter_forwarded_data($this);
 		if(empty($data['action'])) $data['action'] = 'report';
-		$instructions['action'] = array('view'=>'view_teacher_data_changes', 'verify' => 'verify_teacher_application_at_hr_level', 'approve'=>'verify_teacher_application_at_instructor_level', 'report'=>'view_teachers');
+		$instructions['action'] = array('view'=>'view_teacher_data_changes', 'verify' => 'verify_teacher_application_at_hr_level', 'approve'=>'verify_teacher_application_at_instructor_level', 'report'=>'view_teachers', 'payrollreport'=>'view_payroll_report', 'cimreport'=>'view_cim_report');
 		check_access($this, get_access_code($data, $instructions));
 		
 		$data['list'] = $this->_teacher->get_list($data);
@@ -179,12 +204,29 @@ class Teacher extends CI_Controller
 	# Download the list
 	function download()
 	{
+		$data = filter_forwarded_data($this);
 		check_access($this, 'view_teachers');
 		
 		$data['list'] = array();
-		$list = $this->_teacher->get_list(array('action'=>'download', 'pagecount'=>DOWNLOAD_LIMIT));
-		foreach($list AS $row) array_push($data['list'], array('Teacher Name'=>$row['name'], 'School'=>$row['school'], 'School Address'=>$row['school_address'], 'Email Address'=>$row['email_address'], 'Telephone'=>$row['telephone'], 'Date Added'=>date('d-M-Y', strtotime($row['date_added'])) ));
+		$list = $this->_teacher->get_list(array('action'=>(!empty($data['action']) && in_array($data['action'], array('payrollreport','cimreport'))? $data['action']: 'download'), 'pagecount'=>DOWNLOAD_LIMIT));
 		
+		# Payroll Teacher Report
+		if(!empty($data['action']) && $data['action'] == 'payrollreport')
+		{
+			foreach($list AS $row) array_push($data['list'], array('Registration Number'=>$row['file_number'], 'Old UTS Number'=>$row['uts_number'], 'Name'=>$row['name'], 'Title'=>$row['title'], 'Salary Scale'=>$row['salary_scale'], 'Birth Date'=>format_date($row['date_of_birth'],'d-M-Y',''), 'Confirmation Date'=>format_date($row['date_of_confirmation'],'d-M-Y',''), 'First Appointment Date'=>format_date($row['first_appointment_date'],'d-M-Y',''), 'Current Appointment Date'=>format_date($row['current_appointment_date'],'d-M-Y',''), 'Status'=>$row['teacher_status'], 'Qualifications'=>$row['qualifications'], 'Proposed Retirement'=>format_date($row['proposed_retirement'],'d-M-Y',''), 'Retirement Status'=>$row['retirement_status']  ));
+			
+		}
+		# CIM Teacher Report
+		else if(!empty($data['action']) && $data['action'] == 'cimreport')
+		{
+			foreach($list AS $row) array_push($data['list'], array('Registration Number'=>$row['file_number'], 'Old UTS Number'=>$row['uts_number'], 'Name'=>$row['name'], 'Title'=>$row['title'], 'Responsibility'=>$row['responsibility'], 'Substantive Post'=>$row['substantive_post'], 'Birth Date'=>format_date($row['date_of_birth'],'d-M-Y',''), 'Confirmation Date'=>format_date($row['date_of_confirmation'],'d-M-Y',''), 'Location'=>$row['location'], 'School'=>$row['school'], 'School Type'=>$row['school_type'], 'Subjects (Major)'=>$row['subjects_major'], 'Subjects (Minor)'=>$row['subjects_minor'], 'Subjects (Other)'=>$row['subjects_other'], 'First Appointment Date'=>format_date($row['first_appointment_date'],'d-M-Y',''), 'Posting Date'=>format_date($row['posting_date'],'d-M-Y',''), 'Current Appointment Date'=>format_date($row['current_appointment_date'],'d-M-Y',''), 'Status'=>$row['teacher_status'], 'Qualifications'=>$row['qualifications'], 'Proposed Retirement'=>format_date($row['proposed_retirement'],'d-M-Y',''), 'Retirement Status'=>$row['retirement_status'] ));
+			
+		}
+		# Normal Teacher Report
+		else
+		{
+			foreach($list AS $row) array_push($data['list'], array('Teacher Name'=>$row['name'], 'Age'=>$row['age'].str_replace('<br>', ' ', format_age($row['age'],'timeleft')), 'School'=>$row['school'], 'School Address'=>$row['school_address'], 'Email Address'=>$row['email_address'], 'Telephone'=>$row['telephone'], 'Date Added'=>date('d-M-Y', strtotime($row['date_added'])) ));
+		}
 		$data['area'] = 'download_csv';
 		$this->load->view('page/download', $data); 
 	}

@@ -30,7 +30,7 @@ if(!empty($list))
 	
 	echo "</td> 
 	<td class='top'>".$row['name']."</td>
-	<td>[".$row['send_format']."] <a href='".base_url()."message/details/id/".$row['id']."' class='shadowbox closable'>".$row['subject']."</a>";
+	<td>[".$row['send_format']."] <a href='".base_url()."message/details/id/".$row['id']."' class='shadowbox closable' ".($row['status'] == 'read'? "style='font-weight:normal;'": "").">".$row['subject']."</a>";
 	if(!empty($row['attachment'])) echo " &nbsp;&nbsp; <a href='".base_url()."page/download/folder/documents/file/".$row['attachment']."'><img src='".base_url()."assets/images/attachment.png' border='0' /></a>";
 	
 	echo "</td>

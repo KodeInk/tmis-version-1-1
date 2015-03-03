@@ -203,7 +203,7 @@ class _person extends CI_Model
 					# 3. Save all the data into the database
 					if(!empty($details['teacherid'])) 
 					{
-						$this->add_another_id($personId, array('id_type'=>'teacher_id', 'id_value'=>$details['teacherid']));
+						$this->add_another_id($personId, array('id_type'=>'teacher_id', 'id_value'=>htmlentities(restore_bad_chars($details['teacherid']), ENT_QUOTES) ));
 					}
 					#Save permanent and contact addresses
 					$permanentId = $this->add_address($personId, array('address_type'=>$this->native_session->get('permanentaddress__addresstype'), 'importance'=>'permanent', 'details'=>htmlentities($this->native_session->get('permanentaddress__addressline'), ENT_QUOTES), 'district'=>$this->native_session->get('permanentaddress__district'), 'country'=>$this->native_session->get('permanentaddress__country'), 'county'=>($this->native_session->get('permanentaddress__county')? $this->native_session->get('permanentaddress__county'): "") ));
@@ -237,9 +237,9 @@ class _person extends CI_Model
 	
 	
 	# Add another ID that identifies that person on a third party system
-	function add_another_id($personId, $idDetails)
+	function add_another_id($personId, $details)
 	{
-		return $this->_query_reader->add_data('add_another_id', array('parent_id'=>$personId, 'parent_type'=>'person', 'id_type'=>$idDetails['id_type'], 'id_value'=>$idDetails['id_value']));
+		return $this->_query_reader->add_data('add_another_id', array('parent_id'=>$personId, 'parent_type'=>'person', 'id_type'=>$details['id_type'], 'id_value'=>$details['id_value'] ));
 	}	
 	
 	
@@ -294,6 +294,7 @@ class _person extends CI_Model
 					$updateResult = $this->update_education($personId, $details);
 					$isAdded = $updateResult['boolean'];
 					$msg = $updateResult['msg'];
+					$this->native_session->delete('edit_step_3_education');
 				}
 				# New record - add to the education session array
 				else
@@ -361,6 +362,7 @@ class _person extends CI_Model
 				$updateResult = $this->update_subject_taught($personId, $details);
 				$isAdded = $updateResult['boolean'];
 				$msg = $updateResult['msg'];
+				$this->native_session->delete('edit_step_3_subject');
 			}
 			# New record - add to the subject session array
 			else
@@ -408,9 +410,17 @@ class _person extends CI_Model
 		$key = get_row_from_list($list, $listType.'_id', $itemId, 'key');
 		if(!empty($key) || $key == 0)
 		{
+			
+			#if this is a document, delete the saved document too
+			if($listType == 'document')
+			{
+				$result1 = $this->_query_reader->run('delete_user_document_by_url', array('url'=>$list[$key]['documenturl']));
+				if($result1) @unlink(UPLOAD_DIRECTORY.'documents/'.$list[$key]['documenturl']);
+			}
+			
 			unset($list[$key]); 
 			$this->native_session->set($listType.'_list', $list);	
-			$result = true;
+			$result = !empty($result1)? $result1: true;
 		}
 		
 		return $result;
@@ -507,76 +517,64 @@ class _person extends CI_Model
 		
 	
 	
-	# STUB: Remove institution details from the user's profile
-	function remove_institution($personId, $institutionId)
+	# Add a qualification document for this person
+	function add_document($personId, $details)
 	{
-		$isRemoved = false;
+		$response = array('boolean'=>false, 'msg'=>'ERROR: We could not add the document.');
 		
+		# Determine whether to update the data or to create a new record
+		# UPDATE
+		if(!empty($details['document_id']) && !empty($details['documentname']))
+		{
+			$response['boolean'] = $this->_query_reader->run('update_document_field', array('document_id'=>$details['document_id'], 'field_name'=>'description', 'field_value'=>htmlentities($details['documentname'], ENT_QUOTES) ));
+			# proceed to update the session if the db update was successful
+			if($response['boolean']) 
+			{
+				$documentList = $this->native_session->get('document_list');
+				$key = get_row_from_list($documentList, 'document_id', $details['document_id'], 'key');
+				$documentList[$key]['documentname'] = $details['documentname'];
+				
+				$response['msg'] = 'The document has been updated.';
+				$this->native_session->set('document_list', $documentList);
+			}
+			$this->native_session->delete('edit_step_3_document');
+		}
 		
-		return $isRemoved;
+		# ADD NEW
+		else if(!empty($details['documenturl__fileurl']) && !empty($details['documentname']))
+		{
+			# Determine how to get a person ID if it is not given
+			$currentStamp = strtotime('now');
+			if(empty($personId))
+			{
+				if($this->native_session->get('person_id'))
+				{
+					$personId = $this->native_session->get('person_id');
+				}
+				# Make up a temporary person ID if it is not yet known (for single entry forms)
+				else if(!$this->native_session->get('temp_person_id'))
+				{
+					$personId = 'TEMP-'.$this->native_session->get('__user_id').'-'.$currentStamp;
+					$this->native_session->set('temp_person_id', $personId);
+				}
+				else $personId = $this->native_session->get('temp_person_id');
+			}
+				
+			$documentId = $this->_query_reader->add_data('add_user_document', array('url'=>$details['documenturl__fileurl'],'document_type'=>'qualification_document','tracking_number'=>$currentStamp,'description'=>htmlentities($details['documentname'], ENT_QUOTES), 'is_removable'=>'Y','parent_id'=>$personId,'parent_type'=>'person'));
+			
+			if(!empty($documentId)) 
+			{
+				$documentList = $this->native_session->get('document_list')? $this->native_session->get('document_list'): array();
+				array_push($documentList, array('document_id'=>$documentId, 'documenturl'=>$details['documenturl__fileurl'], 'documentname'=>$details['documentname']));
+				$this->native_session->set('document_list', $documentList);
+				
+				$response = array('boolean'=>true, 'msg'=>'The document has been added.');
+			}
+		}
+		
+		return $response;
 	}
 	
-		
-	
-	
-	# STUB: Reject a list of institutions provided by the user as part of their education details
-	function reject_education($personId, $educationDetails)
-	{
-		$isRejected = false;
-		
-		
-		return $isRejected;
-	}
-
-		
-	
-	
-	# STUB: Apply profile secrecy to the user's person account
-	function apply_profile_secrecy($personId, $reasons)
-	{
-		$isApplied = false;
-		
-		
-		return $isApplied;
-	}
-
-		
-	
-	
-	# STUB: Remove profile secrecy from the user's person account
-	function remove_profile_secrecy($personId, $reasons)
-	{
-		$isRemoved = false;
-		
-		
-		return $isRemoved;
-	}
-
-		
-	
-	
-	# STUB: Set the grade of the person
-	function set_grade($personId, $gradeDetails)
-	{
-		$isSet = false;
-		
-		
-		return $isSet;
-	}
-
-		
-	
-	
-	# STUB: Generate the person's computer number 
-	function generate_computer_number($personId, $parameters=array())
-	{
-		$isSet = false;
-		
-		
-		return $isSet;
-	}
-
-
 	
 	
 	

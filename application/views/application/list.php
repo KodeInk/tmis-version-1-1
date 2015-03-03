@@ -34,7 +34,7 @@ if(!empty($list))
 	}
 	
 	echo "</td> 
-	<td>".$row['last_name']." ".$row['first_name']."</td> 
+	<td>".$row['last_name'].", ".$row['first_name']."</td> 
 	<td>".$row['user_role']."</td>
 	<td>".$row['email_address']."</td>
 	<td>".$row['telephone']."</td>

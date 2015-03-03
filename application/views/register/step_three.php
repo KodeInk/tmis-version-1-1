@@ -79,6 +79,9 @@
      <?php }?>
      </div></td></tr>
      <tr><td>&nbsp;</td></tr>
+     
+     
+     
      <tr><td class="greybg h3" style="padding-left:5px;">Subjects Taught:</td></tr>
      
      <tr>
@@ -92,6 +95,26 @@
      <table border="0" cellspacing="0" cellpadding="0" class="resultslisttable">
      <tr><td>Current List</td></tr>
      <tr><td>No subject added yet.</td></tr>
+     </table>
+     <?php }?>
+     </div></td></tr>
+     <tr><td>&nbsp;</td></tr>
+     
+     
+     
+     <tr><td class="greybg h3" style="padding-left:5px;">Qualification Documents:</td></tr>
+     
+     <tr>
+       <td><div id="form_div__document"><?php $this->load->view('addons/basic_addons', array('area'=>'document_form'));?></div></td></tr>
+     <tr><td><div id="document_list">
+     <?php
+	 if($this->native_session->get('document_list')){
+		 $this->load->view('addons/basic_addons', array('area'=>'document_list'));
+	 } else {
+	 ?>
+     <table border="0" cellspacing="0" cellpadding="0" class="resultslisttable">
+     <tr><td>Current List</td></tr>
+     <tr><td>No document added yet.</td></tr>
      </table>
      <?php }?>
      </div></td></tr>
@@ -109,7 +132,7 @@
 	 } else {
 		 ?><button type="button" name="step3save" id="step3save" class="greybtn">SAVE &amp; EXIT</button>
 <?php } ?></td>
-     <td><button type="submit" name="step3" id="step3" class="btn next">NEXT</button></td>
+     <td><input type="submit" name="step3" id="step3" value="NEXT" class="btn next" /></td>
      </tr>
      <tr>
        <td colspan="4" class='note'>Applications not completed within 14 days will be automatically deleted by the system.</td>

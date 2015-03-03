@@ -107,15 +107,6 @@ class _interview extends CI_Model
 	}	
 		
 		
-		
-	# STUB: Update interviewer 
-	function update_interviewer($interviewId, $interviewerId)
-	{
-		$isUpdated = false;
-		
-		
-		return $isUpdated;
-	}	
 	
 		
 	
@@ -284,6 +275,161 @@ class _interview extends CI_Model
 		return get_decision(array($result1, $result2), FALSE);
 	}
 	
+	
+	
+	
+	# Populate the interview board details
+	function populate_board($interviewId)
+	{
+		$boardList = $this->_query_reader->get_list('get_interview_board', array('interview_id'=>$interviewId));
+		if(!empty($boardList))
+		{
+			# Since the board details are the same in all rows, use the first row for the data
+			$this->native_session->set('boardname__boards', $boardList[0]['board_name']);
+			$this->native_session->set('boardid', $boardList[0]['board_id']);
+			
+			$members = array();
+			$length = count($boardList);
+			$i = 1;
+			$chairmanSet = false;
+			foreach($boardList AS $row)
+			{
+				if($row['is_chairman'] == 'Y') $chairmanSet = true;
+				# Forcefully set the last member as the chairman if none has been set
+				if($length == $i && !$chairmanSet) $row['is_chairman'] = 'Y';
+				
+				array_push($members, array('member_id'=>$row['member_id'], 'member_name'=>$row['member_name'], 'is_chairman'=>$row['is_chairman']));
+				$i++;
+			}
+			$this->native_session->set('boardmembers', $members);
+		}
+	}
+	
+	
+	
+	
+	# Remove the interview board details from session
+	function clear_board()
+	{
+		$this->native_session->delete_all(array('boardname__boards'=>'', 'boardid'=>'', 'boardmembers'=>''));
+	}
+	
+	
+	
+	# Add interview board
+	function add_board($interviewId, $details)
+	{
+		$result = false;
+		
+		if(!empty($details['boardname__boards']) && !empty($details['boardmembers']))
+		{
+			if($this->native_session->get('boardid') || !empty($details['boardid'])) $board = $this->_query_reader->get_row_as_array('get_board_by_id', array('board_id'=>(!empty($details['boardid'])? $details['boardid']: $this->native_session->get('boardid')) ));
+			# Who is the chairman?
+			$chairman = !empty($details['ischairman'])? $details['ischairman']: $details['boardmembers'][0];
+				
+			# Update the board if it is already available and the user used the same board name
+			if(!empty($board) && (empty($details['boardid']) || (!empty($details['boardid']) && $details['boardname__boards'] == html_entity_decode($board['name'], ENT_QUOTES) )))
+			{
+				# 1. Remove previous board members
+				$result1 = $this->_query_reader->run('remove_board_members', array('board_id'=>$board['id'] ));
+				# 2. Add board members
+				$result2 = $result1? $this->_query_reader->run('add_board_members', array('board_id'=>$board['id'], 'member_ids'=>"'".implode("','",$details['boardmembers'])."'", 'added_by'=>$this->native_session->get('__user_id'), 'chairman'=>$chairman )): false;
+				# 3. Update interview with new board
+				$result = $result2? $this->_query_reader->run('update_interview_board', array('interview_id'=>$interviewId, 'board_id'=>$board['id'], 'interviewer_id'=>$chairman, 'updated_by'=>$this->native_session->get('__user_id') )): false;
+				
+			}
+			# Add a new board
+			else
+			{
+				# 1. Add new board
+				$boardId = $this->_query_reader->add_data('add_new_board', array('board_name'=>htmlentities($details['boardname__boards'], ENT_QUOTES), 'added_by'=>$this->native_session->get('__user_id') ));
+				# 2. Add board members
+				$result1 = $this->_query_reader->run('add_board_members', array('board_id'=>$boardId, 'member_ids'=>"'".implode("','",$details['boardmembers'])."'", 'added_by'=>$this->native_session->get('__user_id'), 'chairman'=>$chairman ));
+				# 3. Update interview with new board
+				$result = $result1? $this->_query_reader->run('update_interview_board', array('interview_id'=>$interviewId, 'board_id'=>$boardId, 'interviewer_id'=>$chairman, 'updated_by'=>$this->native_session->get('__user_id') )): false;
+			}
+		} 
+		
+		return $result;
+	}
+	
+	
+	
+	
+	# Add a member to the board
+	function add_member_to_board($data)
+	{
+		$members = $this->native_session->get('boardmembers')? $this->native_session->get('boardmembers'): array();
+		
+		if(!empty($data['userid']) && !empty($data['membername__users']) && empty(get_row_from_list($members, 'member_id', $data['userid'])))
+		{
+			array_push($members, array('member_id'=>$data['userid'], 'member_name'=>restore_bad_chars($data['membername__users']), 'is_chairman'=>(empty($members)? 'Y': 'N') ));
+			$this->native_session->set('boardmembers', $members);
+			$msg = "Member has been added";
+		}
+		else if(!empty($data['userid']) && !empty(get_row_from_list($members, 'member_id', $data['userid'])))
+		{
+			$msg = "WARNING: Member is already on the board";
+		}
+		else $msg = "ERROR: We could not resolve the member data";
+		
+		return $msg;
+	}
+	
+	
+	
+	
+	# Remove a member from the board
+	function remove_member_from_board($data)
+	{
+		$members = $this->native_session->get('boardmembers')? $this->native_session->get('boardmembers'): array();
+		
+		if(!empty($data['userid']) && !empty($members))
+		{
+			# Get the member row key
+			$rowId = get_row_from_list($members, 'member_id', $data['userid'], 'key');
+			
+			if(!empty($rowId) || $rowId == 0) unset($members[$rowId]);
+			$this->native_session->set('boardmembers', $members);
+			$msg = "Member has been removed";
+		}
+		else $msg = "ERROR: We could not resolve the instruction";
+		
+		return $msg;
+	}
+	
+	
+	
+	
+	# Load the board member list
+	function populate_board_list($data)
+	{
+		if(!empty($data['boardid']))
+		{
+			$boardList = $this->_query_reader->get_list('get_board_members', array('board_id'=>$data['boardid']));
+			if(!empty($boardList))
+			{
+				$members = array();
+				$length = count($boardList);
+				$i = 1;
+				$chairmanSet = false;
+				foreach($boardList AS $row)
+				{
+					if($row['is_chairman'] == 'Y') $chairmanSet = true;
+					# Forcefully set the last member as the chairman if none has been set
+					if($length == $i && !$chairmanSet) $row['is_chairman'] = 'Y';
+				
+					array_push($members, array('member_id'=>$row['member_id'], 'member_name'=>$row['member_name'], 'is_chairman'=>$row['is_chairman']));
+					$i++;
+				}
+				$this->native_session->set('boardmembers', $members);
+			}
+		}
+		
+		# Return appropriate message based on whether the board is empty or id can not be found
+		return empty($boardList)? (!empty($data['boardid'])? "WARNING: This board has no members": "ERROR: Board members could not be loaded"): "";
+	}
+		
 }
 
 

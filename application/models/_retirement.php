@@ -10,19 +10,6 @@
 class _retirement extends CI_Model
 {
 	
-		
-	# STUB: Send a reminder for retirement
-	function send_reminder($retirementId)
-	{
-		$isSent = false;
-		
-		
-		return $isSent;
-	}	
-		
-	
-	
-		
 	
 	# Get list of retirements
 	function get_list($instructions=array())

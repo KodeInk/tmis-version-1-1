@@ -43,7 +43,9 @@
 
 	define('SYS_TIMEZONE', "Africa/Nairobi");
 	
-	define('NUM_OF_ROWS_PER_PAGE', "10");
+	define('NUM_OF_ROWS_PER_PAGE', "5");
+		
+	define('NUM_OF_LISTS_PER_VIEW', "10");
 	
 	define('IMAGE_URL', BASE_URL."assets/images/");
 	
@@ -70,7 +72,8 @@
  	define('ENABLE_PROFILER', FALSE); #See perfomance stats based on set benchmarks
 
 	define('DOWNLOAD_LIMIT', 10000); #Max number of rows that can be downloaded
-	
+
+	define('RETIREMENT_AGE', 60); # Mandatory retirement age
 	
 	
 	

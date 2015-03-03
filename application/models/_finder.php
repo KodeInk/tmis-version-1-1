@@ -199,10 +199,22 @@ class _finder extends CI_Model
 					{
 						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.last_name', 'P.first_name', 'L.details');
 						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+						if(strpos($data['phrase'], '@') !== false) $data['searchstring'] = " (L.details LIKE '%email=".$data['phrase']."%|%' OR L.details LIKE '%username=".$data['phrase']."%|%') ";
 					}
 					$list = $this->_report->get_list($data);
 				break;
 				
+				
+				case 'approval':
+					$this->load->model('_approval_chain');
+					#Did the UI send any fields to search by?
+					if(empty($data['__clear']))
+					{
+						$searchBy = !empty($data['searchby'])? $data['searchby']: array('P.last_name', 'P.first_name', 'A.chain_type');
+						$data['searchstring'] = $this->generate_phrase_query($searchBy, $data['phrase']);
+					}
+					$list = $this->_approval_chain->get_list($data);
+				break;
 				
 				
 				
