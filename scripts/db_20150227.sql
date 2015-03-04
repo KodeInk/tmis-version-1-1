@@ -280,6 +280,114 @@ INSERT INTO message (id, message_type, subject, details, sms, copy_admin, date_a
 
 
 
+
+
+
+DROP TABLE IF EXISTS permission;
+CREATE TABLE permission (
+  id bigint(20) NOT NULL AUTO_INCREMENT,
+  `code` varchar(200) NOT NULL,
+  display varchar(300) NOT NULL,
+  details varchar(300) NOT NULL,
+  category varchar(200) NOT NULL,
+  url varchar(300) NOT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  PRIMARY KEY (id),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table 'permission'
+--
+
+INSERT INTO permission (id, code, display, details, category, url, status) VALUES
+(1, 'view_relevant_jobs', 'Relevant Jobs', '', 'job_notices', 'job/lists/action/view', 'active'),
+(2, 'apply_for_job', 'Apply for a Job', '', 'job_notices', 'job/lists/action/apply', 'active'),
+(3, 'view_my_saved_jobs', 'My Saved Jobs', '', 'job_notices', 'job/lists/action/saved', 'active'),
+(4, 'view_job_application_status', 'Job Application Status', '', 'job_notices', 'job/lists/action/status', 'active'),
+(5, 'add_new_job', 'New Job', '', 'job_notices', 'vacancy/add', 'active'),
+(6, 'set_vacancy_shortlist', 'Job Shortlists', '', 'interviews', 'interview/lists/action/shortlist', 'active'),
+(7, 'set_interview_date', 'Set Interview Date', '', 'interviews', 'interview/lists/action/setdate', 'active'),
+(8, 'cancel_interview', 'Cancel Interview', '', 'interviews', 'interview/lists/action/cancel', 'active'),
+(9, 'submit_recommendation_for_job', 'Submit Recommendation', '', 'interviews', 'interview/lists/action/recommend', 'active'),
+(10, 'view_recommendation_list', 'View Recommendations', 'Teacher or Manager only views their application recommendations', 'interviews', 'interview/lists/action/recommendations', 'active'),
+(11, 'add_interview_results', 'Add Interview Results', 'May include setting a date for the next interview OR marking this as final interview', 'interviews', 'interview/lists/action/addresult', 'active'),
+(12, 'view_interview_results', 'View Interview Results', '', 'interviews', 'interview/lists/action/result', 'active'),
+(13, 'publish_job_notices', 'Publish Jobs', '', 'approvals', 'vacancy/lists/action/publish', 'active'),
+(14, 'verify_job_notices', 'Verify Jobs', '', 'approvals', 'vacancy/lists/action/verify', 'active'),
+(15, 'archive_job_notices', 'Archive Jobs', '', 'approvals', 'vacancy/lists/action/archive', 'active'),
+(17, 'verify_teacher_application_at_hr_level', 'HR Teacher Application Verification', '', 'approvals', 'teacher/lists/action/verify', 'active'),
+(18, 'verify_teacher_application_at_instructor_level', 'Instructor Teacher Application Verification', '', 'approvals', 'teacher/lists/action/approve', 'active'),
+(21, 'view_school_data_changes', 'View School Changes', '', 'approvals', 'school/lists', 'active'),
+(22, 'verify_school_data_updates', 'Verify School Changes', '', 'approvals', 'school/lists/action/verify', 'active'),
+(23, 'view_teacher_data_changes', 'View Teacher Changes', '', 'approvals', 'teacher/lists/action/view', 'active'),
+(28, 'view_job_confirmation_applications', 'View Confirmation Applications', 'cao users only see applications for their county.', 'approvals', 'confirmation/lists/action/view', 'active'),
+(29, 'issue_job_confirmation_letter', 'Issue Job Confirmation', '', 'approvals', 'confirmation/lists/action/approve', 'active'),
+(30, 'verify_job_confirmation_letter', 'Verify Job Confirmation', '', 'approvals', 'confirmation/lists/action/verify', 'active'),
+(31, 'post_to_new_position', 'Confirm Assumption of Duty', '', 'approvals', 'confirmation/lists/action/post', 'active'),
+(32, 'view_transfer_applications', 'View Transfer Applications', 'manager only views applications for their institution', 'approvals', 'transfer/lists/action/view', 'active'),
+(33, 'cancel_transfer_application', 'Cancel Transfer Application', 'teacher,manager users can only cancel their own applications', 'approvals', 'transfer/cancel', 'active'),
+(34, 'verify_transfer_at_institution_level', 'Institution Transfer Verification', '', 'approvals', 'transfer/lists/action/institutionapprove', 'active'),
+(35, 'verify_transfer_at_county_level', 'County Transfer Verification', '', 'approvals', 'transfer/lists/action/countyapprove', 'active'),
+(36, 'submit_transfer_pca', 'Submit Transfer PCA', '', 'approvals', 'transfer/lists/action/pca', 'active'),
+(37, 'verify_transfer_at_ministry_level', 'Ministry Transfer Verification', '', 'approvals', 'transfer/lists/action/ministryapprove', 'active'),
+(38, 'view_leave_applications', 'View Leave Applications', '', 'approvals', 'leave/lists/action/view', 'active'),
+(39, 'cancel_leave_application', 'Cancel Leave Application', '', 'approvals', 'leave/cancel', 'active'),
+(40, 'verify_leave_at_county_level', 'County Leave Verification', '', 'approvals', 'leave/lists/action/approve', 'active'),
+(41, 'verify_leave_at_ministry_level', 'Ministry Leave Verification', '', 'approvals', 'leave/lists/action/verify', 'active'),
+(42, 'prepare_leave_verification_letter', 'Send Leave Letter', '', 'approvals', 'leave/lists/action/send', 'active'),
+(43, 'view_retirement_applications', 'View Retirement Applications', '', 'approvals', 'retirement/lists/action/view', 'active'),
+(44, 'cancel_retirement_application', 'Cancel Retirement Application', '', 'approvals', 'retirement/cancel', 'active'),
+(45, 'verify_retirement_application', 'Verify Retirement Application', '', 'approvals', 'retirement/lists/action/approve', 'active'),
+(46, 'verify_teacher_census_submissions', 'Verify Teacher Census', '', 'approvals', 'census/lists/action/verify', 'active'),
+(47, 'view_teacher_census_report', 'View Teacher Census', '', 'approvals', 'census/lists', 'active'),
+(48, 'complete_teacher_application', 'Complete My Teacher Application', '', 'forms', 'register/step_one/action/prefill', 'active'),
+(49, 'update_my_teacher_profile', 'Update My Teacher Profile', '', 'forms', 'profile/teacher_data', 'active'),
+(50, 'apply_for_leave', 'Apply For Leave', '', 'forms', 'leave/apply', 'active'),
+(51, 'apply_for_transfer', 'Apply For Transfer', '', 'forms', 'transfer/apply', 'active'),
+(52, 'request_job_confirmation', 'Request Job Confirmation', '', 'forms', 'job/request_confirmation', 'active'),
+(53, 'apply_for_promotion', 'Apply For Promotion', '', 'forms', 'job/apply_for_promotion', 'active'),
+(54, 'apply_to_retire', 'Apply To Retire', '', 'forms', 'retirement/apply', 'active'),
+(56, 'add_new_teacher', 'New Teacher', '', 'forms', 'teacher/add', 'active'),
+(57, 'submit_teacher_census_data', 'Teacher Census', '', 'forms', 'census/add', 'active'),
+(58, 'add_new_school', 'New School', '', 'forms', 'school/add', 'active'),
+(59, 'add_new_user', 'New User', '', 'users', 'user/add', 'active'),
+(60, 'set_user_permissions', 'Set User Permissions', '', 'users', 'user/set_permissions', 'active'),
+(61, 'change_user_status', 'Update User Status', '', 'users', 'user/update_status', 'active'),
+(62, 'change_other_user_passwords', 'Update User Password', '', 'users', 'user/change_password', 'active'),
+(63, 'send_system_message', 'New Message', '', 'my_messages', 'message/send_new_system', 'active'),
+(64, 'send_email_message', 'New Email', '', 'my_messages', 'message/send_new_email', 'active'),
+(65, 'send_sms_message', 'New SMS', '', 'my_messages', 'message/send_new_sms', 'active'),
+(66, 'view_message_inbox', 'Inbox', '', 'my_messages', 'message/inbox', 'active'),
+(67, 'view_archived_messages', 'Archived Messages', '', 'my_messages', 'message/archive', 'active'),
+(68, 'view_sent_messages', 'Sent Messages', '', 'my_messages', 'message/sent', 'active'),
+(69, 'view_permission_list', 'Permissions', '', 'permissions', 'permission/lists', 'active'),
+(70, 'view_permission_group_list', 'Permission Groups', '', 'permissions', 'permission/group_list', 'active'),
+(71, 'view_user_permissions', 'User Permissions', '', 'permissions', 'permission/user_list', 'active'),
+(72, 'add_new_permission_group', 'New Permission Group', '', 'permissions', 'permission/add_group', 'active'),
+(73, 'change_group_permissions', 'Update Permissions', '', 'permissions', 'permission/update_group', 'active'),
+(74, 'view_user_log', 'User Activity Log', '', 'reports', 'report/lists/action/user', 'active'),
+(75, 'view_system_log', 'System Log', '', 'reports', 'report/lists/action/system', 'active'),
+(76, 'view_users', 'Users', '', 'reports', 'user/lists/action/report', 'active'),
+(77, 'view_schools', 'Schools', '', 'reports', 'school/lists/action/report', 'active'),
+(78, 'view_teachers', 'Teachers', '', 'reports', 'teacher/lists/action/report', 'active'),
+(79, 'view_job_applications', 'Job Applications', '', 'reports', 'job/lists/action/report', 'active'),
+(80, 'view_jobs', 'Jobs', '', 'reports', 'vacancy/lists/action/report', 'active'),
+(81, 'view_retirements', 'Retirements', 'Manager only sees retirements at their school. Deo only sees retirements in their district', 'reports', 'retirement/lists/action/report', 'active'),
+(82, 'view_current_job', 'Current Job', '', 'job_description', 'job/view_current', 'active'),
+(83, 'view_previous_jobs', 'Previous Jobs', '', 'job_description', 'job/view_previous', 'active'),
+(84, 'view_current_school', 'Current School', '', 'school_profile', 'school/view_current', 'active'),
+(85, 'view_previous_schools', 'Previous Schools', '', 'school_profile', 'school/view_previous', 'active'),
+(86, 'log_out', 'Log Out', '', 'log_out', 'account/logout', 'active'),
+(87, 'view_approval_chain', 'View Approval Chain', '', 'reports', 'approval/lists/action/report', 'active'),
+(88, 'view_payroll_report', 'View Payroll Report', '', 'reports', 'teacher/lists/action/payrollreport', 'active'),
+(89, 'view_cim_report', 'View CIM Teacher Report', '', 'reports', 'teacher/lists/action/cimreport', 'active'),
+(90, 'view_custom_teacher_report', 'Custom Teacher Report', '', 'reports', 'teacher/custom_report', 'active');
+
+
+
+
+
 DROP TABLE `document_owner`;
 DROP TABLE `reference`;
 DROP TABLE `status_change_application`;
