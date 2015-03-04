@@ -327,13 +327,16 @@ $(function() {
       			beforeSend: function() {
            			//Show a temporary message to show that the form is being worked on
 					if(tempMessage != '') showServerSideFadingMessage(tempMessage);
+					else showWaitDiv('start');
 				},
 				error: function( xhr ) {
     				//console.log(xhr);
+					if(tempMessage == '') showWaitDiv('end');
 					showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
 				},
       	 		success: function(data) {
-		   			if(data.match(/php error/i) || data.match(/error:/i)) {
+		   			if(tempMessage == '') showWaitDiv('end');
+					if(data.match(/php error/i) || data.match(/error:/i)) {
 						console.log(data);
 					
 						// Determine which error to show
@@ -375,6 +378,26 @@ $(function() {
 							}
 						}
 						
+						// If it is for confirming the list selection, carry out certain special actions
+						if(submitBtn.hasClass('selectlistconfirmbtn')){
+							var parentDiv = submitBtn.parents('.selectlistdiv').first();
+							var containerDivId = 'input_'+parentDiv.attr('id');
+							
+							// 1. Hide all the list select checkboxes
+							$(document).find('.listcheckbox').each(function(){ 
+								//Uncheck all checked boxes
+								if($('#'+$(this).attr('for')).is(':checked')) $('#'+$(this).attr('for')).attr('checked', false);
+								//Then hide all checkboxes
+								$(this).hide('fast');
+							});
+							
+							// 2. Then hide the container 
+							$('#'+containerDivId).html($('#'+containerDivId).data('default'));
+							parentDiv.fadeOut('fast');
+							$('#'+parentDiv.attr('id').split('__')[0]+'__btn').css('display','inline-block');
+						}
+						
+						//Finally show the results div
 						$("#"+resultsDiv).html(data).fadeIn('fast');
 					}
 				}

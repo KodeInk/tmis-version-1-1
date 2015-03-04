@@ -347,7 +347,14 @@ else if(!empty($area) && $area == "select_board_members")
 	}
 
 }
-	
+
+
+
+
+
+
+
+
 	
 echo $tableHTML;
 ?>

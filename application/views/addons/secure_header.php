@@ -27,4 +27,4 @@ if(!empty($page))
   </tr>
   
   
-  <tr><td colspan="2"><div class="bluebg topgreyborder centrallinks" style="text-align:center; padding-top:10px;padding-bottom:10px;"><a href="javascript:;" <?php echo $helpStyle;?>>Help</a> &nbsp;&nbsp;|&nbsp;&nbsp; <a href="<?php echo base_url();?>profile/user_data" <?php echo $settingStyle;?>>My Settings</a> &nbsp;&nbsp;|&nbsp;&nbsp; <a href="<?php echo base_url();?>account/logout" class="yellow">Log Out</a></div></td></tr>
+  <tr><td colspan="2"><div class="bluebg topgreyborder centrallinks" style="text-align:center; padding-top:10px;padding-bottom:10px;"><a href="<?php echo base_url();?>message/send_new_system" <?php echo $helpStyle;?>>Help</a> &nbsp;&nbsp;|&nbsp;&nbsp; <a href="<?php echo base_url();?>profile/user_data" <?php echo $settingStyle;?>>My Settings</a> &nbsp;&nbsp;|&nbsp;&nbsp; <a href="<?php echo base_url();?>account/logout" class="yellow">Log Out</a></div></td></tr>

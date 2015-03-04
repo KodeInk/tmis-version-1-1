@@ -20,12 +20,18 @@ class _interview extends CI_Model
 			$application = $this->_query_reader->get_row_as_array('get_simple_application_details', array('application_id'=>$applicationId));
 			
 			#Send both the applicant and interviewer notice of interview set
-			$result2 = $this->_messenger->send(array($application['user_id'], $details['userid']), array('code'=>'notice_of_set_interview', 'applicant'=>$this->native_session->get('applicant'), 'submission_date'=>date('d-M-Y h:ia T', strtotime($this->native_session->get('submission_date'))), 'institution_name'=>$this->native_session->get('institution_name'), 'interview_notes'=>htmlentities($details['notes'], ENT_QUOTES), 'planned_date'=>$details['interviewdate'], 'interviewer'=>$details['interviewer__users'] ));
+			# Applicant
+			$result2_1 = $this->_messenger->send($application['user_id'], array('code'=>'notice_of_set_interview', 'applicant'=>$this->native_session->get('applicant'), 'submission_date'=>date('d-M-Y h:ia T', strtotime($this->native_session->get('submission_date'))), 'institution_name'=>$this->native_session->get('institution_name'), 'interview_notes'=>htmlentities($details['notes'], ENT_QUOTES), 'planned_date'=>$details['interviewdate'], 'interviewer'=>$details['interviewer__users'] ));
+			
+			#Interviewer
+			$result2_2 = $this->_messenger->send($details['userid'], array('code'=>'notify_interviewer_of_date', 'applicant'=>$this->native_session->get('applicant'), 'submission_date'=>date('d-M-Y h:ia T', strtotime($this->native_session->get('submission_date'))), 'institution_name'=>$this->native_session->get('institution_name'), 'interview_notes'=>htmlentities($details['notes'], ENT_QUOTES), 'planned_date'=>$details['interviewdate'], 'interviewer'=>$details['interviewer__users'] ));
+			
+			$result2 = get_decision(array($result2_1, $result2_2));
 		} 
 		else $result2 = false;
 		
 		
-		return get_decision(array($result1, $result2), FALSE);
+		return get_decision(array($result1, $result2));
 	}
 		
 		
@@ -429,7 +435,60 @@ class _interview extends CI_Model
 		# Return appropriate message based on whether the board is empty or id can not be found
 		return empty($boardList)? (!empty($data['boardid'])? "WARNING: This board has no members": "ERROR: Board members could not be loaded"): "";
 	}
+	
+	
+	
+	
+	# Set interviews for multiple users in one go
+	function set_multiuser_interviews($details)
+	{
+		$result = false;
 		
+		if(!empty($details['applicationid']) && !empty($details['interviewdate']) && !empty($details['boardid']))
+		{
+			$board = $this->_query_reader->get_row_as_array('get_board_chairman',array('board_id'=>$details['boardid']));
+			
+			# 1. Record the interview dates
+			$result1 = $this->_query_reader->run('record_multiple_interviews', array('application_ids'=>"'".implode("','",$details['applicationid'])."'", 'interviewer_id'=>$board['chairman_id'], 'planned_date'=>date('Y-m-d H:i:s', strtotime($details['interviewdate'])), 'notes'=>'NONE','board_id'=>$details['boardid'], 'added_by'=>$this->native_session->get('__user_id')));
+			
+			# 2. Notify the applicants and chairperson about the interviews
+			if($result1 && !empty($board)) 
+			{
+				# a) Notify the applicants
+				$applications =  $this->_query_reader->get_list('get_application_list_data', array('application_ids'=>"'".implode("','",$details['applicationid'])."'"));
+				
+				$results = $applicants = array();
+				foreach($applications AS $row)
+				{
+					array_push($results, 
+						$this->_messenger->send($row['applicant_id'], array('code'=>'notice_of_set_interview', 'applicant'=>$row['applicant_name'], 'submission_date'=>date('d-M-Y h:ia T', strtotime($row['submission_date'])), 'institution_name'=>$row['institution_name'], 'interview_notes'=>'NONE', 'planned_date'=>$details['interviewdate'], 'interviewer'=>$board['chairman_name']." (BOARD NAME: ".$board['board_name'].")" ))
+					);
+					
+					array_push($applicants, $row['applicant_name']);
+				}
+				
+				# Notify the chairman as well
+				array_push($results, 
+					$this->_messenger->send($board['chairman_id'], array('code'=>'notify_interviewer_of_date', 'applicant'=>implode(', ',$applicants), 'submission_date'=>'multiple submissions', 'institution_name'=>'multiple schools', 'interview_notes'=>'NONE', 'planned_date'=>$details['interviewdate'], 'interviewer'=>$board['chairman_name']." (BOARD NAME: ".$board['board_name'].")" ))
+				);
+					
+					
+				$result2 = get_decision($results, FALSE);
+			}
+			else $result2 = false;
+			
+			$result = get_decision(array($result1, $result2));
+		}
+		
+		return $result;
+	}
+	
+	
+	
+	
+	
+	
+	
 }
 
 

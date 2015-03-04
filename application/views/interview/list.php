@@ -38,6 +38,11 @@ if(!empty($list))
 		echo "<div data-val='reject__".$row['id']."' ".$listType." class='rejectrow' title='Click to reject'></div>";
 	}
 	
+	if(!empty($action) && $action == 'setdate')
+	{
+		echo "<input id='interview_".$row['application_id']."' name='selectall[]' type='checkbox' value='".$row['application_id']."' class='bigcheckbox' onChange=\"addListFieldValue('interview_".$row['application_id']."', 'input_multiuserdateset__div','interviewuser','".$row['applicant_id']."|applicationid=".$row['application_id']."','".$row['applicant_name']."')\"><label id='interviewlabel_".$row['application_id']."' for='interview_".$row['application_id']."' class='listcheckbox' style='margin-left:10px;".($this->native_session->get('__select_multi')? "": "display:none;")."'></label>";
+	}
+	
 	
 	# User is viewing candidate shortlists
 	if(!empty($action) && $action == 'shortlist')
@@ -53,14 +58,16 @@ if(!empty($list))
 	# User is viewing candidate applications
 	else if(!empty($action) && in_array($action, array('setdate', 'recommend', 'recommendations')))
 	{
+		$cancel = ($action == 'setdate')? " onclick=\"clickIfVisible('interviewlabel_".$row['application_id']."','cancelsetdate')\"": "";
+		
 		echo "</td> <td>".$row['topic']."<br>(".$row['role_name'].")</td> 
 		<td>".$row['institution_name']."</td>
-		<td><a href='".base_url()."teacher/add/id/".$row['applicant_id']."/action/view' class='shadowbox closable'>".$row['applicant_name']."</a></td>
+		<td><a href='".base_url()."teacher/add/id/".$row['applicant_id']."/action/view' ".$cancel." class='shadowbox closable'>".$row['applicant_name']."</a></td>
 		<td>".date('d-M-Y h:ia T', strtotime($row['submission_date']))."</td>
-		<td>".($row['recommendation_count'] > 0? "<a href='".base_url()."interview/recommendations/id/".$row['application_id']."' class='shadowbox closable'>Recommendations</a>": "No recommendations");
-		if($action == 'recommend' && $row['has_recommended'] == 'N') echo "<br><div class='rightnote'><a href='".base_url()."interview/recommend/id/".$row['application_id']."' class='shadowbox'>recommend</a></div>";
+		<td>".($row['recommendation_count'] > 0? "<a href='".base_url()."interview/recommendations/id/".$row['application_id']."' ".$cancel." class='shadowbox closable'>Recommendations</a>": "No recommendations");
+		if($action == 'recommend' && $row['has_recommended'] == 'N') echo "<br><div class='rightnote'><a href='".base_url()."interview/recommend/id/".$row['application_id']."' ".$cancel." class='shadowbox'>recommend</a></div>";
 		
-		if($action == 'setdate') echo "<br><div class='rightnote'><a href='".base_url()."interview/set_date/id/".$row['application_id']."' class='shadowbox'>set date</a></div>";
+		if($action == 'setdate') echo "<br><div class='rightnote'><a href='".base_url()."interview/set_date/id/".$row['application_id']."' ".$cancel." class='shadowbox'>set date</a></div>";
 		
 		echo "</td>";
 	}

@@ -56,6 +56,9 @@ class Interview extends CI_Controller
 		$instructions['action'] = array('shortlist'=>'set_vacancy_shortlist', 'setdate'=>'set_interview_date', 'cancel'=>'cancel_interview', 'recommend'=>'submit_recommendation_for_job', 'recommendations'=>'view_recommendation_list', 'addresult'=>'add_interview_results', 'result'=>'view_interview_results');
 		check_access($this, get_access_code($data, $instructions));
 		
+		# remove the select multi session if it is available
+		if($this->native_session->get('__select_multi')) $this->native_session->delete('__select_multi');
+		
 		$data['list'] = $this->_interview->get_list($data);
 		$this->load->view('interview/list_interviews', $data); 
 	}
@@ -316,6 +319,40 @@ class Interview extends CI_Controller
 			$this->load->view('interview/addons', $data); 
 		}
 	}
+	
+	
+	
+	
+	# Select more than one user for sending a 
+	function select_multi_user()
+	{
+		$data = filter_forwarded_data($this);
+		# Should we show the checkboxes
+		if(!empty($data['clear'])) $this->native_session->delete('__select_multi');
+		else $this->native_session->set('__select_multi', 'setdate');
+		
+		if(!empty($_POST))
+		{
+			# Set interviews if users were selected
+			if($this->input->post('interviewuser') && $this->input->post('applicationid'))
+				$result = $this->_interview->set_multiuser_interviews($this->input->post(NULL, TRUE));
+			else $data['msg'] = "WARNING: No interview candidates were identified.";
+			
+			# Remove the session variable for the multi-selection when done
+			if(!empty($result) && $result)
+			{
+				$this->native_session->delete('__select_multi');
+				$data['msg'] = "The interview dates have been set and the candidates and interviewer notified.";
+			}
+			else if(empty($data['msg'])) $data['msg'] = "ERROR: We could not set the interviews for the users.";
+			
+			$data['area'] = "basic_msg";
+			$this->load->view('addons/basic_addons', $data);
+		}
+	}
+	
+	
+	
 	
 }
 

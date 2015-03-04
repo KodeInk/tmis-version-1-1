@@ -1506,6 +1506,12 @@ function clickItem(itemId)
 }
 
 
+// Function to click an item if another is visible
+function clickIfVisible(visibleItem,clickedItem)
+{
+	if($('#'+visibleItem).is(':visible')) clickItem(clickedItem);
+}
+
 
 //Function to submit a form
 function submitForm(formId)
