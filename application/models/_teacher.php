@@ -360,7 +360,89 @@ class _teacher extends CI_Model
 	
 	
 	
-	
+	# Generate custom report
+	function generate_custom_report($specs)
+	{
+		$list = array();
+		if($specs['reporttype__reporttypes'] == 'Number of Registered Teachers')
+		{
+			switch($specs['reportsubtype__registerednumbers'])
+			{
+				case 'By Gender':
+					$list = $this->_query_reader->get_list('report_stat_registerednumbers_by_gender');
+				break;
+				
+				case 'By Grade':
+					$list = $this->_query_reader->get_list('report_stat_registerednumbers_by_grade');
+				break;
+				
+				case 'By Subject':
+					$list = $this->_query_reader->get_list('report_stat_registerednumbers_by_subject');
+				break;
+				
+				case 'By School':
+					$list = $this->_query_reader->get_list('report_stat_registerednumbers_by_school');
+				break;
+				
+				case 'By District':
+					$list = $this->_query_reader->get_list('report_stat_registerednumbers_by_district');
+				break;
+				
+				case 'By Region':
+					$list = $this->_query_reader->get_list('report_stat_registerednumbers_by_region');
+				break;
+			}
+			
+		}
+		else if($specs['reporttype__reporttypes'] == 'Teacher Appointments')
+		{
+			switch($specs['reportsubtype__teacherappointments'])
+			{
+				case 'By Post':
+					$list = $this->_query_reader->get_list('report_stat_teacherappointments_by_post', array('start_date'=>format_date($specs['startdate']),'end_date'=>format_date($specs['enddate']) ));
+				break;
+				
+				case 'By School':
+					$list = $this->_query_reader->get_list('report_stat_teacherappointments_by_school', array('start_date'=>format_date($specs['startdate']),'end_date'=>format_date($specs['enddate']) ));
+				break;
+				
+				case 'By District':
+					$list = $this->_query_reader->get_list('report_stat_teacherappointments_by_district', array('start_date'=>format_date($specs['startdate']),'end_date'=>format_date($specs['enddate']) ));
+				break;
+				
+				case 'By Region':
+					$list = $this->_query_reader->get_list('report_stat_teacherappointments_by_region', array('start_date'=>format_date($specs['startdate']),'end_date'=>format_date($specs['enddate']) ));
+				break;
+			}
+		}
+		else if($specs['reporttype__reporttypes'] == 'Teacher Status')
+		{
+			switch($specs['reportsubtype__teacherstatus'])
+			{
+				case 'Applied':
+					$list = $this->_query_reader->get_list('report_stat_teacherstatus_applied');
+				break;
+				
+				case 'On Probation':
+					$list = $this->_query_reader->get_list('report_stat_teacherstatus_on_probation');
+				break;
+				
+				case 'Confirmed':
+					$list = $this->_query_reader->get_list('report_stat_teacherstatus_confirmed');
+				break;
+				
+				case 'On Leave':
+					$list = $this->_query_reader->get_list('report_stat_teacherstatus_on_leave');
+				break;
+				
+				case 'Retired':
+					$list = $this->_query_reader->get_list('report_stat_teacherstatus_retired');
+				break;
+			}
+		}
+		
+		return $list;
+	}
 	
 }
 

@@ -234,6 +234,42 @@ class Teacher extends CI_Controller
 	
 	
 	
+	
+	
+	
+	# View teacher custom report
+	function custom_report()
+	{
+		$data = filter_forwarded_data($this);
+		check_access($this, 'view_custom_teacher_report');
+		
+		# The user has posted the report specifications
+		if(!empty($_POST))
+		{
+			$data['posts'] = $_POST;
+			$data['list'] = $this->_teacher->generate_custom_report($this->input->post(NULL, TRUE));
+			$data['area'] = 'custom_report_view';
+			$this->load->view('teacher/addons', $data);
+		}
+		# This is the main report page
+		else $this->load->view('teacher/custom_report', $data);
+	}
+	
+	
+	
+	
+	
+	# Show report specs
+	function report_specification()
+	{
+		$data = filter_forwarded_data($this);
+		
+		$data['area'] = 'report_specifications';
+		$this->load->view('teacher/addons', $data);
+	}
+	
+	
+	
 }
 
 /* End of controller file */

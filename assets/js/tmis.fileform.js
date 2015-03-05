@@ -329,8 +329,8 @@ $(function() {
 					if(tempMessage != '') showServerSideFadingMessage(tempMessage);
 					else showWaitDiv('start');
 				},
-				error: function( xhr ) {
-    				//console.log(xhr);
+				error: function( xhr, textStatus, errorThrown) {
+    				//console.log(xhr.responseText);
 					if(tempMessage == '') showWaitDiv('end');
 					showServerSideFadingMessage('ERROR: Something went wrong. We can not submit your data.');
 				},
@@ -358,17 +358,20 @@ $(function() {
 					else
 					{
 						//Clear the micro form for the next entry
-						inputs.each(function(){
-							if($(this).attr('type') != 'hidden'){
-								$(this).val('').removeAttr('checked').removeAttr('selected');
-							}
+						if(!formContainer.hasClass('ignoreclear'))
+						{
+							inputs.each(function(){
+								if($(this).attr('type') != 'hidden'){
+									$(this).val('').removeAttr('checked').removeAttr('selected');
+								}
 							
-							//If some fields were hidden because they should not be edited, show them again
-							if($(this).parent('div').length > 0 && $(this).parent('div').hasClass('hideonedit')){
-								$(this).parent('div').css('display','inline-block');
-								$(this).removeClass('optional');
-							}
-						});
+								//If some fields were hidden because they should not be edited, show them again
+								if($(this).parent('div').length > 0 && $(this).parent('div').hasClass('hideonedit')){
+									$(this).parent('div').css('display','inline-block');
+									$(this).removeClass('optional');
+								}
+							});
+						}
 						
 						//If certain hidden fields are specified for clearance after submission, put them on the button data-val
 						if(submitBtn.data('val')){

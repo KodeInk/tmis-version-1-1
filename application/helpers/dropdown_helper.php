@@ -287,9 +287,61 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 		
 		
 		
+		case "reporttypes":
+			$types[0] = array('type'=>'registerednumbers', 'display'=>'Number of Registered Teachers');
+			$types[1] = array('type'=>'teacherappointments', 'display'=>'Teacher Appointments');
+			$types[2] = array('type'=>'teacherstatus', 'display'=>'Teacher Status');
+			
+			foreach($types AS $row)
+			{
+				$optionString .= "<div data-value='".$row['display']."' onclick=\"updateFieldLayer('".base_url()."teacher/report_specification/type/".$row['type']."','','','reportspecs','')\">".$row['display']."</div>";
+			}
+		break;
 		
 		
 		
+		case "registerednumbers":
+			$types[0] = array('type'=>'gender', 'display'=>'By Gender');
+			$types[1] = array('type'=>'grades', 'display'=>'By Grade');
+			$types[2] = array('type'=>'subjects', 'display'=>'By Subject');
+			$types[3] = array('type'=>'schools', 'display'=>'By School');
+			$types[4] = array('type'=>'districts', 'display'=>'By District');
+			$types[5] = array('type'=>'region', 'display'=>'By Region');
+			
+			foreach($types AS $row)
+			{
+				$optionString .= "<div data-value='".$row['display']."'>".$row['display']."</div>";
+			}
+		break;
+		
+		
+		
+		case "teacherappointments":
+			$types[0] = array('type'=>'post', 'display'=>'By Post');
+			$types[1] = array('type'=>'school', 'display'=>'By School');
+			$types[2] = array('type'=>'district', 'display'=>'By District');
+			$types[3] = array('type'=>'region', 'display'=>'By Region');
+			
+			foreach($types AS $row)
+			{
+				$optionString .= "<div data-value='".$row['display']."'>".$row['display']."</div>";
+			}
+		break;
+		
+		
+		
+		case "teacherstatus":
+			$types[0] = array('type'=>'applied', 'display'=>'Applied');
+			$types[1] = array('type'=>'probation', 'display'=>'On Probation');
+			$types[2] = array('type'=>'confirmed', 'display'=>'Confirmed');
+			$types[3] = array('type'=>'onleave', 'display'=>'On Leave');
+			$types[4] = array('type'=>'retired', 'display'=>'Retired');
+			
+			foreach($types AS $row)
+			{
+				$optionString .= "<div data-value='".$row['display']."'>".$row['display']."</div>";
+			}
+		break;
 		
 		
 		
