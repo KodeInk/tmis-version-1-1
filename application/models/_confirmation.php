@@ -82,7 +82,7 @@ class _confirmation extends CI_Model
 	{
 		$school = $this->_query_reader->get_row_as_array('get_teacher_jobs', array('user_id'=>$this->native_session->get('__user_id'), 'search_condition'=>" AND P.posting_end_date = '0000-00-00' LIMIT 1" ));
 		
-		return ($returnType == 'id' && !empty($school['institution_id']))? $school['institution_id']: $school;
+		return ($returnType == 'id')? (!empty($school['institution_id'])? $school['institution_id']: ''): $school;
 	}
 	
 	

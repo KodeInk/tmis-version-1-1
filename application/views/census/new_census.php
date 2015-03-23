@@ -123,7 +123,7 @@ if(empty($id)) {?>
   <tr>
     <td>&nbsp;</td>
     <td><input type="submit" name="save" id="save" class="btn" value="SAVE" /><?php 
-	echo !empty($id)? "<input type='hidden' id='schoolid' name='censusid' value='".$id."' />": "";
+	echo !empty($id)? "<input type='hidden' id='censusid' name='censusid' value='".$id."' />": "";
 	echo "<input type='hidden' id='forward' name='forward' value='census/lists".(!empty($action) && $action!='view'? '/action/'.$action: '')."' />";
 	?></td>
   </tr>

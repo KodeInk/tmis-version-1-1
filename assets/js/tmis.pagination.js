@@ -40,7 +40,7 @@ $(function() {
 		var maxPages = !$('#paginationdiv__'+parentDiv.attr('id')+'_maxpages').length? 5 : parseInt($('#paginationdiv__'+parentDiv.attr('id')+'_maxpages').val());
 		var noPerList = !$('#paginationdiv__'+parentDiv.attr('id')+'_noperlist').length? 10 : parseInt($('#paginationdiv__'+parentDiv.attr('id')+'_noperlist').val());
 		//Specify the base URL to go to when the div is clicked
-		var baseUrl = !$('#paginationdiv__'+parentDiv.attr('id')+'_action').length? getBaseURL()+'web/search/load_list/t/'+parentDiv.attr('id') : $('#paginationdiv__'+parentDiv.attr('id')+'_action').val();
+		var baseUrl = !$('#paginationdiv__'+parentDiv.attr('id')+'_action').length? getBaseURL()+'search/load_list/t/'+parentDiv.attr('id') : $('#paginationdiv__'+parentDiv.attr('id')+'_action').val();
 		//The number of div children in the pagination parent div
 		var noOfChildren = parentDiv.children('div').length;
 			

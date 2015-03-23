@@ -257,7 +257,7 @@ class _approval_chain extends CI_Model
 		$originator = $this->_query_reader->get_row_as_array('get_originator_of_chain', array('subject_id'=>$chain['subject_id'], 'chain_type'=>$chain['chain_type']));
 		
 		$user = $this->_query_reader->get_row_as_array('get_user_profile', array('user_id'=>$originator['originator']));
-		$fileNumber = 'TM'.strtotime('now').(strtoupper(substr($user['first_name'], -1).substr($user['last_name'], -1)));
+		$fileNumber = 'UTS'.sprintf("%'.07d\n",$user['person_id']);
 		
 		#Record the file number on the teacher's person profile
 		$result1 = $this->_query_reader->run('update_person_profile_part', array('person_id'=>$user['person_id'], 'query_part'=>" file_number='".$fileNumber."' "));

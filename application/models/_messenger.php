@@ -301,7 +301,8 @@ class _messenger extends CI_Model {
 		{
 			$searchString .= " AND ".$instructions['searchstring'];
 		}
-		
+		# $variable = [condition]? [value if condition is true]: [value if condition is false];
+		# $count = 5
 		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
 		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
 		

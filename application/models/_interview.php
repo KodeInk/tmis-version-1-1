@@ -177,6 +177,7 @@ class _interview extends CI_Model
 		$count = !empty($instructions['pagecount'])? $instructions['pagecount']: NUM_OF_ROWS_PER_PAGE;
 		$start = !empty($instructions['page'])? ($instructions['page']-1)*$count: 0;
 		
+		
 		return $this->_query_reader->get_list($queryCode,array('search_query'=>$searchString, 'viewed_by'=>$this->native_session->get('__user_id'), 'limit_text'=>$start.','.($count+1), 'order_by'=>$orderBy));
 	}
 
@@ -227,7 +228,7 @@ class _interview extends CI_Model
 	}
 	
 	
-	#Get the postings of a user given their ID
+	#Get the postings of a user given their ID 
 	function get_postings($userId)
 	{
 		return $this->_query_reader->get_single_column_as_array('get_user_posting', 'institution_id', array('user_id'=>$userId));

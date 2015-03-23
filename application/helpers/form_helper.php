@@ -12,7 +12,7 @@
 # Process data from the form
 function process_fields($obj, $data, $required=array(), $allowChars=array())
 {
-	$disallowChars = array("'", "\"", "\\", "(", ")", "/", "<", ">", "!", "#", "%", "&", "?", "$", ":", ";", "=");
+	$disallowChars = array("'", "\"", "\\", "(", ")", "/", "<", ">", "!", "#", "%", "&", "?", "$", ":", ";", "=", "*");
 	if(!empty($allowChars)) $disallowChars = array_diff($disallowChars, $allowChars);
 	# Did the data set pass the requried check
 	$hasPassed = true;

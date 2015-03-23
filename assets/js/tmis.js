@@ -135,8 +135,8 @@ function openWindow(fileName) {
 
 //Function to replace bad characters before they are passed in a URL
 function replaceBadChars(formString){
-	var badChars = Array("'", "\"", "\\", "(", ")", "/", "<", ">", "!", "#", "@", "%", "&", "?", "$", ",", ";", ":", " ");
-	var replaceChars = Array("_QUOTE_", "_DOUBLEQUOTE_", "_BACKSLASH_", "_OPENPARENTHESIS_", "_CLOSEPARENTHESIS_", "_FORWARDSLASH_", "_OPENCODE_", "_CLOSECODE_", "_EXCLAMATION_", "_HASH_", "_EACH_", "_PERCENT_", "_AND_", "_QUESTION_", "_DOLLAR_", "_COMMA_", "_SEMICOLON_", "_FULLCOLON_", "_SPACE_");
+	var badChars = Array("'", "\"", "\\", "(", ")", "/", "<", ">", "!", "#", "@", "%", "&", "?", "$", ",", ";", ":", " ", "*");
+	var replaceChars = Array("_QUOTE_", "_DOUBLEQUOTE_", "_BACKSLASH_", "_OPENPARENTHESIS_", "_CLOSEPARENTHESIS_", "_FORWARDSLASH_", "_OPENCODE_", "_CLOSECODE_", "_EXCLAMATION_", "_HASH_", "_EACH_", "_PERCENT_", "_AND_", "_QUESTION_", "_DOLLAR_", "_COMMA_", "_SEMICOLON_", "_FULLCOLON_", "_SPACE_", "_ASTERISK_");
 	var newString = '';
 	
 	for(var i=0;i<badChars.length;i++){

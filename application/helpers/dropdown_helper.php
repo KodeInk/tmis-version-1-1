@@ -56,8 +56,8 @@ function get_option_list($obj, $list_type, $return = 'div', $searchBy="", $more=
 			# Get the district field if given
 			$district = array_key_contains('-district-', $more);
 			
-			$users = $obj->_query_reader->get_list('get_county_list_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
-			foreach($users AS $row)
+			$counties = $obj->_query_reader->get_list('get_county_list_data', array('search_query'=>$searchQuery, 'order_by'=>$orderBy, 'limit_text'=>'100'));
+			foreach($counties AS $row)
 			{
 				$optionString .= "<div data-value='".$row['value']."'";
 				$optionString .= $district['boolean']? " onclick=\"universalUpdate('".$more[$district['key']]."', '".$row['district_name']."')\"": "";

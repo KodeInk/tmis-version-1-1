@@ -53,6 +53,7 @@ class Interview extends CI_Controller
 	function lists()
 	{
 		$data = filter_forwarded_data($this);
+		
 		$instructions['action'] = array('shortlist'=>'set_vacancy_shortlist', 'setdate'=>'set_interview_date', 'cancel'=>'cancel_interview', 'recommend'=>'submit_recommendation_for_job', 'recommendations'=>'view_recommendation_list', 'addresult'=>'add_interview_results', 'result'=>'view_interview_results');
 		check_access($this, get_access_code($data, $instructions));
 		
